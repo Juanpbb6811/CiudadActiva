@@ -1,0 +1,32 @@
+# =======================================================================
+# Render Blueprint (render.yaml) para CiudadActiva Backend API
+# Permite despliegue automatizado con un solo clic en Render
+# =======================================================================
+
+services:
+  - type: web
+    name: ciudadactiva-backend
+    env: docker
+    dockerfilePath: Dockerfile
+    rootDir: .
+    plan: free
+    region: ohio
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+        # Ejemplo: jdbc:postgresql://aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+        # Ejemplo: postgres.xxxxxx
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+        # Contraseña del proyecto Supabase
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JPA_DDL_AUTO
+        value: update
+      - key: SHOW_SQL
+        value: false
