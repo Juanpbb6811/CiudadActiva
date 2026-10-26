@@ -27,10 +27,10 @@ USER appuser
 COPY --from=build /app/target/*.jar app.jar
 
 # Variables de entorno por defecto
-ENV PORT=8080
+ENV PORT=10000
 ENV SPRING_PROFILES_ACTIVE=prod
 
-EXPOSE 8080
+EXPOSE 10000
 
 # Parámetros JVM optimizados para contenedores pequeños (Render free tier / starter)
 ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]

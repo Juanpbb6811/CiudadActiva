@@ -23,9 +23,9 @@ USER appuser
 
 COPY --from=build /app/target/*.jar app.jar
 
-ENV PORT=8080
+ENV PORT=10000
 ENV SPRING_PROFILES_ACTIVE=prod
 
-EXPOSE 8080
+EXPOSE 10000
 
 ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
