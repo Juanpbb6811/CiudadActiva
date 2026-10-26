@@ -27,21 +27,22 @@ public class CategoriaService {
     @Transactional(readOnly = true)
     public List<CategoriaResponse> listarActivas() {
         return categoriaRepository.findByActivaTrue().stream()
-                .map(CategoriaResponse::new)
+                .map(c -> new CategoriaResponse(c, reporteRepository.countByCategoria_Id(c.getId())))
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<CategoriaResponse> listarTodas() {
         return categoriaRepository.findAll().stream()
-                .map(CategoriaResponse::new)
+                .map(c -> new CategoriaResponse(c, reporteRepository.countByCategoria_Id(c.getId())))
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public CategoriaResponse obtenerPorId(Long id) {
         Categoria categoria = buscarPorId(id);
-        return new CategoriaResponse(categoria);
+        long total = reporteRepository.countByCategoria_Id(id);
+        return new CategoriaResponse(categoria, total);
     }
 
     @Transactional

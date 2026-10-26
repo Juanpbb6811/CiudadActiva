@@ -1,5 +1,6 @@
 package com.ciudadactiva.service;
 
+import com.ciudadactiva.dto.common.SemaforoDTO;
 import com.ciudadactiva.dto.estadistica.EstadisticasResponse;
 import com.ciudadactiva.entity.Categoria;
 import com.ciudadactiva.entity.EstadoReporte;
@@ -47,6 +48,7 @@ public class EstadisticaService {
 
         // Conteo por Categoría
         Map<String, Long> porCategoria = new HashMap<>();
+        Map<String, SemaforoDTO> semaforoPorCategoria = new HashMap<>();
         for (Categoria c : todasLasCategorias) {
             porCategoria.put(c.getNombre(), 0L);
         }
@@ -56,7 +58,12 @@ public class EstadisticaService {
                 porCategoria.put(catNombre, porCategoria.getOrDefault(catNombre, 0L) + 1);
             }
         }
+        for (Categoria c : todasLasCategorias) {
+            int cantidad = porCategoria.getOrDefault(c.getNombre(), 0L).intValue();
+            semaforoPorCategoria.put(c.getNombre(), SemaforoDTO.calcular(cantidad));
+        }
         response.setReportesPorCategoria(porCategoria);
+        response.setSemaforoPorCategoria(semaforoPorCategoria);
 
         // Conteo por Prioridad
         Map<String, Long> porPrioridad = new HashMap<>();
@@ -77,6 +84,9 @@ public class EstadisticaService {
         response.setReportesAtendidosOCerrados(cerrados);
         response.setReportesPendientes(pendientes);
 
+        // Semáforo Global basado en reportes pendientes / activos o totales
+        response.setSemaforoGlobal(SemaforoDTO.calcular((int) response.getTotalReportes()));
+
         // Tiempo promedio de atención en horas
         double totalHoras = 0;
         long totalCerradosConFecha = 0;
@@ -93,5 +103,12 @@ public class EstadisticaService {
         response.setTiempoPromedioAtencionHoras(Math.round(promedio * 100.0) / 100.0);
 
         return response;
+    }
+
+    /**
+     * Calcula dinámicamente el estado del semáforo para cualquier cantidad dada (1 a 10 escala de color).
+     */
+    public SemaforoDTO calcularSemaforo(int cantidad) {
+        return SemaforoDTO.calcular(cantidad);
     }
 }

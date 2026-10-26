@@ -1,5 +1,6 @@
 package com.ciudadactiva.dto.estadistica;
 
+import com.ciudadactiva.dto.common.SemaforoDTO;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,6 +13,8 @@ public class EstadisticasResponse {
     private double tiempoPromedioAtencionHoras;
     private long reportesAtendidosOCerrados;
     private long reportesPendientes;
+    private SemaforoDTO semaforoGlobal;
+    private Map<String, SemaforoDTO> semaforoPorCategoria = new HashMap<>();
 
     public EstadisticasResponse() {
     }
@@ -70,5 +73,21 @@ public class EstadisticasResponse {
 
     public void setReportesPendientes(long reportesPendientes) {
         this.reportesPendientes = reportesPendientes;
+    }
+
+    public SemaforoDTO getSemaforoGlobal() {
+        return semaforoGlobal;
+    }
+
+    public void setSemaforoGlobal(SemaforoDTO semaforoGlobal) {
+        this.semaforoGlobal = semaforoGlobal;
+    }
+
+    public Map<String, SemaforoDTO> getSemaforoPorCategoria() {
+        return semaforoPorCategoria;
+    }
+
+    public void setSemaforoPorCategoria(Map<String, SemaforoDTO> semaforoPorCategoria) {
+        this.semaforoPorCategoria = semaforoPorCategoria;
     }
 }

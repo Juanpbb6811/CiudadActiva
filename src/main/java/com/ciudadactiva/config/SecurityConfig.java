@@ -47,7 +47,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Endpoints públicos de autenticación y documentación
+                        // Endpoints públicos de autenticación, salud y documentación
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/health").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
@@ -58,6 +58,12 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**"
                         ).permitAll()
+
+                        // Fotografías públicas (para renderizado directo en componentes visuales móviles y navegadores)
+                        .requestMatchers(HttpMethod.GET, "/api/reportes/*/foto", "/api/reportes/*/foto-solucion").permitAll()
+
+                        // Cálculo y consulta de semáforos disponible
+                        .requestMatchers(HttpMethod.GET, "/api/estadisticas/semaforo/**").permitAll()
 
                         // Categorías públicas para lectura (permitir listar categorías sin login previo)
                         .requestMatchers(HttpMethod.GET, "/api/categorias/**").permitAll()
@@ -74,11 +80,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/reportes/*/asignaciones").hasAnyRole("GESTOR", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/reportes/*/asignaciones").hasAnyRole("GESTOR", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/asignaciones").hasAnyRole("GESTOR", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/estadisticas/**").hasAnyRole("GESTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/estadisticas/reportes").hasAnyRole("GESTOR", "ADMIN")
 
                         // Operaciones de campo (Operador, Gestor, Admin)
                         .requestMatchers(HttpMethod.POST, "/api/reportes/*/seguimientos").hasAnyRole("OPERADOR", "GESTOR", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/reportes/*/cerrar").hasAnyRole("OPERADOR", "GESTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/reportes/*/foto-solucion").hasAnyRole("OPERADOR", "GESTOR", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/reportes/asignados").hasAnyRole("OPERADOR", "GESTOR", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/asignaciones/mis-asignaciones").hasAnyRole("OPERADOR", "GESTOR", "ADMIN")
 

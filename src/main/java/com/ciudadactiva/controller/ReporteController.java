@@ -15,20 +15,25 @@ import com.ciudadactiva.service.ComentarioService;
 import com.ciudadactiva.service.ReporteService;
 import com.ciudadactiva.service.SeguimientoService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/reportes")
-@Tag(name = "Reportes de Incidencias", description = "Endpoints centrales para ciclo de vida de incidencias, validación, asignación y cierre")
+@Tag(name = "Reportes de Incidencias", description = "Endpoints centrales para ciclo de vida de incidencias, fotos tomadas con celular, validación, asignación y cierre")
 @SecurityRequirement(name = "BearerAuth")
 public class ReporteController {
 
@@ -78,15 +83,89 @@ public class ReporteController {
         return ResponseEntity.ok(ApiResponse.ok("Detalle del reporte obtenido", detalle));
     }
 
-    // ================== RF02: REGISTRAR INCIDENCIA ==================
+    // ================== RF02: REGISTRAR INCIDENCIA (JSON / BASE64) ==================
     @PostMapping
-    @Operation(summary = "Registrar Incidencia", description = "Crea un nuevo reporte con categoría, descripción, geolocalización simulada y fotografía.")
+    @Operation(summary = "Registrar Incidencia", description = "Crea un nuevo reporte con categoría, descripción, geolocalización simulada y fotografía opcional (URL o Base64).")
     public ResponseEntity<ApiResponse<ReporteResponse>> crearReporte(
             Principal principal,
             @Valid @RequestBody ReporteCreateRequest request
     ) {
         ReporteResponse response = reporteService.crearReporte(principal.getName(), request);
         return new ResponseEntity<>(ApiResponse.ok("Reporte registrado exitosamente", response), HttpStatus.CREATED);
+    }
+
+    // ================== RF02: REGISTRAR INCIDENCIA CON FOTO DIRECTA (MULTIPART / CÁMARA MÓVIL) ==================
+    @PostMapping(value = "/con-foto", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Registrar Incidencia con Fotografía de Cámara", description = "Permite registrar un reporte y subir directamente la foto tomada desde la cámara del celular en una sola petición multipart.")
+    public ResponseEntity<ApiResponse<ReporteResponse>> crearReporteConFoto(
+            Principal principal,
+            @RequestParam("titulo") String titulo,
+            @RequestParam("descripcion") String descripcion,
+            @RequestParam("categoriaId") Long categoriaId,
+            @RequestParam(value = "latitud", required = false) Double latitud,
+            @RequestParam(value = "longitud", required = false) Double longitud,
+            @RequestParam(value = "direccion", required = false) String direccion,
+            @RequestParam(value = "foto", required = false) MultipartFile foto
+    ) throws IOException {
+        ReporteResponse response = reporteService.crearReporteConFoto(
+                principal.getName(),
+                titulo,
+                descripcion,
+                categoriaId,
+                latitud,
+                longitud,
+                direccion,
+                foto
+        );
+        return new ResponseEntity<>(ApiResponse.ok("Reporte con fotografía de cámara registrado exitosamente", response), HttpStatus.CREATED);
+    }
+
+    // ================== SUBIR FOTO DESDE CELULAR A REPORTE EXISTENTE ==================
+    @PostMapping(value = "/{id}/foto", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Subir Fotografía de Cámara a Reporte Existente", description = "Permite al ciudadano o personal subir/actualizar la fotografía tomada con su teléfono para una incidencia existente.")
+    public ResponseEntity<ApiResponse<ReporteResponse>> subirFotoReporte(
+            @PathVariable Long id,
+            Principal principal,
+            @RequestParam("foto") MultipartFile foto
+    ) throws IOException {
+        ReporteResponse response = reporteService.subirFotoReporte(id, principal.getName(), foto);
+        return ResponseEntity.ok(ApiResponse.ok("Fotografía tomada con el celular guardada en la base de datos con éxito", response));
+    }
+
+    // ================== DESCARGAR / VISUALIZAR FOTO DE LA INCIDENCIA ==================
+    @GetMapping("/{id}/foto")
+    @Operation(summary = "Obtener Imagen del Reporte", description = "Descarga o visualiza la fotografía original de la incidencia almacenada en la base de datos.")
+    public ResponseEntity<byte[]> obtenerFotoReporte(@PathVariable Long id) {
+        FotoData foto = reporteService.obtenerFotoReporte(id);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, foto.contentType())
+                .header(HttpHeaders.CACHE_CONTROL, "public, max-age=86400")
+                .body(foto.bytes());
+    }
+
+    // ================== SUBIR FOTO DE SOLUCIÓN EN CAMPO (OPERADOR) ==================
+    @PostMapping(value = "/{id}/foto-solucion", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('OPERADOR', 'GESTOR', 'ADMIN')")
+    @Operation(summary = "Subir Foto de Solución en Campo (Operador)", description = "Permite al operador subir la foto tomada tras realizar el trabajo en campo.")
+    public ResponseEntity<ApiResponse<ReporteResponse>> subirFotoSolucion(
+            @PathVariable Long id,
+            Principal principal,
+            @RequestParam("foto") MultipartFile foto,
+            @RequestParam(value = "observaciones", required = false) String observaciones
+    ) throws IOException {
+        ReporteResponse response = reporteService.subirFotoSolucion(id, principal.getName(), foto, observaciones);
+        return ResponseEntity.ok(ApiResponse.ok("Fotografía de solución almacenada en la base de datos con éxito", response));
+    }
+
+    // ================== DESCARGAR / VISUALIZAR FOTO DE SOLUCIÓN ==================
+    @GetMapping("/{id}/foto-solucion")
+    @Operation(summary = "Obtener Foto de Solución", description = "Descarga o visualiza la fotografía de evidencia de la solución en campo almacenada en la base de datos.")
+    public ResponseEntity<byte[]> obtenerFotoSolucion(@PathVariable Long id) {
+        FotoData foto = reporteService.obtenerFotoSolucion(id);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, foto.contentType())
+                .header(HttpHeaders.CACHE_CONTROL, "public, max-age=86400")
+                .body(foto.bytes());
     }
 
     // ================== RF04: VALIDAR O RECHAZAR REPORTE (GESTOR / ADMIN) ==================

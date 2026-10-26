@@ -20,10 +20,14 @@ public class ReporteResponse {
     private Double latitud;
     private Double longitud;
     private String imagenUrl;
+    private Boolean tieneFoto;
+    private String fotoTipo;
     private EstadoReporte estado;
     private PrioridadReporte prioridad;
     private String justificacionRechazo;
     private String evidenciaCierreUrl;
+    private Boolean tieneFotoSolucion;
+    private String fotoSolucionTipo;
     private String operadorAsignadoNombre;
     private LocalDateTime creadoEn;
     private LocalDateTime actualizadoEn;
@@ -50,10 +54,14 @@ public class ReporteResponse {
             this.latitud = reporte.getLatitud();
             this.longitud = reporte.getLongitud();
             this.imagenUrl = reporte.getImagenUrl();
+            this.tieneFoto = (reporte.getFotoBytes() != null && reporte.getFotoBytes().length > 0);
+            this.fotoTipo = reporte.getFotoTipo();
             this.estado = reporte.getEstado();
             this.prioridad = reporte.getPrioridad();
             this.justificacionRechazo = reporte.getJustificacionRechazo();
             this.evidenciaCierreUrl = reporte.getEvidenciaCierreUrl();
+            this.tieneFotoSolucion = (reporte.getFotoSolucionBytes() != null && reporte.getFotoSolucionBytes().length > 0);
+            this.fotoSolucionTipo = reporte.getFotoSolucionTipo();
             this.creadoEn = reporte.getCreadoEn();
             this.actualizadoEn = reporte.getActualizadoEn();
             this.fechaCierre = reporte.getFechaCierre();
@@ -156,6 +164,22 @@ public class ReporteResponse {
         this.imagenUrl = imagenUrl;
     }
 
+    public Boolean getTieneFoto() {
+        return tieneFoto;
+    }
+
+    public void setTieneFoto(Boolean tieneFoto) {
+        this.tieneFoto = tieneFoto;
+    }
+
+    public String getFotoTipo() {
+        return fotoTipo;
+    }
+
+    public void setFotoTipo(String fotoTipo) {
+        this.fotoTipo = fotoTipo;
+    }
+
     public EstadoReporte getEstado() {
         return estado;
     }
@@ -186,6 +210,22 @@ public class ReporteResponse {
 
     public void setEvidenciaCierreUrl(String evidenciaCierreUrl) {
         this.evidenciaCierreUrl = evidenciaCierreUrl;
+    }
+
+    public Boolean getTieneFotoSolucion() {
+        return tieneFotoSolucion;
+    }
+
+    public void setTieneFotoSolucion(Boolean tieneFotoSolucion) {
+        this.tieneFotoSolucion = tieneFotoSolucion;
+    }
+
+    public String getFotoSolucionTipo() {
+        return fotoSolucionTipo;
+    }
+
+    public void setFotoSolucionTipo(String fotoSolucionTipo) {
+        this.fotoSolucionTipo = fotoSolucionTipo;
     }
 
     public String getOperadorAsignadoNombre() {

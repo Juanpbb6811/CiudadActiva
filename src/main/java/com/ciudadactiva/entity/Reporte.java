@@ -41,6 +41,18 @@ public class Reporte {
     @Column(name = "evidencia_cierre_url", columnDefinition = "TEXT")
     private String evidenciaCierreUrl;
 
+    @Column(name = "foto_bytes")
+    private byte[] fotoBytes;
+
+    @Column(name = "foto_tipo", length = 50)
+    private String fotoTipo;
+
+    @Column(name = "foto_solucion_bytes")
+    private byte[] fotoSolucionBytes;
+
+    @Column(name = "foto_solucion_tipo", length = 50)
+    private String fotoSolucionTipo;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "categoria_id", nullable = false)
     private Categoria categoria;
@@ -217,5 +229,37 @@ public class Reporte {
 
     public void setFechaCierre(LocalDateTime fechaCierre) {
         this.fechaCierre = fechaCierre;
+    }
+
+    public byte[] getFotoBytes() {
+        return fotoBytes;
+    }
+
+    public void setFotoBytes(byte[] fotoBytes) {
+        this.fotoBytes = fotoBytes;
+    }
+
+    public String getFotoTipo() {
+        return fotoTipo;
+    }
+
+    public void setFotoTipo(String fotoTipo) {
+        this.fotoTipo = fotoTipo;
+    }
+
+    public byte[] getFotoSolucionBytes() {
+        return fotoSolucionBytes;
+    }
+
+    public void setFotoSolucionBytes(byte[] fotoSolucionBytes) {
+        this.fotoSolucionBytes = fotoSolucionBytes;
+    }
+
+    public String getFotoSolucionTipo() {
+        return fotoSolucionTipo;
+    }
+
+    public void setFotoSolucionTipo(String fotoSolucionTipo) {
+        this.fotoSolucionTipo = fotoSolucionTipo;
     }
 }

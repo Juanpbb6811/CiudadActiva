@@ -10,8 +10,11 @@ import com.ciudadactiva.exception.ResourceNotFoundException;
 import com.ciudadactiva.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,7 +44,7 @@ public class ReporteService {
         this.comentarioRepository = comentarioRepository;
     }
 
-    // ================== RF02: REGISTRO DE REPORTES ==================
+    // ================== RF02: REGISTRO DE REPORTES (JSON / BASE64) ==================
     @Transactional
     public ReporteResponse crearReporte(String emailCiudadano, ReporteCreateRequest request) {
         Usuario ciudadano = usuarioRepository.findByEmail(emailCiudadano)
@@ -63,7 +66,16 @@ public class ReporteService {
         reporte.setEstado(EstadoReporte.PENDIENTE);
         reporte.setPrioridad(PrioridadReporte.MEDIA);
 
+        // Procesar foto si viene en formato Base64 directamente desde la cámara móvil
+        procesarFotoBase64(reporte, request.getImagenUrl());
+
         Reporte guardado = reporteRepository.save(reporte);
+
+        // Si se procesaron bytes en BD, fijar URL al endpoint local de descarga
+        if (guardado.getFotoBytes() != null && guardado.getFotoBytes().length > 0) {
+            guardado.setImagenUrl("/api/reportes/" + guardado.getId() + "/foto");
+            guardado = reporteRepository.save(guardado);
+        }
 
         // Regla 5: Trazabilidad inmutable - Registro inicial en Seguimiento
         Seguimiento primerSeguimiento = new Seguimiento(
@@ -73,11 +85,154 @@ public class ReporteService {
                 EstadoReporte.PENDIENTE,
                 "CREACION_REPORTE",
                 "Incidencia registrada por el ciudadano con dirección: " + (request.getDireccion() != null ? request.getDireccion() : "Sin dirección específica"),
-                request.getImagenUrl()
+                guardado.getImagenUrl()
         );
         seguimientoRepository.save(primerSeguimiento);
 
         return mapearReporteResponse(guardado);
+    }
+
+    // ================== RF02: REGISTRO DE REPORTES CON FOTO DIRECTA (MULTIPART / CÁMARA MÓVIL) ==================
+    @Transactional
+    public ReporteResponse crearReporteConFoto(
+            String emailCiudadano,
+            String titulo,
+            String descripcion,
+            Long categoriaId,
+            Double latitud,
+            Double longitud,
+            String direccion,
+            MultipartFile foto
+    ) throws IOException {
+        Usuario ciudadano = usuarioRepository.findByEmail(emailCiudadano)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario ciudadano no encontrado: " + emailCiudadano));
+
+        Categoria categoria = categoriaRepository.findById(categoriaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada: " + categoriaId));
+
+        Reporte reporte = new Reporte(
+                titulo,
+                descripcion,
+                latitud,
+                longitud,
+                direccion,
+                null,
+                categoria,
+                ciudadano
+        );
+        reporte.setEstado(EstadoReporte.PENDIENTE);
+        reporte.setPrioridad(PrioridadReporte.MEDIA);
+
+        if (foto != null && !foto.isEmpty()) {
+            validarTipoImagen(foto.getContentType());
+            reporte.setFotoBytes(foto.getBytes());
+            reporte.setFotoTipo(foto.getContentType() != null ? foto.getContentType() : "image/jpeg");
+        }
+
+        Reporte guardado = reporteRepository.save(reporte);
+
+        if (guardado.getFotoBytes() != null) {
+            guardado.setImagenUrl("/api/reportes/" + guardado.getId() + "/foto");
+            guardado = reporteRepository.save(guardado);
+        }
+
+        Seguimiento primerSeguimiento = new Seguimiento(
+                guardado,
+                ciudadano,
+                null,
+                EstadoReporte.PENDIENTE,
+                "CREACION_REPORTE",
+                "Incidencia registrada con fotografía tomada directamente desde la cámara del móvil",
+                guardado.getImagenUrl()
+        );
+        seguimientoRepository.save(primerSeguimiento);
+
+        return mapearReporteResponse(guardado);
+    }
+
+    // ================== SUBIDA DE FOTO A REPORTE EXISTENTE (CÁMARA MÓVIL) ==================
+    @Transactional
+    public ReporteResponse subirFotoReporte(Long reporteId, String emailUsuario, MultipartFile foto) throws IOException {
+        Reporte reporte = buscarPorId(reporteId);
+        validarPermisoModificacion(reporte, emailUsuario);
+
+        if (foto == null || foto.isEmpty()) {
+            throw new BusinessRuleException("El archivo de fotografía no puede estar vacío");
+        }
+
+        validarTipoImagen(foto.getContentType());
+        reporte.setFotoBytes(foto.getBytes());
+        reporte.setFotoTipo(foto.getContentType() != null ? foto.getContentType() : "image/jpeg");
+        reporte.setImagenUrl("/api/reportes/" + reporte.getId() + "/foto");
+
+        Reporte guardado = reporteRepository.save(reporte);
+
+        Usuario usuario = usuarioRepository.findByEmail(emailUsuario).orElse(null);
+        Seguimiento seguimiento = new Seguimiento(
+                guardado,
+                usuario,
+                guardado.getEstado(),
+                guardado.getEstado(),
+                "FOTO_ADJUNTADA",
+                "Fotografía de evidencia tomada desde el dispositivo móvil adjuntada al reporte",
+                guardado.getImagenUrl()
+        );
+        seguimientoRepository.save(seguimiento);
+
+        return mapearReporteResponse(guardado);
+    }
+
+    // ================== SUBIDA DE FOTO DE SOLUCIÓN (OPERADOR EN CAMPO) ==================
+    @Transactional
+    public ReporteResponse subirFotoSolucion(Long reporteId, String emailUsuario, MultipartFile foto, String observaciones) throws IOException {
+        Reporte reporte = buscarPorId(reporteId);
+        Usuario operador = usuarioRepository.findByEmail(emailUsuario)
+                .orElseThrow(() -> new ResourceNotFoundException("Operador no encontrado: " + emailUsuario));
+
+        if (foto == null || foto.isEmpty()) {
+            throw new BusinessRuleException("Debe adjuntar la fotografía tomada como evidencia de la solución en campo");
+        }
+
+        validarTipoImagen(foto.getContentType());
+        reporte.setFotoSolucionBytes(foto.getBytes());
+        reporte.setFotoSolucionTipo(foto.getContentType() != null ? foto.getContentType() : "image/jpeg");
+        reporte.setEvidenciaCierreUrl("/api/reportes/" + reporte.getId() + "/foto-solucion");
+
+        Reporte guardado = reporteRepository.save(reporte);
+
+        Seguimiento seg = new Seguimiento(
+                guardado,
+                operador,
+                guardado.getEstado(),
+                guardado.getEstado(),
+                "EVIDENCIA_SOLUCION_ADJUNTADA",
+                (observaciones != null && !observaciones.isBlank()) ? observaciones : "Evidencia visual de solución en campo adjuntada",
+                guardado.getEvidenciaCierreUrl()
+        );
+        seguimientoRepository.save(seg);
+
+        return mapearReporteResponse(guardado);
+    }
+
+    // ================== CONSULTAR FOTOS BINARIAS ==================
+    @Transactional(readOnly = true)
+    public FotoData obtenerFotoReporte(Long reporteId) {
+        Reporte reporte = buscarPorId(reporteId);
+        if (reporte.getFotoBytes() == null || reporte.getFotoBytes().length == 0) {
+            throw new ResourceNotFoundException("El reporte ID " + reporteId + " no tiene una fotografía almacenada");
+        }
+        String contentType = reporte.getFotoTipo() != null ? reporte.getFotoTipo() : "image/jpeg";
+        return new FotoData(reporte.getFotoBytes(), contentType);
+    }
+
+    @Transactional(readOnly = true)
+    public FotoData obtenerFotoSolucion(Long reporteId) {
+        Reporte reporte = buscarPorId(reporteId);
+        if (reporte.getFotoSolucionBytes() == null || reporte.getFotoSolucionBytes().length == 0) {
+            throw new ResourceNotFoundException("El reporte ID " + reporteId + " no tiene fotografía de solución almacenada");
+        }
+        String contentType = reporte.getFotoSolucionTipo() != null ? reporte.getFotoSolucionTipo() : "image/jpeg";
+        return new FotoData(reporte.getFotoSolucionBytes(), contentType);
     }
 
     // ================== RF03: CONSULTA Y FILTROS ==================
@@ -266,9 +421,16 @@ public class ReporteService {
             throw new BusinessRuleException("Regla de Negocio: Debe adjuntar evidencia visual de la solución para proceder al cierre del reporte.");
         }
 
+        // Si la evidencia viene en base64, procesarla para guardarla en BD
+        if (request.getEvidenciaCierreUrl().startsWith("data:image/") || request.getEvidenciaCierreUrl().length() > 500) {
+            procesarFotoSolucionBase64(reporte, request.getEvidenciaCierreUrl());
+            reporte.setEvidenciaCierreUrl("/api/reportes/" + reporte.getId() + "/foto-solucion");
+        } else {
+            reporte.setEvidenciaCierreUrl(request.getEvidenciaCierreUrl());
+        }
+
         EstadoReporte estadoAnterior = reporte.getEstado();
         reporte.setEstado(EstadoReporte.CERRADO);
-        reporte.setEvidenciaCierreUrl(request.getEvidenciaCierreUrl());
         reporte.setFechaCierre(LocalDateTime.now());
 
         String observaciones = (request.getObservaciones() != null && !request.getObservaciones().isBlank())
@@ -282,7 +444,7 @@ public class ReporteService {
                 EstadoReporte.CERRADO,
                 "CIERRE_REPORTE",
                 observaciones,
-                request.getEvidenciaCierreUrl()
+                reporte.getEvidenciaCierreUrl()
         );
         seguimientoRepository.save(segCierre);
 
@@ -293,6 +455,78 @@ public class ReporteService {
         });
 
         return mapearReporteResponse(reporteRepository.save(reporte));
+    }
+
+    private void validarPermisoModificacion(Reporte reporte, String emailUsuario) {
+        Usuario usuario = usuarioRepository.findByEmail(emailUsuario)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + emailUsuario));
+
+        boolean esDuenio = reporte.getCiudadano() != null && reporte.getCiudadano().getEmail().equalsIgnoreCase(emailUsuario);
+        boolean esStaff = usuario.getRol().getNombre() == RolNombre.ROLE_GESTOR || usuario.getRol().getNombre() == RolNombre.ROLE_ADMIN;
+
+        if (!esDuenio && !esStaff) {
+            throw new BusinessRuleException("No tiene permisos para modificar la fotografía de este reporte.");
+        }
+    }
+
+    private void validarTipoImagen(String contentType) {
+        if (contentType == null || (!contentType.startsWith("image/") && !contentType.equals("application/octet-stream"))) {
+            throw new BusinessRuleException("Formato no válido. Debe ser un archivo de imagen (JPEG, PNG, WEBP, etc.)");
+        }
+    }
+
+    private void procesarFotoBase64(Reporte reporte, String base64Data) {
+        if (base64Data == null || base64Data.trim().isEmpty()) {
+            return;
+        }
+        try {
+            String tipo = "image/jpeg";
+            String rawBase64 = base64Data;
+            if (base64Data.startsWith("data:")) {
+                int commaIndex = base64Data.indexOf(",");
+                if (commaIndex != -1) {
+                    String prefix = base64Data.substring(5, commaIndex);
+                    if (prefix.contains(";")) {
+                        tipo = prefix.split(";")[0];
+                    }
+                    rawBase64 = base64Data.substring(commaIndex + 1);
+                }
+            }
+            byte[] bytes = Base64.getDecoder().decode(rawBase64.trim());
+            if (bytes.length > 0) {
+                reporte.setFotoBytes(bytes);
+                reporte.setFotoTipo(tipo);
+            }
+        } catch (IllegalArgumentException e) {
+            // Si no es Base64 válido, se preserva como URL de texto normal
+        }
+    }
+
+    private void procesarFotoSolucionBase64(Reporte reporte, String base64Data) {
+        if (base64Data == null || base64Data.trim().isEmpty()) {
+            return;
+        }
+        try {
+            String tipo = "image/jpeg";
+            String rawBase64 = base64Data;
+            if (base64Data.startsWith("data:")) {
+                int commaIndex = base64Data.indexOf(",");
+                if (commaIndex != -1) {
+                    String prefix = base64Data.substring(5, commaIndex);
+                    if (prefix.contains(";")) {
+                        tipo = prefix.split(";")[0];
+                    }
+                    rawBase64 = base64Data.substring(commaIndex + 1);
+                }
+            }
+            byte[] bytes = Base64.getDecoder().decode(rawBase64.trim());
+            if (bytes.length > 0) {
+                reporte.setFotoSolucionBytes(bytes);
+                reporte.setFotoSolucionTipo(tipo);
+            }
+        } catch (IllegalArgumentException e) {
+            // URL ordinaria
+        }
     }
 
     private void validarTransicionEstado(EstadoReporte actual, EstadoReporte nuevo) {
