@@ -12,6 +12,7 @@ public class UsuarioResponse {
     private String direccion;
     private Boolean activo;
     private String rol;
+    private Long laboresActivas;
     private LocalDateTime creadoEn;
 
     public UsuarioResponse() {
@@ -86,6 +87,14 @@ public class UsuarioResponse {
 
     public void setRol(String rol) {
         this.rol = rol;
+    }
+
+    public Long getLaboresActivas() {
+        return laboresActivas;
+    }
+
+    public void setLaboresActivas(Long laboresActivas) {
+        this.laboresActivas = laboresActivas;
     }
 
     public LocalDateTime getCreadoEn() {

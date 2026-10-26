@@ -1,0 +1,34 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="64dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+    <!-- Círculo base de fondo -->
+    <path
+        android:fillColor="#F0F4F4"
+        android:pathData="M32,32m-30,0a30,30 0,1 1,60 0a30,30 0,1 1,-60 0" />
+    <!-- Línea conector superior izquierda -->
+    <path
+        android:strokeColor="#74A596"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="M32,32 L22,22" />
+    <!-- Línea conector inferior derecha -->
+    <path
+        android:strokeColor="#113233"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="M32,32 L40,40" />
+    <!-- Nodo central -->
+    <path
+        android:fillColor="#113233"
+        android:pathData="M32,32m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0" />
+    <!-- Nodo superior verde claro -->
+    <path
+        android:fillColor="#74A596"
+        android:pathData="M22,22m-5,0a5,5 0,1 1,10 0a5,5 0,1 1,-10 0" />
+    <!-- Nodo inferior verde oscuro -->
+    <path
+        android:fillColor="#113233"
+        android:pathData="M40,40m-5,0a5,5 0,1 1,10 0a5,5 0,1 1,-10 0" />
+</vector>

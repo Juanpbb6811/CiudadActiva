@@ -1,11 +1,13 @@
 package com.ciudadactiva.controller;
 
 import com.ciudadactiva.dto.common.ApiResponse;
+import com.ciudadactiva.dto.seguimiento.SeguimientoResponse;
 import com.ciudadactiva.dto.usuario.CambiarRolRequest;
 import com.ciudadactiva.dto.usuario.UsuarioCreateRequest;
 import com.ciudadactiva.dto.usuario.UsuarioResponse;
 import com.ciudadactiva.dto.usuario.UsuarioUpdateRequest;
 import com.ciudadactiva.entity.RolNombre;
+import com.ciudadactiva.service.SeguimientoService;
 import com.ciudadactiva.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -14,7 +16,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -27,9 +28,11 @@ import java.util.List;
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
+    private final SeguimientoService seguimientoService;
 
-    public UsuarioController(UsuarioService usuarioService) {
+    public UsuarioController(UsuarioService usuarioService, SeguimientoService seguimientoService) {
         this.usuarioService = usuarioService;
+        this.seguimientoService = seguimientoService;
     }
 
     // ================== PERFIL PROPIO ==================
@@ -48,6 +51,24 @@ public class UsuarioController {
     ) {
         UsuarioResponse response = usuarioService.actualizarPerfil(principal.getName(), request);
         return ResponseEntity.ok(ApiResponse.ok("Perfil actualizado con éxito", response));
+    }
+
+    // ================== OPERADORES DISPONIBLES (GESTOR Y ADMIN) ==================
+    @GetMapping("/operadores")
+    @PreAuthorize("hasAnyRole('GESTOR', 'ADMIN')")
+    @Operation(summary = "Listar Operadores para Asignación", description = "Retorna la lista de operadores activos junto con su cantidad de labores activas para asignaciones de campo.")
+    public ResponseEntity<ApiResponse<List<UsuarioResponse>>> listarOperadoresParaAsignar() {
+        List<UsuarioResponse> operadores = usuarioService.listarOperadoresParaGestor();
+        return ResponseEntity.ok(ApiResponse.ok("Lista de operadores disponibles obtenida", operadores));
+    }
+
+    // ================== AUDITORÍA GLOBAL DE TRAZABILIDAD RUP (ADMIN) ==================
+    @GetMapping("/admin/auditoria")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Consultar Matriz de Trazabilidad RUP", description = "Retorna todos los eventos y transiciones inmutables del sistema con hash de verificación.")
+    public ResponseEntity<ApiResponse<List<SeguimientoResponse>>> consultarAuditoriaTrazabilidad() {
+        List<SeguimientoResponse> auditoria = seguimientoService.obtenerTodosLosSeguimientos();
+        return ResponseEntity.ok(ApiResponse.ok("Eventos de auditoría de trazabilidad obtenidos con éxito", auditoria));
     }
 
     // ================== MÓDULO ADMINISTRATIVO (SOLO ADMIN) ==================
@@ -107,3 +128,4 @@ public class UsuarioController {
         return ResponseEntity.ok(ApiResponse.ok("Usuario desactivado exitosamente", null));
     }
 }
+

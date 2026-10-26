@@ -75,6 +75,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/categorias/**").hasRole("ADMIN")
 
                         // Gestión Operativa (Gestor y Admin)
+                        .requestMatchers(HttpMethod.GET, "/api/operadores").hasAnyRole("GESTOR", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/reportes/*/validar").hasAnyRole("GESTOR", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/reportes/*/prioridad").hasAnyRole("GESTOR", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/reportes/*/asignaciones").hasAnyRole("GESTOR", "ADMIN")

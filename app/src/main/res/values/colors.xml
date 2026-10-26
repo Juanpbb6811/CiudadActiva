@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#113233</color>
+    <color name="primary_dark">#0B2021</color>
+    <color name="accent_teal">#5B9279</color>
+    <color name="accent_copper">#D4A373</color>
+    <color name="background_light">#F8F9FA</color>
+    <color name="surface_card">#FFFFFF</color>
+    <color name="text_dark">#113233</color>
+    <color name="text_muted">#6C757D</color>
+
+    <!-- Escala Semáforo 1 a 10 reportes -->
+    <color name="semaforo_0_despejado">#4CAF50</color>
+    <color name="semaforo_1_2_verde">#4CAF50</color>
+    <color name="semaforo_3_4_lima">#8BC34A</color>
+    <color name="semaforo_5_6_amarillo">#FFEB3B</color>
+    <color name="semaforo_7_8_naranja">#FF9800</color>
+    <color name="semaforo_9_10_rojo">#F44336</color>
+</resources>

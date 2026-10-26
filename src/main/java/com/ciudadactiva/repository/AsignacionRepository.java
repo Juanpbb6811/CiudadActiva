@@ -11,6 +11,7 @@ import java.util.Optional;
 public interface AsignacionRepository extends JpaRepository<Asignacion, Long> {
     Optional<Asignacion> findByReporte_IdAndActivaTrue(Long reporteId);
     List<Asignacion> findByOperador_IdAndActivaTrueOrderByCreadoEnDesc(Long operadorId);
+    long countByOperador_IdAndActivaTrue(Long operadorId);
     List<Asignacion> findByActivaTrueOrderByCreadoEnDesc();
     List<Asignacion> findByReporte_IdOrderByCreadoEnDesc(Long reporteId);
 }

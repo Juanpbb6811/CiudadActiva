@@ -9,6 +9,7 @@ import com.ciudadactiva.entity.RolNombre;
 import com.ciudadactiva.entity.Usuario;
 import com.ciudadactiva.exception.BadRequestException;
 import com.ciudadactiva.exception.ResourceNotFoundException;
+import com.ciudadactiva.repository.AsignacionRepository;
 import com.ciudadactiva.repository.RolRepository;
 import com.ciudadactiva.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,11 +24,13 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;
+    private final AsignacionRepository asignacionRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UsuarioService(UsuarioRepository usuarioRepository, RolRepository rolRepository, PasswordEncoder passwordEncoder) {
+    public UsuarioService(UsuarioRepository usuarioRepository, RolRepository rolRepository, AsignacionRepository asignacionRepository, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
         this.rolRepository = rolRepository;
+        this.asignacionRepository = asignacionRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -62,7 +65,24 @@ public class UsuarioService {
         } else {
             usuarios = usuarioRepository.findAllByOrderByCreadoEnDesc();
         }
-        return usuarios.stream().map(UsuarioResponse::new).collect(Collectors.toList());
+        return usuarios.stream().map(u -> {
+            UsuarioResponse res = new UsuarioResponse(u);
+            if (u.getRol() != null && u.getRol().getNombre() == RolNombre.ROLE_OPERADOR) {
+                res.setLaboresActivas(asignacionRepository.countByOperador_IdAndActivaTrue(u.getId()));
+            }
+            return res;
+        }).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<UsuarioResponse> listarOperadoresParaGestor() {
+        return usuarioRepository.findByRol_Nombre(RolNombre.ROLE_OPERADOR).stream()
+                .filter(u -> Boolean.TRUE.equals(u.getActivo()))
+                .map(u -> {
+                    UsuarioResponse res = new UsuarioResponse(u);
+                    res.setLaboresActivas(asignacionRepository.countByOperador_IdAndActivaTrue(u.getId()));
+                    return res;
+                }).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)

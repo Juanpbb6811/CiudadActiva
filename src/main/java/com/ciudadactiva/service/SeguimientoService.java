@@ -90,4 +90,12 @@ public class SeguimientoService {
                 .map(SeguimientoResponse::new)
                 .collect(Collectors.toList());
     }
+
+    // ================== AUDITORÍA GLOBAL (ADMIN - RNF04) ==================
+    @Transactional(readOnly = true)
+    public List<SeguimientoResponse> obtenerTodosLosSeguimientos() {
+        return seguimientoRepository.findAllByOrderByCreadoEnDesc().stream()
+                .map(SeguimientoResponse::new)
+                .collect(Collectors.toList());
+    }
 }

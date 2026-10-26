@@ -11,6 +11,7 @@ import java.util.List;
 public interface SeguimientoRepository extends JpaRepository<Seguimiento, Long> {
     List<Seguimiento> findByReporte_IdOrderByCreadoEnAsc(Long reporteId);
     List<Seguimiento> findByReporte_IdOrderByCreadoEnDesc(Long reporteId);
+    List<Seguimiento> findAllByOrderByCreadoEnDesc();
     long countByReporte_IdAndUsuario_Rol_Nombre(Long reporteId, RolNombre rolNombre);
     long countByReporte_IdAndUsuario_Id(Long reporteId, Long usuarioId);
 }
