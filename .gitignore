@@ -1,39 +1,32 @@
+# ================== BACKEND MAVEN & JAVA ==================
+**/target/
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**
 !**/src/test/**
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.recommenders
+# ================== FRONTEND ANDROID & GRADLE ==================
+.gradle/
+**/.gradle/
+build/
+**/build/
+*.apk
+*.aab
+local.properties
+.cxx/
 
-### IntelliJ IDEA ###
-.idea
+# ================== IDEs ==================
+.idea/
 *.iws
 *.iml
 *.ipr
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/nbactions.xml
-/nb-configuration.xml
-/nblibraries.properties
-
-### VS Code ###
 .vscode/
+.settings/
+.project
+.classpath
 
-### Log files ###
+# ================== LOGS & OS ==================
 *.log
-
-### OS specific ###
 .DS_Store
 Thumbs.db
 *.pdf
