@@ -157,7 +157,7 @@ fun SeguimientoTimelineScreen(
                 }
 
                 // Lista vertical de checkpoints de seguimiento (M01_11)
-                itemsIndexed(rep.lineDeTiempo) { index, seg ->
+                itemsIndexed(rep.lineaDeTiempo) { index, seg ->
                     Row(modifier = Modifier.fillMaxWidth()) {
                         // Columna del nodo y línea conectora
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -179,7 +179,7 @@ fun SeguimientoTimelineScreen(
                                     .border(3.dp, Color.White, CircleShape)
                             )
 
-                            if (index < rep.lineDeTiempo.size - 1) {
+                            if (index < rep.lineaDeTiempo.size - 1) {
                                 Box(
                                     modifier = Modifier
                                         .width(2.dp)

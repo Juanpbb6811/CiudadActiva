@@ -12,17 +12,24 @@ spring:
       mode: never
 
   datasource:
-    # URL de conexión a PostgreSQL (compatible con Supabase, Render o local)
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:ciudadactiva}?sslmode=${DB_SSL_MODE:prefer}}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    # Configuración de base de datos PostgreSQL en Supabase
+    # Modo Pooler (IPv4/IPv6, compatible con desarrollo local Windows y producción):
+    #   Host: aws-0-us-east-2.pooler.supabase.com | Puerto: 5432 (Session) / 6543 (Transaction)
+    #   Usuario: postgres.otbdykjhvusjkzjzclqw
+    # Modo Directo (IPv6 / Cloud como Render o entornos con IPv6 nativo):
+    #   Host: db.otbdykjhvusjkzjzclqw.supabase.co | Puerto: 5432
+    #   Usuario: postgres
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://aws-0-us-east-2.pooler.supabase.com:5432/postgres?sslmode=require}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres.otbdykjhvusjkzjzclqw}
+    password: ${SPRING_DATASOURCE_PASSWORD:XoUF92rHTaxms6lj}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: ${DB_POOL_MAX:10}
-      minimum-idle: ${DB_POOL_MIN:2}
+      maximum-pool-size: ${DB_POOL_MAX:5}
+      minimum-idle: ${DB_POOL_MIN:1}
       idle-timeout: 300000
-      connection-timeout: 20000
-      max-lifetime: 1200000
+      connection-timeout: 30000
+      max-lifetime: 600000
+      leak-detection-threshold: 60000
 
   jpa:
     hibernate:

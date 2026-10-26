@@ -42,6 +42,13 @@ CiudadActiva/
 - **OpenAPI 3 / Swagger UI**
 - **Docker & Render**
 
+### Base de Datos Supabase (PostgreSQL 17)
+El backend está configurado para conectarse directamente a Supabase:
+- **Pooler Session (IPv4 / Desarrollo Local & Render):** `jdbc:postgresql://aws-0-us-east-2.pooler.supabase.com:5432/postgres?sslmode=require`
+- **Conexión Directa (IPv6 / Cloud):** `jdbc:postgresql://db.otbdykjhvusjkzjzclqw.supabase.co:5432/postgres?sslmode=require`
+- **Autenticación:** Usuario `postgres.otbdykjhvusjkzjzclqw` (pooler) o `postgres` (directo).
+- **Esquema:** Las tablas (`usuarios`, `roles`, `categorias`, `reportes`, `asignaciones`, `seguimientos`, `comentarios`) se crean y actualizan automáticamente mediante Hibernate (`ddl-auto: update`) y `DataInitializer` precarga los roles y usuarios iniciales.
+
 ### Ejecución Local
 ```bash
 cd backend
