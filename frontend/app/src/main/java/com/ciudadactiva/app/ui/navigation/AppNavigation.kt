@@ -35,6 +35,21 @@ fun AppNavigation() {
     val session = CiudadActivaApplication.sessionManager
     val userRole = session.getRol()
 
+    val homeDestino = when (userRole) {
+        "ROLE_GESTOR" -> Screen.GestorBandejaValidacion.route
+        "ROLE_OPERADOR" -> Screen.OperadorTareas.route
+        "ROLE_ADMIN" -> Screen.AdminPanel.route
+        else -> Screen.CiudadanoHome.route
+    }
+
+    val retrocederSeguro: (String) -> Unit = { fallbackRoute ->
+        if (!navController.popBackStack()) {
+            navController.navigate(fallbackRoute) {
+                launchSingleTop = true
+            }
+        }
+    }
+
     // Solo mostrar barra de navegación en pantallas principales (no en Splash, Login, Register o Wizards de 3 pasos)
     val showBottomBar = currentRoute in listOf(
         Screen.CiudadanoHome.route,
@@ -61,7 +76,7 @@ fun AppNavigation() {
                     userRole = userRole,
                     onNavigate = { route ->
                         navController.navigate(route) {
-                            popUpTo(Screen.CiudadanoHome.route) { saveState = true }
+                            popUpTo(homeDestino) { saveState = true }
                             launchSingleTop = true
                             restoreState = true
                         }
@@ -111,7 +126,7 @@ fun AppNavigation() {
                             popUpTo(Screen.Register.route) { inclusive = true }
                         }
                     },
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { retrocederSeguro(Screen.Login.route) }
                 )
             }
 
@@ -135,7 +150,7 @@ fun AppNavigation() {
                 NuevoReportePaso1Screen(
                     viewModel = ciudadanoViewModel,
                     onNext = { navController.navigate(Screen.NuevoReportePaso2.route) },
-                    onBack = { navController.popBackStack() }
+                    onBack = { retrocederSeguro(Screen.CiudadanoHome.route) }
                 )
             }
 
@@ -143,7 +158,7 @@ fun AppNavigation() {
                 NuevoReportePaso2Screen(
                     viewModel = ciudadanoViewModel,
                     onNext = { navController.navigate(Screen.NuevoReportePaso3.route) },
-                    onBack = { navController.popBackStack() }
+                    onBack = { retrocederSeguro(Screen.NuevoReportePaso1.route) }
                 )
             }
 
@@ -151,7 +166,7 @@ fun AppNavigation() {
                 NuevoReportePaso3Screen(
                     viewModel = ciudadanoViewModel,
                     onSuccess = { navController.navigate(Screen.NuevoReporteExito.route) },
-                    onBack = { navController.popBackStack() }
+                    onBack = { retrocederSeguro(Screen.NuevoReportePaso2.route) }
                 )
             }
 
@@ -201,7 +216,7 @@ fun AppNavigation() {
                     onComentariosClick = { id ->
                         navController.navigate(Screen.Comentarios.createRoute(id))
                     },
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { retrocederSeguro(Screen.CiudadanoHome.route) }
                 )
             }
 
@@ -213,7 +228,7 @@ fun AppNavigation() {
                 ComentariosScreen(
                     reporteId = reporteId,
                     viewModel = ciudadanoViewModel,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { retrocederSeguro(Screen.SeguimientoTimeline.createRoute(reporteId)) }
                 )
             }
 
@@ -227,7 +242,7 @@ fun AppNavigation() {
                     },
                     onCambiarActor = { nuevoRol ->
                         val destino = when (nuevoRol) {
-                            "ROLE_GESTOR" -> Screen.GestorDashboard.route
+                            "ROLE_GESTOR" -> Screen.GestorBandejaValidacion.route
                             "ROLE_OPERADOR" -> Screen.OperadorTareas.route
                             "ROLE_ADMIN" -> Screen.AdminPanel.route
                             else -> Screen.CiudadanoHome.route
@@ -235,7 +250,8 @@ fun AppNavigation() {
                         navController.navigate(destino) {
                             popUpTo(0) { inclusive = true }
                         }
-                    }
+                    },
+                    onBackClick = { retrocederSeguro(homeDestino) }
                 )
             }
 
@@ -258,7 +274,7 @@ fun AppNavigation() {
                     onInspeccionarReporte = { id ->
                         navController.navigate(Screen.GestorFichaInspeccion.createRoute(id))
                     },
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { retrocederSeguro(Screen.GestorDashboard.route) }
                 )
             }
 
@@ -270,22 +286,22 @@ fun AppNavigation() {
                 GestorFichaInspeccionScreen(
                     reporteId = reporteId,
                     viewModel = gestorViewModel,
-                    onAccionTerminada = { navController.popBackStack() },
-                    onBackClick = { navController.popBackStack() }
+                    onAccionTerminada = { retrocederSeguro(Screen.GestorBandejaValidacion.route) },
+                    onBackClick = { retrocederSeguro(Screen.GestorBandejaValidacion.route) }
                 )
             }
 
             composable(Screen.GestorAsignaciones.route) {
                 GestorAsignacionesScreen(
                     viewModel = gestorViewModel,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { retrocederSeguro(Screen.GestorDashboard.route) }
                 )
             }
 
             composable(Screen.GestorEstadisticas.route) {
                 GestorEstadisticasScreen(
                     viewModel = gestorViewModel,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { retrocederSeguro(Screen.GestorDashboard.route) }
                 )
             }
 
@@ -315,7 +331,7 @@ fun AppNavigation() {
                     viewModel = operadorViewModel,
                     onRegistrarAvance = { id -> navController.navigate(Screen.OperadorAvance.createRoute(id)) },
                     onCerrarReporte = { id -> navController.navigate(Screen.OperadorCierre.createRoute(id)) },
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { retrocederSeguro(Screen.OperadorTareas.route) }
                 )
             }
 
@@ -327,8 +343,8 @@ fun AppNavigation() {
                 OperadorAvanceScreen(
                     reporteId = reporteId,
                     viewModel = operadorViewModel,
-                    onSuccess = { navController.popBackStack() },
-                    onBackClick = { navController.popBackStack() }
+                    onSuccess = { retrocederSeguro(Screen.OperadorTareas.route) },
+                    onBackClick = { retrocederSeguro(Screen.OperadorTareas.route) }
                 )
             }
 
@@ -348,14 +364,14 @@ fun AppNavigation() {
                     onIrAAvances = {
                         navController.navigate(Screen.OperadorAvance.createRoute(reporteId))
                     },
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { retrocederSeguro(Screen.OperadorTareas.route) }
                 )
             }
 
             composable(Screen.OperadorHistorial.route) {
                 OperadorHistorialScreen(
                     viewModel = operadorViewModel,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { retrocederSeguro(Screen.OperadorTareas.route) }
                 )
             }
 
@@ -373,21 +389,21 @@ fun AppNavigation() {
             composable(Screen.AdminUsuarios.route) {
                 AdminUsuariosScreen(
                     viewModel = adminViewModel,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { retrocederSeguro(Screen.AdminPanel.route) }
                 )
             }
 
             composable(Screen.AdminCategorias.route) {
                 AdminCategoriasScreen(
                     viewModel = adminViewModel,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { retrocederSeguro(Screen.AdminPanel.route) }
                 )
             }
 
             composable(Screen.AdminAuditoria.route) {
                 AdminAuditoriaScreen(
                     viewModel = adminViewModel,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { retrocederSeguro(Screen.AdminPanel.route) }
                 )
             }
         }

@@ -16,17 +16,34 @@ val TextDark = Color(0xFF113233)
 val TextMuted = Color(0xFF6C757D)
 val TextLight = Color(0xFFFFFFFF)
 
-// Estados de Reporte
-val StatusPendienteBg = Color(0xFFE0F2F1)
-val StatusPendienteText = Color(0xFF00695C)
-val StatusAdmitidoBg = Color(0xFFE1F5FE)
-val StatusAdmitidoText = Color(0xFF0277BD)
-val StatusEnProcesoBg = Color(0xFFFFF8E1)
-val StatusEnProcesoText = Color(0xFFF57F17)
-val StatusCerradoBg = Color(0xFFE8F5E9)
-val StatusCerradoText = Color(0xFF2E7D32)
+// Estados de Reporte Semánticos RUP
+val StatusPendienteBg = Color(0xFFFFF3E0)
+val StatusPendienteText = Color(0xFFE65100)
+val StatusPendienteBorder = Color(0xFFFFB74D)
+
+val StatusEnRevisionBg = Color(0xFFE1F5FE)
+val StatusEnRevisionText = Color(0xFF0288D1)
+val StatusEnRevisionBorder = Color(0xFF81D4FA)
+
+val StatusAdmitidoBg = Color(0xFFE8F5E9)
+val StatusAdmitidoText = Color(0xFF2E7D32)
+val StatusAdmitidoBorder = Color(0xFFA5D6A7)
+
+val StatusEnProcesoBg = Color(0xFFE3F2FD)
+val StatusEnProcesoText = Color(0xFF1565C0)
+val StatusEnProcesoBorder = Color(0xFF90CAF9)
+
+val StatusAtendidoBg = Color(0xFFEDE7F6)
+val StatusAtendidoText = Color(0xFF6A1B9A)
+val StatusAtendidoBorder = Color(0xFFCE93D8)
+
+val StatusCerradoBg = Color(0xFFDCEDC8)
+val StatusCerradoText = Color(0xFF33691E)
+val StatusCerradoBorder = Color(0xFFAED581)
+
 val StatusRechazadoBg = Color(0xFFFFEBEE)
 val StatusRechazadoText = Color(0xFFC62828)
+val StatusRechazadoBorder = Color(0xFFEF9A9A)
 
 // Escala Semáforo 1 a 10 reportes (Regla de Saturación)
 val Semaforo0Verde = Color(0xFF4CAF50)

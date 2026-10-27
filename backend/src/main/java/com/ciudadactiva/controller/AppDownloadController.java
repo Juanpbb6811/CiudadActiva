@@ -24,7 +24,7 @@ public class AppDownloadController {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, "application/vnd.android.package-archive")
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"CiudadActiva-v0.1.5.apk\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"CiudadActiva-v0.1.6.apk\"")
                 .body(apkResource);
     }
 }

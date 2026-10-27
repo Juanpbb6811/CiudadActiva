@@ -39,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ciudadactiva.app.CiudadActivaApplication
 import com.ciudadactiva.app.R
-import com.ciudadactiva.app.data.local.DemoCredentials
 import androidx.compose.ui.platform.LocalContext
 import com.ciudadactiva.app.ui.components.GoogleAuthHelper
 import com.ciudadactiva.app.ui.components.GradientButton
@@ -58,7 +57,6 @@ fun LoginScreen(
     onRegisterClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val selectedDemo by viewModel.selectedDemoAccount.collectAsState()
     val email by viewModel.emailInput.collectAsState()
     val password by viewModel.passwordInput.collectAsState()
     val rememberSession by viewModel.rememberSession.collectAsState()
@@ -67,7 +65,6 @@ fun LoginScreen(
     var showServerDialog by remember { mutableStateOf(false) }
     var showGoogleDialog by remember { mutableStateOf(false) }
     var googleEmailInput by remember { mutableStateOf("") }
-    var showDemoRoles by remember { mutableStateOf(false) }
 
     var currentServerUrl by remember {
         mutableStateOf(CiudadActivaApplication.sessionManager.getBaseUrl())
@@ -354,63 +351,6 @@ fun LoginScreen(
             )
 
             Spacer(modifier = Modifier.height(24.dp))
-
-            // Selector ROL DE ACCESO DEMO (colapsado para no imponer el usuario base)
-            Row(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable { showDemoRoles = !showDemoRoles }
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Cuentas de prueba institucionales (Evaluación)",
-                    fontSize = 11.sp,
-                    color = Color(0xFF8FA3A0),
-                    fontWeight = FontWeight.Medium
-                )
-                Icon(
-                    imageVector = if (showDemoRoles) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = null,
-                    tint = Color(0xFF8FA3A0),
-                    modifier = Modifier.size(16.dp)
-                )
-            }
-
-            AnimatedVisibility(visible = showDemoRoles) {
-                Column(modifier = Modifier.padding(top = 8.dp)) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(Color(0xFFEBEFF0))
-                            .padding(4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        DemoCredentials.accounts.forEach { account ->
-                            val isSelected = selectedDemo.rolTag == account.rolTag
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(if (isSelected) Color.White else Color.Transparent)
-                                    .clickable { viewModel.selectDemoAccount(account) }
-                                    .padding(vertical = 8.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = account.label,
-                                    fontSize = 11.sp,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (isSelected) BrandTealDark else Color(0xFF6A7775)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
 
         // Botón superior de configuración de servidor / URL

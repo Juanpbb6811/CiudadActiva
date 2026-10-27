@@ -71,7 +71,7 @@ fun ErrorView(
 
             Button(
                 onClick = onRetry,
-                colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark),
+                colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark, contentColor = Color.White),
                 shape = RoundedCornerShape(20.dp),
                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
             ) {

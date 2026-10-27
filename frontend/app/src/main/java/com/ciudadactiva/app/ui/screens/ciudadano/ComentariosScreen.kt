@@ -163,10 +163,10 @@ fun ComentariosScreen(
                         nuevoTexto = ""
                     },
                     modifier = Modifier.align(Alignment.End),
-                    colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark),
+                    colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark, contentColor = Color.White),
                     shape = RoundedCornerShape(14.dp)
                 ) {
-                    Text(text = "Enviar", fontWeight = FontWeight.Bold)
+                    Text(text = "Enviar", color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
         }

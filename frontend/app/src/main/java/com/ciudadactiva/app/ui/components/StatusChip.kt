@@ -1,11 +1,14 @@
 package com.ciudadactiva.app.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -14,32 +17,87 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ciudadactiva.app.ui.theme.*
 
+data class EstadoConfig(
+    val bg: Color,
+    val text: Color,
+    val border: Color
+)
+
+fun getEstadoConfig(status: String): EstadoConfig {
+    return when (status.uppercase().replace(" ", "_")) {
+        "PENDIENTE", "CREACION_REPORTE" -> EstadoConfig(StatusPendienteBg, StatusPendienteText, StatusPendienteBorder)
+        "EN_REVISION" -> EstadoConfig(StatusEnRevisionBg, StatusEnRevisionText, StatusEnRevisionBorder)
+        "ADMITIDO", "VALIDACION_ADMITIDA" -> EstadoConfig(StatusAdmitidoBg, StatusAdmitidoText, StatusAdmitidoBorder)
+        "EN_PROCESO", "EN_ATENCION", "CAMBIO_ESTADO" -> EstadoConfig(StatusEnProcesoBg, StatusEnProcesoText, StatusEnProcesoBorder)
+        "ATENDIDO" -> EstadoConfig(StatusAtendidoBg, StatusAtendidoText, StatusAtendidoBorder)
+        "CERRADO", "CIERRE_REPORTE" -> EstadoConfig(StatusCerradoBg, StatusCerradoText, StatusCerradoBorder)
+        "RECHAZADO", "RECHAZO_REPORTE" -> EstadoConfig(StatusRechazadoBg, StatusRechazadoText, StatusRechazadoBorder)
+        else -> EstadoConfig(Color(0xFFEEEEEE), Color(0xFF616161), Color(0xFFBDBDBD))
+    }
+}
+
 @Composable
 fun StatusChip(
     status: String,
     modifier: Modifier = Modifier
 ) {
-    val (bgColor, textColor) = when (status.uppercase()) {
-        "PENDIENTE", "CREACION_REPORTE" -> StatusPendienteBg to StatusPendienteText
-        "ADMITIDO", "VALIDACION_ADMITIDA" -> StatusAdmitidoBg to StatusAdmitidoText
-        "EN_PROCESO", "EN_ATENCION", "CAMBIO_ESTADO" -> StatusEnProcesoBg to StatusEnProcesoText
-        "ATENDIDO", "CERRADO", "CIERRE_REPORTE" -> StatusCerradoBg to StatusCerradoText
-        "RECHAZADO", "RECHAZO_REPORTE" -> StatusRechazadoBg to StatusRechazadoText
-        else -> Color(0xFFEEEEEE) to Color(0xFF616161)
-    }
+    val config = getEstadoConfig(status)
 
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(bgColor)
+            .background(config.bg)
+            .border(1.dp, config.border, RoundedCornerShape(8.dp))
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
         Text(
             text = status.replace("_", " "),
-            color = textColor,
+            color = config.text,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold
         )
+    }
+}
+
+@Composable
+fun EstadoSelectorItem(
+    estadoKey: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val config = getEstadoConfig(estadoKey)
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(if (isSelected) BrandTealDark else config.bg)
+            .border(
+                width = if (isSelected) 2.dp else 1.dp,
+                color = if (isSelected) BrandTealDark else config.border,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(if (isSelected) Color.White else config.text)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = estadoKey.replace("_", " "),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (isSelected) Color.White else config.text
+            )
+        }
     }
 }
 

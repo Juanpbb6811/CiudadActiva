@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,6 +27,7 @@ import com.ciudadactiva.app.ui.components.CiudadActivaTopBar
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import com.ciudadactiva.app.data.api.ApiClient
+import com.ciudadactiva.app.ui.components.EstadoSelectorItem
 import com.ciudadactiva.app.ui.components.GradientButton
 import com.ciudadactiva.app.ui.components.LoadingSkeleton
 import com.ciudadactiva.app.ui.components.StatusChip
@@ -282,7 +284,7 @@ fun GestorFichaInspeccionScreen(
                             )
                         },
                         modifier = Modifier.weight(1f).height(50.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark),
+                        colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark, contentColor = Color.White),
                         shape = RoundedCornerShape(25.dp)
                     ) {
                         Text("Admitir Reporte", color = Color.White, fontWeight = FontWeight.Bold)
@@ -410,9 +412,10 @@ fun GestorFichaInspeccionScreen(
                             }
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark)
+                    colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark, contentColor = Color.White),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Confirmar Asignación")
+                    Text("Confirmar Asignación", color = Color.White, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
@@ -435,27 +438,20 @@ fun GestorFichaInspeccionScreen(
                 Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("Selecciona el nuevo estado oficial:", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
                     
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         estadosDisponibles.chunked(2).forEach { rowEstados ->
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                                 rowEstados.forEach { est ->
                                     val isSel = estadoSeleccionado == est
-                                    Box(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .clip(RoundedCornerShape(10.dp))
-                                            .background(if (isSel) BrandTealDark else Color(0xFFF1F5F4))
-                                            .clickable { estadoSeleccionado = est }
-                                            .padding(vertical = 8.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = est,
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if (isSel) Color.White else Color(0xFF5A6665)
-                                        )
-                                    }
+                                    EstadoSelectorItem(
+                                        estadoKey = est,
+                                        isSelected = isSel,
+                                        onClick = { estadoSeleccionado = est },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                                if (rowEstados.size == 1) {
+                                    Spacer(modifier = Modifier.weight(1f))
                                 }
                             }
                         }
@@ -475,15 +471,18 @@ fun GestorFichaInspeccionScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        val obs = if (observacionesCambioEstado.isBlank()) "Transición de estado a $estadoSeleccionado por Gestor" else observacionesCambioEstado
+                        val obs = if (observacionesCambioEstado.isBlank()) "Transición de estado a ${estadoSeleccionado.replace("_", " ")} por Gestor" else observacionesCambioEstado
                         viewModel.cambiarEstadoReporte(reporteId, estadoSeleccionado, obs) {
                             mostrarModalCambiarEstado = false
                             onAccionTerminada()
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark)
+                    colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark, contentColor = Color.White),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Aplicar Cambio")
+                    Icon(Icons.Default.Save, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Guardar Estado", color = Color.White, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {

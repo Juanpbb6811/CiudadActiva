@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -34,6 +35,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ciudadactiva.app.ui.components.CiudadActivaTopBar
+import com.ciudadactiva.app.ui.components.EstadoSelectorItem
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import com.ciudadactiva.app.data.api.ApiClient
@@ -179,10 +181,10 @@ fun OperadorTareasScreen(
                             Spacer(modifier = Modifier.height(14.dp))
                             Button(
                                 onClick = { viewModel.setTab("TODOS") },
-                                colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark),
+                                colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark, contentColor = Color.White),
                                 shape = RoundedCornerShape(14.dp)
                             ) {
-                                Text("Ver Reportes en Terreno →", fontSize = 12.sp)
+                                Text("Ver Reportes en Terreno →", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -229,7 +231,7 @@ fun OperadorTareasScreen(
                                         Button(
                                             onClick = { onCerrarReporteClick(tarea.reporteId) },
                                             modifier = Modifier.weight(1f).height(44.dp),
-                                            colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark),
+                                            colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark, contentColor = Color.White),
                                             shape = RoundedCornerShape(22.dp)
                                         ) {
                                             Text("Cerrar con Foto →", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
@@ -333,23 +335,23 @@ fun OperadorTareasScreen(
                                         Button(
                                             onClick = { onRegistrarAvanceClick(rep.id) },
                                             modifier = Modifier.weight(1.3f).height(40.dp),
-                                            colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark),
+                                            colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark, contentColor = Color.White),
                                             shape = RoundedCornerShape(14.dp),
                                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
                                         ) {
-                                            Icon(Icons.Default.CameraAlt, contentDescription = null, modifier = Modifier.size(14.dp))
+                                            Icon(Icons.Default.CameraAlt, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
                                             Spacer(modifier = Modifier.width(4.dp))
-                                            Text("Avance / Foto", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                            Text("Avance / Foto", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                         }
 
                                         Button(
                                             onClick = { onCerrarReporteClick(rep.id) },
                                             modifier = Modifier.weight(1f).height(40.dp),
-                                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00796B)),
+                                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00796B), contentColor = Color.White),
                                             shape = RoundedCornerShape(14.dp),
                                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
                                         ) {
-                                            Text("Cerrar", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                            Text("Cerrar", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                         }
                                     }
                                 }
@@ -365,36 +367,31 @@ fun OperadorTareasScreen(
     if (reporteAEditar != null) {
         AlertDialog(
             onDismissRequest = { reporteAEditar = null },
-            title = { Text("Actualizar Estado Operativo #${reporteAEditar!!.id}", fontSize = 16.sp, fontWeight = FontWeight.Bold) },
+            title = { Text("Actualizar Estado Operativo #${reporteAEditar!!.id}", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = BrandTealDark) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("Selecciona el nuevo estado conforme al avance en sitio:", fontSize = 12.sp, color = TextDark)
+                    Text("Selecciona el nuevo estado conforme al avance en sitio:", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
                     val opciones = listOf("EN_PROCESO", "ATENDIDO", "CERRADO")
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         opciones.forEach { est ->
                             val isSel = nuevoEstadoModal == est
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(if (isSel) BrandTealDark.copy(alpha = 0.12f) else Color.Transparent)
-                                    .clickable { nuevoEstadoModal = est }
-                                    .padding(horizontal = 8.dp, vertical = 6.dp)
-                            ) {
-                                RadioButton(selected = isSel, onClick = { nuevoEstadoModal = est })
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(est, fontSize = 12.sp, fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal)
-                            }
+                            EstadoSelectorItem(
+                                estadoKey = est,
+                                isSelected = isSel,
+                                onClick = { nuevoEstadoModal = est },
+                                modifier = Modifier.fillMaxWidth()
+                            )
                         }
                     }
 
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("Detalle de las labores realizadas:", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
                     OutlinedTextField(
                         value = observacionesModal,
                         onValueChange = { observacionesModal = it },
-                        label = { Text("Detalle de las labores realizadas") },
-                        placeholder = { Text("Ej: Inicio de labores en calzada, señalización instalada...") },
-                        modifier = Modifier.fillMaxWidth()
+                        placeholder = { Text("Ej: Labores en sitio concluidas...", fontSize = 12.sp) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
                     )
                 }
             },
@@ -406,14 +403,17 @@ fun OperadorTareasScreen(
                             reporteAEditar = null
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark)
+                    colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark, contentColor = Color.White),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Guardar Estado")
+                    Icon(Icons.Default.Save, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Guardar Estado", color = Color.White, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { reporteAEditar = null }) {
-                    Text("Cancelar")
+                    Text("Cancelar", color = Color(0xFF6C757D))
                 }
             }
         )
@@ -556,7 +556,7 @@ fun OperadorFichaScreen(
                         Button(
                             onClick = { onCerrarReporte(f.id) },
                             modifier = Modifier.fillMaxWidth().height(48.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark),
+                            colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark, contentColor = Color.White),
                             shape = RoundedCornerShape(24.dp)
                         ) {
                             Text("Proceder al Cierre con Evidencia", color = Color.White, fontWeight = FontWeight.Bold)
@@ -643,11 +643,11 @@ fun OperadorAvanceScreen(
                                         .align(Alignment.BottomEnd)
                                         .padding(8.dp),
                                     shape = RoundedCornerShape(12.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark)
+                                    colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark, contentColor = Color.White)
                                 ) {
-                                    Icon(Icons.Default.CameraAlt, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Icon(Icons.Default.CameraAlt, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Tomar otra foto", fontSize = 11.sp)
+                                    Text("Tomar otra foto", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         } else {

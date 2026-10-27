@@ -153,10 +153,10 @@ fun GestorDashboardScreen(
                         Spacer(modifier = Modifier.height(14.dp))
                         Button(
                             onClick = { onInspeccionarReporte(reporteCritico.id) },
-                            colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark),
+                            colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark, contentColor = Color.White),
                             shape = RoundedCornerShape(14.dp)
                         ) {
-                            Text("Validar y Asignar →", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text("Validar y Asignar →", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         }
                     }
                 }

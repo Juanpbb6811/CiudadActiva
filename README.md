@@ -4,37 +4,43 @@ Sistema integral para el reporte, validación, asignación operativa y seguimien
 
 ---
 
-## 📲 Descargar App Android (Release v0.1.5)
+## 📲 Descargar App Android (Release v0.1.6)
 
 Ya puedes instalar y probar la versión oficial y firmada de CiudadActiva directamente en tu dispositivo Android o emulador:
 
-[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.1.5_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.5.apk)
+[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.1.6_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.6.apk)
 [![Servidor Cloud](https://img.shields.io/badge/Descarga_Directa-Cloud_Render-blueviolet?style=for-the-badge&logo=render&logoColor=white)](https://ciudadactiva-4ah7.onrender.com/descargar)
-[![GitHub Release](https://img.shields.io/badge/Release_Tag-v0.1.5-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.1.5)
+[![GitHub Release](https://img.shields.io/badge/Release_Tag-v0.1.6-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.1.6)
 
 ### 📥 Enlaces de descarga directa:
-* 🌐 **[Servidor Oficial en la Nube (Render): Descargar CiudadActiva-v0.1.5.apk (12.2 MB)](https://ciudadactiva-4ah7.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
-* 🐙 **[GitHub Directo: Descargar CiudadActiva-v0.1.5.apk (12.2 MB)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.5.apk)**
+* 🌐 **[Servidor Oficial en la Nube (Render): Descargar CiudadActiva-v0.1.6.apk (12.2 MB)](https://ciudadactiva-4ah7.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
+* 🐙 **[GitHub Directo: Descargar CiudadActiva-v0.1.6.apk (12.2 MB)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.6.apk)**
 
 ### 🛠️ Instrucciones de Instalación en Android:
-1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.1.5.apk`.
+1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.1.6.apk`.
 2. Al finalizar la descarga, presiona **Abrir** (o ve a tu app de **Archivos / Descargas** y tócalo).
 3. Si el sistema muestra el aviso de seguridad de Android / Xiaomi, activa la opción **Confiar en esta fuente / Instalar aplicaciones desconocidas**.
 4. Pulsa **Instalar** y ¡listo!
 
-### ✨ Novedades de la versión v0.1.5:
-- 📋 **Acceso Total y Lista Completa de Reportes para GESTOR**:
-  - La primera pestaña de la barra inferior del Gestor ahora lleva directamente a **Reportes** (Bandeja Completa de Validación con filtros por estado: Todos, Pendientes, Admitidos, Rechazados).
-  - Botón directo de **"Cambiar Estado"** en cada tarjeta para modificar el estado y justificación técnica sin abandonar la lista.
-- 🛠️ **Acceso y Operación en Terreno para OPERADOR**:
-  - Pestaña dual en pantalla principal de labores: **"Mis Asignaciones"** y **"Reportes en Terreno"**, permitiendo al operador ver y trabajar sobre todos los reportes activos del municipio.
-  - El operador puede registrar avances con foto tomada con la cámara móvil, actualizar la situación técnica y cambiar directamente el estado (`EN_PROCESO`, `ATENDIDO`, `CERRADO`) sin bloqueos de asignación (Regla 8 adaptada a terreno).
-- 👑 **Control Integral sin Redundancia para ADMINISTRADOR**:
-  - Se eliminaron los botones redundantes del Panel Global que duplicaban la barra de navegación inferior.
-  - Se integró el nuevo módulo **Gestión y Control Global de Reportes** con filtros por estado, fotografía de evidencia, botón para modificar estado de cualquier reporte y opción de eliminación.
-  - Carga automática e instantánea al acceder a las pestañas de **Usuarios** (mostrando el directorio completo de usuarios con filtros por rol), **Categorías** (catálogo oficial con descripción e íconos) y **Auditoría RUP** (matriz inmutable de eventos con hashes SHA-256).
-- 🚀 **Optimización de Despliegue en Render y Supabase**:
-  - Ajuste de `ddl-auto: none` y timeouts de conexión para arranque inmediato de Spring Boot en producción evitando bloqueos de catálogo sobre Supavisor pooler.
+### ✨ Novedades de la versión v0.1.6:
+- 🎨 **Corrección de Contraste y Visibilidad en Botones**:
+  - Texto e íconos en blanco explícito (`Color.White`) de alto contraste en botones sobre fondo oscuro ("Validar y Asignar →", "Confirmar Asignación", "Avance / Foto", "Cerrar", "Modificar Estado", "Guardar Estado").
+- 💾 **Nuevo Botón "Guardar Estado"**:
+  - Botón unificado y destacado con ícono de disco en todos los modales de actualización de estado para Gestores, Operadores y Administradores.
+- 🌈 **Paleta Semántica por Estado de Reporte**:
+  - Cada estado cuenta con un color distintivo que refleja su fase en el ciclo de vida:
+    - **PENDIENTE**: Ámbar / Naranja
+    - **EN REVISION**: Cian / Azul cielo (formateado sin guion bajo)
+    - **ADMITIDO**: Verde esmeralda
+    - **EN PROCESO**: Azul real
+    - **ATENDIDO**: Violeta / Púrpura
+    - **CERRADO**: Verde oliva / Lima
+    - **RECHAZADO**: Rojo carmesí
+- 🔙 **Navegación de Retorno Robusta (`←` Atrás)**:
+  - Botones de retroceso estilizados con borde visible y mecanismo de respaldo (`retrocederSeguro`) que garantiza navegación fluida hacia el tablero principal de cada rol sin bloqueos de pila.
+- 🔒 **Protección y Exclusividad de Roles RUP**:
+  - El selector de cambio de actor en perfil está restringido exclusivamente a cuentas demo autorizadas; las cuentas demo ya no se exponen en la pantalla principal de login ni en la documentación pública.
+  - Registro directo disponible para todos los ciudadanos y acceso rápido mediante Google Sign-In.
 
 ---
 
@@ -117,8 +123,6 @@ mvn spring-boot:run
 
 ---
 
-## 👥 Cuentas de Acceso Demo
-- **Administrador:** `admin@ciudadactiva.gov.co` | `Admin123!`
-- **Gestor:** `gestor@ciudadactiva.gov.co` | `Gestor123!`
-- **Operador:** `operador@ciudadactiva.gov.co` | `Operador123!`
-- **Ciudadano:** `ciudadano@ciudadactiva.gov.co` | `Ciudadano123!` (o registro directo desde la app)
+## 👥 Acceso a la Plataforma
+- **Ciudadanos:** Pueden registrarse de forma gratuita desde la pantalla de bienvenida o iniciar sesión directamente con su cuenta de Google.
+- **Personal Institucional (Gestores, Operadores, Administradores):** Cuentas gestionadas internamente por la administración municipal.

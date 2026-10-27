@@ -1,6 +1,7 @@
 package com.ciudadactiva.app.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,9 +40,10 @@ fun CiudadActivaTopBar(
             IconButton(
                 onClick = onBackClick,
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(42.dp)
                     .clip(CircleShape)
                     .background(Color.White)
+                    .border(1.dp, Color(0xFFDDE3E2), CircleShape)
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
