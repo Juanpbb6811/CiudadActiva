@@ -3,3 +3,9 @@ plugins {
     id("com.android.application") version "8.4.1" apply false
     id("org.jetbrains.kotlin.android") version "1.9.23" apply false
 }
+
+// Si el proyecto reside en OneDrive, reubicar la carpeta temporal build para evitar errores de ReparsePoint y bloqueos de Windows
+if (projectDir.absolutePath.contains("OneDrive", ignoreCase = true)) {
+    val localBuildBase = java.io.File(System.getProperty("user.home"), ".gradle-builds/CiudadActiva/root")
+    layout.buildDirectory.set(localBuildBase)
+}
