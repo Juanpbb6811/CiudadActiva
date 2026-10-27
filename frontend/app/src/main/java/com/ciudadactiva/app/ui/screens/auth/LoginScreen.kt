@@ -1,5 +1,8 @@
 package com.ciudadactiva.app.ui.screens.auth
 
+import android.util.Patterns
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -12,6 +15,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Visibility
@@ -56,9 +61,15 @@ fun LoginScreen(
 
     var passwordVisible by remember { mutableStateOf(false) }
     var showServerDialog by remember { mutableStateOf(false) }
+    var showGoogleDialog by remember { mutableStateOf(false) }
+    var googleEmailInput by remember { mutableStateOf("") }
+    var showDemoRoles by remember { mutableStateOf(false) }
+
     var currentServerUrl by remember {
         mutableStateOf(CiudadActivaApplication.sessionManager.getBaseUrl())
     }
+
+    val isEmailValid = email.isBlank() || Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()
 
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Success) {
@@ -112,49 +123,66 @@ fun LoginScreen(
                 color = TextMuted
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            // Selector ROL DE ACCESO DEMO (según Mockup M00_02)
-            Text(
-                text = "ROL DE ACCESO DEMO",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF7A8B88),
-                modifier = Modifier.align(Alignment.Start)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
+            // Botón Continuar con Google
+            OutlinedButton(
+                onClick = {
+                    googleEmailInput = email.ifBlank { "" }
+                    showGoogleDialog = true
+                },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(Color(0xFFEBEFF0))
-                    .padding(4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .height(48.dp),
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(1.dp, Color(0xFFD0D7D6)),
+                colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
             ) {
-                DemoCredentials.accounts.forEach { account ->
-                    val isSelected = selectedDemo.rolTag == account.rolTag
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(if (isSelected) Color.White else Color.Transparent)
-                            .clickable { viewModel.selectDemoAccount(account) }
-                            .padding(vertical = 8.dp),
-                        contentAlignment = Alignment.Center
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = Color(0xFF4285F4),
+                        modifier = Modifier.size(20.dp)
                     ) {
-                        Text(
-                            text = account.label,
-                            fontSize = 12.sp,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                            color = if (isSelected) BrandTealDark else Color(0xFF6A7775)
-                        )
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                text = "G",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp
+                            )
+                        }
                     }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = "Continuar con Google / Gmail",
+                        color = TextDark,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 13.sp
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(14.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFDDE3E2))
+                Text(
+                    text = "  O ingresa con tu cuenta  ",
+                    fontSize = 11.sp,
+                    color = Color(0xFF7A8B88),
+                    fontWeight = FontWeight.Medium
+                )
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFDDE3E2))
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
 
             // Tarjeta de Formulario
             Card(
@@ -181,11 +209,21 @@ fun LoginScreen(
                             value = email,
                             onValueChange = { viewModel.emailInput.value = it },
                             modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("ejemplo@ciudadactiva.gov.co", fontSize = 13.sp) },
+                            placeholder = { Text("tu_correo@ejemplo.com", fontSize = 13.sp) },
                             leadingIcon = {
                                 Icon(Icons.Default.Email, contentDescription = null, tint = Color(0xFF7A8B88))
                             },
                             singleLine = true,
+                            isError = !isEmailValid,
+                            supportingText = {
+                                if (!isEmailValid) {
+                                    Text(
+                                        text = "Formato de correo no válido",
+                                        color = MaterialTheme.colorScheme.error,
+                                        fontSize = 11.sp
+                                    )
+                                }
+                            },
                             shape = RoundedCornerShape(16.dp),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
                         )
@@ -212,7 +250,7 @@ fun LoginScreen(
                                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                     Icon(
                                         imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                        contentDescription = "Ver contraseña",
+                                        contentDescription = if (passwordVisible) "Ocultar" else "Ver contraseña",
                                         tint = Color(0xFF7A8B88)
                                     )
                                 }
@@ -248,7 +286,7 @@ fun LoginScreen(
                         )
                     }
 
-                    // Mensaje de Error (M00_04)
+                    // Mensaje de Error
                     if (uiState is AuthUiState.Error) {
                         Box(
                             modifier = Modifier
@@ -270,15 +308,16 @@ fun LoginScreen(
                     // Botón Ingresar
                     GradientButton(
                         text = "Ingresar a la Plataforma",
+                        enabled = email.isNotBlank() && isEmailValid && password.isNotBlank(),
                         onClick = { viewModel.login() },
                         isLoading = uiState is AuthUiState.Loading
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            // Footer link
+            // Footer link para registrar cuenta propia
             Text(
                 text = "¿No tienes una cuenta aún?",
                 fontSize = 13.sp,
@@ -287,11 +326,68 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "Crear cuenta de Ciudadano",
-                fontSize = 14.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
                 color = BrandTealDark,
                 modifier = Modifier.clickable(onClick = onRegisterClick)
             )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Selector ROL DE ACCESO DEMO (colapsado para no imponer el usuario base)
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable { showDemoRoles = !showDemoRoles }
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Cuentas de prueba institucionales (Evaluación)",
+                    fontSize = 11.sp,
+                    color = Color(0xFF8FA3A0),
+                    fontWeight = FontWeight.Medium
+                )
+                Icon(
+                    imageVector = if (showDemoRoles) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = null,
+                    tint = Color(0xFF8FA3A0),
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+
+            AnimatedVisibility(visible = showDemoRoles) {
+                Column(modifier = Modifier.padding(top = 8.dp)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color(0xFFEBEFF0))
+                            .padding(4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        DemoCredentials.accounts.forEach { account ->
+                            val isSelected = selectedDemo.rolTag == account.rolTag
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(if (isSelected) Color.White else Color.Transparent)
+                                    .clickable { viewModel.selectDemoAccount(account) }
+                                    .padding(vertical = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = account.label,
+                                    fontSize = 11.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isSelected) BrandTealDark else Color(0xFF6A7775)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -310,6 +406,65 @@ fun LoginScreen(
                 imageVector = Icons.Default.Settings,
                 contentDescription = "Configurar Servidor",
                 tint = BrandTealDark
+            )
+        }
+
+        // Diálogo para acceder con Google
+        if (showGoogleDialog) {
+            AlertDialog(
+                onDismissRequest = { showGoogleDialog = false },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = Color(0xFF4285F4),
+                            modifier = Modifier.size(22.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text("G", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text("Acceder con Google", fontWeight = FontWeight.Bold)
+                    }
+                },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            text = "Ingresa tu cuenta de Google (Gmail o institucional) para iniciar sesión o registrarte automáticamente:",
+                            fontSize = 13.sp,
+                            color = Color(0xFF555555)
+                        )
+                        OutlinedTextField(
+                            value = googleEmailInput,
+                            onValueChange = { googleEmailInput = it },
+                            label = { Text("Correo de Google") },
+                            placeholder = { Text("usuario@gmail.com") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            if (googleEmailInput.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(googleEmailInput.trim()).matches()) {
+                                showGoogleDialog = false
+                                val inferredName = googleEmailInput.substringBefore("@").replace(".", " ").replaceFirstChar { it.uppercase() }
+                                viewModel.loginConGoogle(googleEmailInput.trim(), inferredName)
+                            }
+                        },
+                        enabled = googleEmailInput.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(googleEmailInput.trim()).matches()
+                    ) {
+                        Text("Continuar")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showGoogleDialog = false }) {
+                        Text("Cancelar")
+                    }
+                }
             )
         }
 
@@ -337,13 +492,6 @@ fun LoginScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             OutlinedButton(
-                                onClick = { currentServerUrl = "http://192.168.1.22:8080/" },
-                                modifier = Modifier.weight(1f),
-                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp)
-                            ) {
-                                Text("Wi-Fi PC", fontSize = 11.sp)
-                            }
-                            OutlinedButton(
                                 onClick = { currentServerUrl = "https://ciudadactiva-4ah7.onrender.com/" },
                                 modifier = Modifier.weight(1f),
                                 contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp)
@@ -356,6 +504,13 @@ fun LoginScreen(
                                 contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp)
                             ) {
                                 Text("Emulador", fontSize = 11.sp)
+                            }
+                            OutlinedButton(
+                                onClick = { currentServerUrl = "http://192.168.1.22:8080/" },
+                                modifier = Modifier.weight(1f),
+                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp)
+                            ) {
+                                Text("Wi-Fi PC", fontSize = 11.sp)
                             }
                         }
                     }

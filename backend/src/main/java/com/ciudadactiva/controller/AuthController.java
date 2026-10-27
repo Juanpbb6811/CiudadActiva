@@ -26,7 +26,7 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @PostMapping("/register")
+    @PostMapping({"/register", "/registro"})
     @Operation(summary = "Registro de Ciudadano", description = "Permite a cualquier habitante registrarse en la aplicación con rol CIUDADANO.")
     public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
         AuthResponse response = authService.register(request);
