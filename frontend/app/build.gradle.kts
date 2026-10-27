@@ -38,9 +38,25 @@ android {
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleClientId\"")
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("${project.rootDir}/keystore/release.jks")
+            storePassword = "ciudadactiva123"
+            keyAlias = "ciudadactiva"
+            keyPassword = "ciudadactiva123"
+            enableV1Signing = true
+            enableV2Signing = true
+        }
+    }
+
     buildTypes {
+        debug {
+            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
+        }
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
