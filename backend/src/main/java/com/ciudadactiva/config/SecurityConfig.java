@@ -50,6 +50,7 @@ public class SecurityConfig {
                         // Endpoints públicos de autenticación, salud y documentación
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/health").permitAll()
+                        .requestMatchers("/descargar", "/app.apk", "/api/app/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",
