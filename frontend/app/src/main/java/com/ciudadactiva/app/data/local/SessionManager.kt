@@ -14,21 +14,41 @@ class SessionManager(context: Context) {
         private const val KEY_EMAIL = "user_email"
         private const val KEY_NOMBRE = "user_name"
         private const val KEY_ROL = "user_role"
+        private const val KEY_TELEFONO = "user_phone"
+        private const val KEY_DIRECCION = "user_address"
+        private const val KEY_FOTO_URL = "user_photo_url"
         private const val KEY_BASE_URL = "base_url"
 
         // IP por defecto: si es teléfono físico en Wi-Fi usa 192.168.1.22; si es emulador usa 10.0.2.2; o la URL pública de Render
         const val DEFAULT_BASE_URL = "http://192.168.1.22:8080/"
     }
 
-    fun saveAuth(token: String, id: Long, email: String?, nombre: String?, rol: String?) {
+    fun saveAuth(token: String, id: Long, email: String?, nombre: String?, rol: String?, fotoUrl: String? = null) {
         prefs.edit()
             .putString(KEY_TOKEN, token)
             .putLong(KEY_USER_ID, id)
             .putString(KEY_EMAIL, email ?: "")
             .putString(KEY_NOMBRE, nombre ?: "")
             .putString(KEY_ROL, rol ?: "")
+            .putString(KEY_FOTO_URL, fotoUrl ?: "")
             .apply()
     }
+
+    fun updateProfile(nombre: String, email: String, telefono: String?, direccion: String?, fotoUrl: String? = null) {
+        prefs.edit()
+            .putString(KEY_NOMBRE, nombre)
+            .putString(KEY_EMAIL, email)
+            .putString(KEY_TELEFONO, telefono ?: "")
+            .putString(KEY_DIRECCION, direccion ?: "")
+            .putString(KEY_FOTO_URL, fotoUrl ?: "")
+            .apply()
+    }
+
+    fun getFotoUrl(): String? = prefs.getString(KEY_FOTO_URL, null)
+
+    fun getTelefono(): String? = prefs.getString(KEY_TELEFONO, "3001234567")
+
+    fun getDireccion(): String? = prefs.getString(KEY_DIRECCION, "Calle 13 # 8-45")
 
     fun getToken(): String? = prefs.getString(KEY_TOKEN, null)
 

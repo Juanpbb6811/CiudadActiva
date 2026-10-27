@@ -7,19 +7,25 @@ public class UsuarioUpdateRequest {
     @NotBlank(message = "El nombre no puede estar vacío")
     private String nombre;
 
+    private String email;
+
     private String telefono;
 
     private String direccion;
+
+    private String fotoUrl;
 
     private Boolean activo;
 
     public UsuarioUpdateRequest() {
     }
 
-    public UsuarioUpdateRequest(String nombre, String telefono, String direccion, Boolean activo) {
+    public UsuarioUpdateRequest(String nombre, String email, String telefono, String direccion, String fotoUrl, Boolean activo) {
         this.nombre = nombre;
+        this.email = email;
         this.telefono = telefono;
         this.direccion = direccion;
+        this.fotoUrl = fotoUrl;
         this.activo = activo;
     }
 
@@ -29,6 +35,14 @@ public class UsuarioUpdateRequest {
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getTelefono() {
@@ -45,6 +59,14 @@ public class UsuarioUpdateRequest {
 
     public void setDireccion(String direccion) {
         this.direccion = direccion;
+    }
+
+    public String getFotoUrl() {
+        return fotoUrl;
+    }
+
+    public void setFotoUrl(String fotoUrl) {
+        this.fotoUrl = fotoUrl;
     }
 
     public Boolean getActivo() {

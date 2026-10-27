@@ -89,6 +89,11 @@ class CiudadanoViewModel : ViewModel() {
         fotoNombreArchivo.value = "evidencia_camara_${System.currentTimeMillis()}.jpg"
     }
 
+    fun setFotoGaleria(bitmap: Bitmap) {
+        fotoTomadaBitmap.value = bitmap
+        fotoNombreArchivo.value = "evidencia_galeria_${System.currentTimeMillis()}.jpg"
+    }
+
     fun eliminarFoto() {
         fotoTomadaBitmap.value = null
         fotoNombreArchivo.value = null

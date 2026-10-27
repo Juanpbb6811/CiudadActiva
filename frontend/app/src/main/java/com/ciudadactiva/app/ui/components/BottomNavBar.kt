@@ -38,6 +38,8 @@ fun CiudadActivaBottomBar(
     onNavigate: (String) -> Unit,
     onFabClick: () -> Unit = {}
 ) {
+    val isCiudadano = userRole == "ROLE_CIUDADANO" || userRole == null
+
     val items = when (userRole) {
         "ROLE_GESTOR" -> listOf(
             NavItem(Screen.GestorDashboard.route, "Validar", Icons.Outlined.CheckCircle, Icons.Filled.CheckCircle),
@@ -59,7 +61,6 @@ fun CiudadActivaBottomBar(
         else -> listOf(
             NavItem(Screen.CiudadanoHome.route, "Inicio", Icons.Outlined.Home, Icons.Filled.Home),
             NavItem(Screen.MapaExplorador.route, "Mapa", Icons.Outlined.Map, Icons.Filled.Map),
-            // El FAB central se ubica entre Mapa y Mis Reportes
             NavItem(Screen.MisReportes.route, "Reportes", Icons.Outlined.Description, Icons.Filled.Description),
             NavItem(Screen.CiudadanoPerfil.route, "Perfil", Icons.Outlined.Person, Icons.Filled.Person)
         )
@@ -68,69 +69,99 @@ fun CiudadActivaBottomBar(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(16.dp, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-            .background(Color.White)
-            .navigationBarsPadding()
-            .height(68.dp)
+            .height(if (isCiudadano) 84.dp else 68.dp)
+            .navigationBarsPadding(),
+        contentAlignment = Alignment.BottomCenter
     ) {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
+        // Barra blanca de navegación
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(64.dp)
+                .shadow(16.dp, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .background(Color.White)
         ) {
-            val isCiudadano = userRole == "ROLE_CIUDADANO" || userRole == null
-
-            items.forEachIndexed { index, item ->
-                // Para ciudadano, insertar el espacio del FAB central después del 2do item (Mapa)
-                if (isCiudadano && index == 2) {
-                    // Botón Central FAB (+)
-                    Box(
-                        modifier = Modifier
-                            .size(52.dp)
-                            .offset(y = (-10).dp)
-                            .clip(CircleShape)
-                            .background(Brush.linearGradient(listOf(BrandTealLight, BrandCopper)))
-                            .clickable(onClick = onFabClick),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Nuevo Reporte",
-                            tint = Color.White,
-                            modifier = Modifier.size(30.dp)
-                        )
-                    }
-                }
-
-                val isSelected = currentRoute == item.route
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .clickable { onNavigate(item.route) }
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Icon(
-                        imageVector = if (isSelected) item.selectedIcon else item.icon,
-                        contentDescription = item.title,
-                        tint = if (isSelected) BrandTealDark else Color(0xFF9E9E9E),
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = item.title,
-                        fontSize = 10.sp,
-                        color = if (isSelected) BrandTealDark else Color(0xFF9E9E9E)
-                    )
-                    if (isSelected) {
-                        Box(
-                            modifier = Modifier
-                                .padding(top = 2.dp)
-                                .size(width = 16.dp, height = 2.dp)
-                                .background(BrandCopper, CircleShape)
-                        )
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (isCiudadano) {
+                    // Item 0: Inicio
+                    NavTabItem(items[0], currentRoute == items[0].route, Modifier.weight(1f)) { onNavigate(items[0].route) }
+                    // Item 1: Mapa
+                    NavTabItem(items[1], currentRoute == items[1].route, Modifier.weight(1f)) { onNavigate(items[1].route) }
+                    // Espacio central reservado simétricamente para el FAB (+)
+                    Spacer(modifier = Modifier.width(60.dp))
+                    // Item 2: Reportes
+                    NavTabItem(items[2], currentRoute == items[2].route, Modifier.weight(1f)) { onNavigate(items[2].route) }
+                    // Item 3: Perfil
+                    NavTabItem(items[3], currentRoute == items[3].route, Modifier.weight(1f)) { onNavigate(items[3].route) }
+                } else {
+                    items.forEach { item ->
+                        NavTabItem(item, currentRoute == item.route, Modifier.weight(1f)) { onNavigate(item.route) }
                     }
                 }
             }
+        }
+
+        // Botón FAB circular (+) perfectamente centrado y flotando sin cortes
+        if (isCiudadano) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .offset(y = (-4).dp)
+                    .size(56.dp)
+                    .shadow(10.dp, CircleShape)
+                    .clip(CircleShape)
+                    .background(Brush.linearGradient(listOf(BrandTealLight, BrandCopper)))
+                    .clickable(onClick = onFabClick),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Nuevo Reporte",
+                    tint = Color.White,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun NavTabItem(
+    item: NavItem,
+    isSelected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .clickable(onClick = onClick)
+            .padding(vertical = 4.dp)
+    ) {
+        Icon(
+            imageVector = if (isSelected) item.selectedIcon else item.icon,
+            contentDescription = item.title,
+            tint = if (isSelected) BrandTealDark else Color(0xFF9E9E9E),
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = item.title,
+            fontSize = 10.sp,
+            color = if (isSelected) BrandTealDark else Color(0xFF9E9E9E),
+            fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Normal
+        )
+        if (isSelected) {
+            Box(
+                modifier = Modifier
+                    .padding(top = 2.dp)
+                    .size(width = 16.dp, height = 2.dp)
+                    .background(BrandCopper, CircleShape)
+            )
         }
     }
 }

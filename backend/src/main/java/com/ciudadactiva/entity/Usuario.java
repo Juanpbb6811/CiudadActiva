@@ -26,6 +26,9 @@ public class Usuario {
     @Column(length = 200)
     private String direccion;
 
+    @Column(name = "foto_url", columnDefinition = "TEXT")
+    private String fotoUrl;
+
     @Column(nullable = false)
     private Boolean activo = true;
 
@@ -112,6 +115,14 @@ public class Usuario {
 
     public void setDireccion(String direccion) {
         this.direccion = direccion;
+    }
+
+    public String getFotoUrl() {
+        return fotoUrl;
+    }
+
+    public void setFotoUrl(String fotoUrl) {
+        this.fotoUrl = fotoUrl;
     }
 
     public Boolean getActivo() {

@@ -10,6 +10,7 @@ public class UsuarioResponse {
     private String email;
     private String telefono;
     private String direccion;
+    private String fotoUrl;
     private Boolean activo;
     private String rol;
     private Long laboresActivas;
@@ -25,6 +26,7 @@ public class UsuarioResponse {
             this.email = usuario.getEmail();
             this.telefono = usuario.getTelefono();
             this.direccion = usuario.getDireccion();
+            this.fotoUrl = usuario.getFotoUrl();
             this.activo = usuario.getActivo();
             if (usuario.getRol() != null) {
                 this.rol = usuario.getRol().getNombre().name();
@@ -71,6 +73,14 @@ public class UsuarioResponse {
 
     public void setDireccion(String direccion) {
         this.direccion = direccion;
+    }
+
+    public String getFotoUrl() {
+        return fotoUrl;
+    }
+
+    public void setFotoUrl(String fotoUrl) {
+        this.fotoUrl = fotoUrl;
     }
 
     public Boolean getActivo() {

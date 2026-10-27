@@ -29,6 +29,10 @@ public class ReporteResponse {
     private Boolean tieneFotoSolucion;
     private String fotoSolucionTipo;
     private String operadorAsignadoNombre;
+    private Integer reportesCercanos = 1;
+    private String semaforoColorHex = "#4CAF50";
+    private String semaforoNivel = "BAJO";
+    private String semaforoDescripcion = "1 reporte: Nivel bajo, situación bajo control";
     private LocalDateTime creadoEn;
     private LocalDateTime actualizadoEn;
     private LocalDateTime fechaCierre;
@@ -258,5 +262,37 @@ public class ReporteResponse {
 
     public void setFechaCierre(LocalDateTime fechaCierre) {
         this.fechaCierre = fechaCierre;
+    }
+
+    public Integer getReportesCercanos() {
+        return reportesCercanos;
+    }
+
+    public void setReportesCercanos(Integer reportesCercanos) {
+        this.reportesCercanos = reportesCercanos;
+    }
+
+    public String getSemaforoColorHex() {
+        return semaforoColorHex;
+    }
+
+    public void setSemaforoColorHex(String semaforoColorHex) {
+        this.semaforoColorHex = semaforoColorHex;
+    }
+
+    public String getSemaforoNivel() {
+        return semaforoNivel;
+    }
+
+    public void setSemaforoNivel(String semaforoNivel) {
+        this.semaforoNivel = semaforoNivel;
+    }
+
+    public String getSemaforoDescripcion() {
+        return semaforoDescripcion;
+    }
+
+    public void setSemaforoDescripcion(String semaforoDescripcion) {
+        this.semaforoDescripcion = semaforoDescripcion;
     }
 }

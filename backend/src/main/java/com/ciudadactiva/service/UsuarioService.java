@@ -52,6 +52,15 @@ public class UsuarioService {
         if (request.getDireccion() != null) {
             usuario.setDireccion(request.getDireccion());
         }
+        if (request.getEmail() != null && !request.getEmail().isBlank() && !request.getEmail().equalsIgnoreCase(usuario.getEmail())) {
+            if (usuarioRepository.existsByEmail(request.getEmail())) {
+                throw new com.ciudadactiva.exception.BusinessRuleException("El correo ya se encuentra registrado por otro usuario.");
+            }
+            usuario.setEmail(request.getEmail().trim().toLowerCase());
+        }
+        if (request.getFotoUrl() != null) {
+            usuario.setFotoUrl(request.getFotoUrl());
+        }
         return new UsuarioResponse(usuarioRepository.save(usuario));
     }
 
@@ -126,6 +135,15 @@ public class UsuarioService {
         }
         if (request.getDireccion() != null) {
             usuario.setDireccion(request.getDireccion());
+        }
+        if (request.getEmail() != null && !request.getEmail().isBlank() && !request.getEmail().equalsIgnoreCase(usuario.getEmail())) {
+            if (usuarioRepository.existsByEmail(request.getEmail())) {
+                throw new com.ciudadactiva.exception.BusinessRuleException("El correo ya se encuentra registrado por otro usuario.");
+            }
+            usuario.setEmail(request.getEmail().trim().toLowerCase());
+        }
+        if (request.getFotoUrl() != null) {
+            usuario.setFotoUrl(request.getFotoUrl());
         }
         if (request.getActivo() != null) {
             usuario.setActivo(request.getActivo());

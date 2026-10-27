@@ -1,6 +1,10 @@
 package com.ciudadactiva.app.ui.screens.ciudadano
 
+import android.Manifest
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.launch
@@ -25,11 +29,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ciudadactiva.app.ui.components.CiudadActivaTopBar
 import com.ciudadactiva.app.ui.components.GradientButton
+import com.ciudadactiva.app.ui.components.LocationHelper
+import com.ciudadactiva.app.ui.components.OpenStreetMapComposable
 import com.ciudadactiva.app.ui.theme.BackgroundLight
 import com.ciudadactiva.app.ui.theme.BrandCopper
 import com.ciudadactiva.app.ui.theme.BrandTealDark
@@ -47,7 +54,6 @@ fun NuevoReportePaso1Screen(
     val selectedCat by viewModel.nuevoReporteCategoria.collectAsState()
     val titulo by viewModel.nuevoReporteTitulo.collectAsState()
     val descripcion by viewModel.nuevoReporteDescripcion.collectAsState()
-    val urgencia by viewModel.nuevoReporteUrgencia.collectAsState()
 
     Column(
         modifier = Modifier
@@ -88,7 +94,9 @@ fun NuevoReportePaso1Screen(
                         colors = CardDefaults.cardColors(containerColor = if (isSelected) Color(0xFFE8F0EF) else Color.White)
                     ) {
                         Column(
-                            modifier = Modifier.fillMaxSize().padding(8.dp),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(8.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
@@ -119,7 +127,9 @@ fun NuevoReportePaso1Screen(
             Spacer(modifier = Modifier.height(20.dp))
 
             Card(
-                modifier = Modifier.fillMaxWidth().shadow(4.dp, RoundedCornerShape(20.dp)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(4.dp, RoundedCornerShape(20.dp)),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
@@ -147,40 +157,49 @@ fun NuevoReportePaso1Screen(
                             value = descripcion,
                             onValueChange = { viewModel.nuevoReporteDescripcion.value = it },
                             placeholder = { Text("Detalla el daño y posibles riesgos...", fontSize = 13.sp) },
-                            modifier = Modifier.fillMaxWidth().height(110.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(110.dp),
                             shape = RoundedCornerShape(14.dp),
                             maxLines = 4
                         )
                     }
 
-                    Column {
-                        Text("Nivel de Urgencia Percibida (Ciudadano)", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextDark)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            listOf("Media", "Alta", "Muy Urgente").forEach { nivel ->
-                                val isSelected = urgencia == nivel
+                    // Cálculo automático de urgencia (El usuario NO la selecciona arbitrariamente)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(Color(0xFFE8F5E9))
+                            .padding(14.dp)
+                    ) {
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
                                 Box(
                                     modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .border(1.dp, if (isSelected) BrandTealDark else Color(0xFFCFD8DC), RoundedCornerShape(12.dp))
-                                        .background(if (isSelected) Color(0xFFE0F2F1) else Color.White)
-                                        .clickable { viewModel.nuevoReporteUrgencia.value = nivel }
-                                        .padding(vertical = 10.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = if (isSelected) "$nivel ✓" else nivel,
-                                        fontSize = 11.sp,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                        color = if (isSelected) BrandTealDark else Color(0xFF546E7A)
-                                    )
-                                }
+                                        .size(10.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF2E7D32))
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Urgencia Calculada Automáticamente",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF1B5E20)
+                                )
                             }
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "El nivel de prioridad y el semáforo de atención se asignan de forma automática según la concentración de reportes en la misma zona geográfica (1 reporte = Verde, 10+ reportes = Rojo Crítico).",
+                                fontSize = 11.sp,
+                                color = Color(0xFF2E7D32),
+                                lineHeight = 15.sp
+                            )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     GradientButton(
                         text = "Continuar a Ubicación (Paso 2) →",
@@ -193,16 +212,42 @@ fun NuevoReportePaso1Screen(
     }
 }
 
-// ================== PASO 2: GEOLOCALIZACIÓN Y SIMULACIÓN (M01_04) ==================
+// ================== PASO 2: GEOLOCALIZACIÓN CON MAPA REAL (M01_04) ==================
 @Composable
 fun NuevoReportePaso2Screen(
     viewModel: CiudadanoViewModel,
     onNext: () -> Unit,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
     val direccion by viewModel.nuevoReporteDireccion.collectAsState()
     val lat by viewModel.nuevoReporteLatitud.collectAsState()
     val lng by viewModel.nuevoReporteLongitud.collectAsState()
+
+    var userGpsLocation by remember { mutableStateOf<Pair<Double, Double>?>(null) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val fineGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
+        val coarseGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        if (fineGranted || coarseGranted) {
+            LocationHelper.getCurrentLocation(
+                context = context,
+                onLocationReceived = { gLat, gLng ->
+                    userGpsLocation = Pair(gLat, gLng)
+                    viewModel.nuevoReporteLatitud.value = gLat
+                    viewModel.nuevoReporteLongitud.value = gLng
+                    Toast.makeText(context, "📍 Ubicación GPS establecida", Toast.LENGTH_SHORT).show()
+                },
+                onError = { err ->
+                    Toast.makeText(context, err, Toast.LENGTH_SHORT).show()
+                }
+            )
+        } else {
+            Toast.makeText(context, "Permiso denegado. Puedes marcar el punto en el mapa.", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -217,61 +262,103 @@ fun NuevoReportePaso2Screen(
         )
 
         Column(modifier = Modifier.padding(20.dp)) {
-            // Mapa interactivo simulado
+            // Mapa 100% Gratuito OpenStreetMap con Pin Arrastrable e Interactivo
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(260.dp)
+                    .height(300.dp)
                     .shadow(4.dp, RoundedCornerShape(24.dp)),
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFEDE8DE))
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
-                    // Pastilla con dirección
+                    OpenStreetMapComposable(
+                        modifier = Modifier.fillMaxSize(),
+                        centerLat = lat,
+                        centerLng = lng,
+                        zoom = 15,
+                        userLocation = userGpsLocation,
+                        isPickerMode = true,
+                        selectedLat = lat,
+                        selectedLng = lng,
+                        onLocationSelected = { pickedLat, pickedLng ->
+                            viewModel.nuevoReporteLatitud.value = pickedLat
+                            viewModel.nuevoReporteLongitud.value = pickedLng
+                        }
+                    )
+
+                    // Pastilla con instrucción flotante
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
-                            .padding(top = 16.dp)
+                            .padding(top = 12.dp)
                             .clip(RoundedCornerShape(16.dp))
-                            .background(Color.White)
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .background(Color.White.copy(alpha = 0.95f))
+                            .padding(horizontal = 14.dp, vertical = 6.dp)
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(text = direccion, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
-                            Text(text = "Arrastra el pin para ajustar posición", fontSize = 10.sp, color = Color(0xFF8B9695))
-                        }
-                    }
-
-                    // Pin central
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .size(44.dp)
-                            .clip(CircleShape)
-                            .background(BrandTealDark.copy(alpha = 0.2f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(20.dp)
-                                .clip(CircleShape)
-                                .background(BrandTealDark)
-                                .border(3.dp, Color.White, CircleShape)
+                        Text(
+                            text = "Toca el mapa o arrastra el marcador",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = BrandTealDark
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Botón para Usar GPS del Teléfono
+            OutlinedButton(
+                onClick = {
+                    if (LocationHelper.hasLocationPermission(context)) {
+                        LocationHelper.getCurrentLocation(
+                            context = context,
+                            onLocationReceived = { gLat, gLng ->
+                                userGpsLocation = Pair(gLat, gLng)
+                                viewModel.nuevoReporteLatitud.value = gLat
+                                viewModel.nuevoReporteLongitud.value = gLng
+                                Toast.makeText(context, "📍 Ubicación GPS establecida", Toast.LENGTH_SHORT).show()
+                            },
+                            onError = { err ->
+                                Toast.makeText(context, err, Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    } else {
+                        permissionLauncher.launch(
+                            arrayOf(
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION
+                            )
+                        )
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = BrandTealDark)
+            ) {
+                Icon(Icons.Default.MyLocation, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Usar mi ubicación GPS actual", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             Card(
-                modifier = Modifier.fillMaxWidth().shadow(4.dp, RoundedCornerShape(20.dp)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(4.dp, RoundedCornerShape(20.dp)),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
-                Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     Text(
-                        text = "COORDENADAS GPS SIMULADAS (REGLA 6)",
+                        text = "COORDENADAS DE LA INCIDENCIA",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF7A8B88)
@@ -279,7 +366,7 @@ fun NuevoReportePaso2Screen(
 
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         OutlinedTextField(
-                            value = "Lat: $lat",
+                            value = String.format("%.6f", lat),
                             onValueChange = {},
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(14.dp),
@@ -287,7 +374,7 @@ fun NuevoReportePaso2Screen(
                             label = { Text("Latitud") }
                         )
                         OutlinedTextField(
-                            value = "Lng: $lng",
+                            value = String.format("%.6f", lng),
                             onValueChange = {},
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(14.dp),
@@ -301,13 +388,15 @@ fun NuevoReportePaso2Screen(
                         onValueChange = { viewModel.nuevoReporteDireccion.value = it },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
-                        label = { Text("Dirección de Referencia") }
+                        label = { Text("Dirección o Referencia *") },
+                        placeholder = { Text("Ej: Calle 13 # 8-45, frente al parque") }
                     )
 
                     Spacer(modifier = Modifier.height(6.dp))
 
                     GradientButton(
-                        text = "Confirmar Ubicación →",
+                        text = "Confirmar Ubicación (Paso 3) →",
+                        enabled = direccion.isNotBlank(),
                         onClick = onNext
                     )
                 }
@@ -316,22 +405,44 @@ fun NuevoReportePaso2Screen(
     }
 }
 
-// ================== PASO 3: CÁMARA MÓVIL Y EVIDENCIA (M01_05) ==================
+// ================== PASO 3: CÁMARA Y EVIDENCIA ADJUNTA (M01_05) ==================
 @Composable
 fun NuevoReportePaso3Screen(
     viewModel: CiudadanoViewModel,
     onSuccess: () -> Unit,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
     val fotoBitmap by viewModel.fotoTomadaBitmap.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
+    // Tomar foto con la cámara del dispositivo
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap: Bitmap? ->
         if (bitmap != null) {
             viewModel.setFotoCamara(bitmap)
+            Toast.makeText(context, "📸 Foto capturada con éxito", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Seleccionar foto desde la galería
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            try {
+                context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                    val bitmap = BitmapFactory.decodeStream(inputStream)
+                    if (bitmap != null) {
+                        viewModel.setFotoGaleria(bitmap)
+                        Toast.makeText(context, "🖼️ Foto cargada de galería", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error al abrir imagen: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -357,13 +468,12 @@ fun NuevoReportePaso3Screen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Visor o Lanzador de Cámara Móvil
+            // Visor de Foto o Estado Inicial
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(230.dp)
-                    .border(1.5.dp, Color(0xFF74A596), RoundedCornerShape(24.dp))
-                    .clickable { cameraLauncher.launch() },
+                    .height(240.dp)
+                    .border(1.5.dp, Color(0xFF74A596), RoundedCornerShape(24.dp)),
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFE4ECEB))
             ) {
@@ -372,18 +482,20 @@ fun NuevoReportePaso3Screen(
                         Image(
                             bitmap = fotoBitmap!!.asImageBitmap(),
                             contentDescription = "Foto capturada",
-                            modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(24.dp))
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(RoundedCornerShape(24.dp))
                         )
                         Box(
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
                                 .padding(12.dp)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(BrandTealDark)
+                                .background(BrandTealDark.copy(alpha = 0.9f))
                                 .padding(horizontal = 14.dp, vertical = 6.dp)
                         ) {
                             Text(
-                                text = "Foto Cargada con Cámara",
+                                text = "✓ Evidencia Adjunta Lista",
                                 color = Color.White,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold
@@ -399,13 +511,13 @@ fun NuevoReportePaso3Screen(
                             )
                             Spacer(modifier = Modifier.height(10.dp))
                             Text(
-                                text = "Toca para abrir cámara móvil",
+                                text = "Adjunta una fotografía",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = BrandTealDark
                             )
                             Text(
-                                text = "Toma una foto clara del daño o situación",
+                                text = "Puedes tomarla en vivo o elegir de la galería",
                                 fontSize = 12.sp,
                                 color = Color(0xFF6C757D)
                             )
@@ -416,28 +528,50 @@ fun NuevoReportePaso3Screen(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Botones de gestión de foto
+            // Botones: Tomar con Cámara y Elegir de Galería
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Button(
                     onClick = { cameraLauncher.launch() },
-                    modifier = Modifier.weight(1f).height(46.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Icon(Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(text = "Cámara", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                }
+
+                Button(
+                    onClick = { galleryLauncher.launch("image/*") },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                     border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFCFD8DC)),
                     shape = RoundedCornerShape(14.dp)
                 ) {
-                    Text(text = "Tomar Otra Foto", color = BrandTealDark, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                    Icon(Icons.Default.Image, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(text = "Galería", color = BrandTealDark, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 }
+            }
 
-                if (fotoBitmap != null) {
-                    Button(
-                        onClick = { viewModel.eliminarFoto() },
-                        modifier = Modifier.weight(1f).height(46.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFEF9A9A)),
-                        shape = RoundedCornerShape(14.dp)
-                    ) {
-                        Text(text = "Eliminar Foto", color = Color(0xFFD32F2F), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-                    }
+            if (fotoBitmap != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = { viewModel.eliminarFoto() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(42.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFD32F2F)),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFEF9A9A)),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Icon(Icons.Default.DeleteOutline, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(text = "Eliminar Foto Adjunta", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
 
@@ -453,14 +587,14 @@ fun NuevoReportePaso3Screen(
             ) {
                 Column {
                     Text(
-                        text = "Protección de Datos (RNF01)",
+                        text = "Protección de Datos y Privacidad (RNF01)",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF2E7D32)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "La fotografía y ubicación se procesan bajo protocolos de privacidad y son almacenadas de forma segura en la base de datos.",
+                        text = "La fotografía y las coordenadas se procesan de forma cifrada y son almacenadas con respaldo de trazabilidad institucional.",
                         fontSize = 11.sp,
                         color = Color(0xFF388E3C),
                         lineHeight = 15.sp
@@ -552,8 +686,8 @@ fun NuevoReporteExitoScreen(
                     .padding(horizontal = 14.dp, vertical = 6.dp)
             ) {
                 Text(
-                    text = "PENDIENTE DE VALIDACIÓN",
-                    fontSize = 12.sp,
+                    text = "PENDIENTE DE VALIDACIÓN • PRIORIDAD ASIGNADA: ${reporte?.prioridad ?: "BAJA"}",
+                    fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF00695C)
                 )
@@ -562,7 +696,7 @@ fun NuevoReporteExitoScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Tu reporte ha sido registrado en la matriz inmutable de trazabilidad (RNF04). Un gestor validará su pertinencia técnica y asignará un operador en campo.",
+                text = "Tu reporte ha sido registrado en la matriz inmutable de trazabilidad (RNF04). El sistema calculó su urgencia según los reportes del sector y un gestor validará su pertinencia técnica.",
                 fontSize = 13.sp,
                 color = Color(0xFF5A6665),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,

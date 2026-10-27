@@ -2,6 +2,7 @@ package com.ciudadactiva.service;
 
 import com.ciudadactiva.dto.asignacion.AsignacionResponse;
 import com.ciudadactiva.dto.comentario.ComentarioResponse;
+import com.ciudadactiva.dto.common.SemaforoDTO;
 import com.ciudadactiva.dto.reporte.*;
 import com.ciudadactiva.dto.seguimiento.SeguimientoResponse;
 import com.ciudadactiva.entity.*;
@@ -63,13 +64,15 @@ public class ReporteService {
                 categoria,
                 ciudadano
         );
+        PrioridadReporte prioridadCalculada = calcularPrioridadPorProximidad(reporte.getLatitud(), reporte.getLongitud(), null);
         reporte.setEstado(EstadoReporte.PENDIENTE);
-        reporte.setPrioridad(PrioridadReporte.MEDIA);
+        reporte.setPrioridad(prioridadCalculada);
 
         // Procesar foto si viene en formato Base64 directamente desde la cámara móvil
         procesarFotoBase64(reporte, request.getImagenUrl());
 
         Reporte guardado = reporteRepository.save(reporte);
+        escalarPrioridadCluster(guardado.getLatitud(), guardado.getLongitud(), guardado.getId(), prioridadCalculada);
 
         // Si se procesaron bytes en BD, fijar URL al endpoint local de descarga
         if (guardado.getFotoBytes() != null && guardado.getFotoBytes().length > 0) {
@@ -120,8 +123,9 @@ public class ReporteService {
                 categoria,
                 ciudadano
         );
+        PrioridadReporte prioridadCalculada = calcularPrioridadPorProximidad(reporte.getLatitud(), reporte.getLongitud(), null);
         reporte.setEstado(EstadoReporte.PENDIENTE);
-        reporte.setPrioridad(PrioridadReporte.MEDIA);
+        reporte.setPrioridad(prioridadCalculada);
 
         if (foto != null && !foto.isEmpty()) {
             validarTipoImagen(foto.getContentType());
@@ -130,6 +134,7 @@ public class ReporteService {
         }
 
         Reporte guardado = reporteRepository.save(reporte);
+        escalarPrioridadCluster(guardado.getLatitud(), guardado.getLongitud(), guardado.getId(), prioridadCalculada);
 
         if (guardado.getFotoBytes() != null) {
             guardado.setImagenUrl("/api/reportes/" + guardado.getId() + "/foto");
@@ -545,6 +550,72 @@ public class ReporteService {
                 .orElseThrow(() -> new ResourceNotFoundException("Reporte no encontrado con ID: " + id));
     }
 
+    /**
+     * Calcula la distancia en metros entre dos coordenadas geográficas usando la fórmula de Haversine.
+     */
+    public static double calcularDistanciaMetros(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371000; // Radio de la Tierra en metros
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+
+    /**
+     * Calcula dinámicamente la prioridad según el número de reportes acumulados
+     * en un radio de proximidad geográfica de 100 metros (Escala Semáforo 1 a 10):
+     * - 1 reporte: BAJA (Verde #4CAF50 - Reporte aislado)
+     * - 2 a 4 reportes: MEDIA (Amarillo/Lima #8BC34A - Alerta moderada)
+     * - 5 a 7 reportes: ALTA (Naranja #FF9800 - Atención urgente)
+     * - 8 a 10+ reportes: CRITICA (Rojo #F44336 - Punto crítico de emergencia comunitaria)
+     */
+    public PrioridadReporte calcularPrioridadPorProximidad(Double latitud, Double longitud, Long excluirReporteId) {
+        if (latitud == null || longitud == null) {
+            return PrioridadReporte.MEDIA;
+        }
+
+        List<Reporte> activos = reporteRepository.findAll().stream()
+                .filter(r -> (excluirReporteId == null || !r.getId().equals(excluirReporteId))
+                        && r.getLatitud() != null && r.getLongitud() != null
+                        && r.getEstado() != EstadoReporte.RECHAZADO
+                        && r.getEstado() != EstadoReporte.CERRADO
+                        && calcularDistanciaMetros(latitud, longitud, r.getLatitud(), r.getLongitud()) <= 100.0)
+                .collect(Collectors.toList());
+
+        int totalCluster = activos.size() + 1; // Contando el nuevo reporte
+
+        if (totalCluster <= 1) {
+            return PrioridadReporte.BAJA;
+        } else if (totalCluster <= 4) {
+            return PrioridadReporte.MEDIA;
+        } else if (totalCluster <= 7) {
+            return PrioridadReporte.ALTA;
+        } else {
+            return PrioridadReporte.CRITICA;
+        }
+    }
+
+    private void escalarPrioridadCluster(Double latitud, Double longitud, Long reporteId, PrioridadReporte nuevaPrioridad) {
+        if (latitud == null || longitud == null) {
+            return;
+        }
+        reporteRepository.findAll().stream()
+                .filter(r -> !r.getId().equals(reporteId)
+                        && r.getLatitud() != null && r.getLongitud() != null
+                        && r.getEstado() != EstadoReporte.RECHAZADO
+                        && r.getEstado() != EstadoReporte.CERRADO
+                        && calcularDistanciaMetros(latitud, longitud, r.getLatitud(), r.getLongitud()) <= 100.0)
+                .forEach(cercano -> {
+                    if (cercano.getPrioridad().ordinal() < nuevaPrioridad.ordinal()) {
+                        cercano.setPrioridad(nuevaPrioridad);
+                        reporteRepository.save(cercano);
+                    }
+                });
+    }
+
     public ReporteResponse mapearReporteResponse(Reporte reporte) {
         ReporteResponse response = new ReporteResponse(reporte);
         asignacionRepository.findByReporte_IdAndActivaTrue(reporte.getId())
@@ -553,6 +624,28 @@ public class ReporteService {
                         response.setOperadorAsignadoNombre(asig.getOperador().getNombre());
                     }
                 });
+
+        // Calcular conteo de reportes en la misma zona geográfica y semáforo
+        if (reporte.getLatitud() != null && reporte.getLongitud() != null) {
+            List<Reporte> cercanos = reporteRepository.findAll().stream()
+                    .filter(r -> r.getLatitud() != null && r.getLongitud() != null
+                            && r.getEstado() != EstadoReporte.RECHAZADO
+                            && r.getEstado() != EstadoReporte.CERRADO
+                            && calcularDistanciaMetros(reporte.getLatitud(), reporte.getLongitud(), r.getLatitud(), r.getLongitud()) <= 100.0)
+                    .collect(Collectors.toList());
+            int clusterCount = Math.max(1, cercanos.size());
+            SemaforoDTO sem = SemaforoDTO.calcular(clusterCount);
+            response.setReportesCercanos(clusterCount);
+            response.setSemaforoColorHex(sem.getColorHex());
+            response.setSemaforoNivel(sem.getNivelAlerta());
+            response.setSemaforoDescripcion(sem.getDescripcion());
+        } else {
+            response.setReportesCercanos(1);
+            response.setSemaforoColorHex("#4CAF50");
+            response.setSemaforoNivel("BAJO");
+            response.setSemaforoDescripcion("1 reporte: Nivel bajo");
+        }
+
         return response;
     }
 }

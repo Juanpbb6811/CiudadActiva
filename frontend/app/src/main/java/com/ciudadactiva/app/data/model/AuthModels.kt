@@ -42,6 +42,7 @@ data class UsuarioModel(
     val email: String,
     val telefono: String?,
     val direccion: String?,
+    val fotoUrl: String? = null,
     val activo: Boolean,
     val rol: String,
     val laboresActivas: Long? = 0,
@@ -50,8 +51,10 @@ data class UsuarioModel(
 
 data class UsuarioUpdateRequest(
     val nombre: String?,
+    val email: String? = null,
     val telefono: String?,
     val direccion: String?,
+    val fotoUrl: String? = null,
     val activo: Boolean? = null
 )
 
