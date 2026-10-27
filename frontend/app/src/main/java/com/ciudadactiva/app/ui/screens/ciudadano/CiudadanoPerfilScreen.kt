@@ -46,12 +46,23 @@ fun CiudadanoPerfilScreen(
     val session = CiudadActivaApplication.sessionManager
     val coroutineScope = rememberCoroutineScope()
 
+    // Estado de modo edición: FALSO por defecto (solo lectura inicial)
+    var isEditing by remember { mutableStateOf(false) }
+
+    // Valores en edición
     var nombre by remember { mutableStateOf(session.getNombre() ?: "Ana Ciudadana") }
     var email by remember { mutableStateOf(session.getEmail() ?: "ciudadano@ciudadactiva.gov.co") }
-    var telefono by remember { mutableStateOf(session.getTelefono() ?: "3001234567") }
-    var direccion by remember { mutableStateOf(session.getDireccion() ?: "Calle 13 # 8-45") }
+    var telefono by remember { mutableStateOf(session.getTelefono() ?: "3034445566") }
+    var direccion by remember { mutableStateOf(session.getDireccion() ?: "Cra 7 # 45-20") }
     var fotoUrl by remember { mutableStateOf(session.getFotoUrl()) }
     var avatarBitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+    // Backup para botón Cancelar
+    var backupNombre by remember { mutableStateOf(nombre) }
+    var backupEmail by remember { mutableStateOf(email) }
+    var backupTelefono by remember { mutableStateOf(telefono) }
+    var backupDireccion by remember { mutableStateOf(direccion) }
+    var backupFotoUrl by remember { mutableStateOf(fotoUrl) }
 
     var isSaving by remember { mutableStateOf(false) }
     var mensajeExito by remember { mutableStateOf<String?>(null) }
@@ -59,13 +70,12 @@ fun CiudadanoPerfilScreen(
 
     val rol = session.getRol() ?: "ROLE_CIUDADANO"
 
-    // Launcher para tomar foto con la cámara del celular
+    // Launcher para tomar foto de perfil con la cámara del celular
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap: Bitmap? ->
         if (bitmap != null) {
             avatarBitmap = bitmap
-            // Convertir a base64
             val stream = ByteArrayOutputStream()
             bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream)
             val base64 = "data:image/jpeg;base64," + Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
@@ -84,10 +94,17 @@ fun CiudadanoPerfilScreen(
                 u.telefono?.let { telefono = it }
                 u.direccion?.let { direccion = it }
                 u.fotoUrl?.let { fotoUrl = it }
+
+                backupNombre = nombre
+                backupEmail = email
+                backupTelefono = telefono
+                backupDireccion = direccion
+                backupFotoUrl = fotoUrl
+
                 session.updateProfile(u.nombre, u.email, u.telefono, u.direccion, u.fotoUrl)
             }
-        } catch (e: Exception) {
-            // Ignorar y usar valores locales en cache
+        } catch (_: Exception) {
+            // Ignorar y usar valores locales
         }
     }
 
@@ -104,11 +121,11 @@ fun CiudadanoPerfilScreen(
             modifier = Modifier.padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Avatar con botón de cámara integrado
+            // Avatar con botón de cámara (activo en modo edición)
             Box(contentAlignment = Alignment.BottomEnd) {
                 Box(
                     modifier = Modifier
-                        .size(96.dp)
+                        .size(100.dp)
                         .clip(CircleShape)
                         .background(BrandTealDark)
                         .border(3.dp, BrandCopper, CircleShape),
@@ -129,7 +146,10 @@ fun CiudadanoPerfilScreen(
                             contentScale = ContentScale.Crop
                         )
                     } else {
-                        val initials = nombre.split(" ").mapNotNull { it.firstOrNull() }.take(2).joinToString("")
+                        val initials = nombre.split(" ")
+                            .mapNotNull { it.firstOrNull() }
+                            .take(2)
+                            .joinToString("")
                         Text(
                             text = if (initials.isNotBlank()) initials else "U",
                             color = Color.White,
@@ -139,21 +159,23 @@ fun CiudadanoPerfilScreen(
                     }
                 }
 
-                // Botón flotante para cambiar foto
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .background(BrandCopper)
-                        .clickable { cameraLauncher.launch(null) },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.CameraAlt,
-                        contentDescription = "Cambiar Foto",
-                        tint = Color.White,
-                        modifier = Modifier.size(18.dp)
-                    )
+                // Botón para cambiar foto solo habilitado si está en modo edición
+                if (isEditing) {
+                    Box(
+                        modifier = Modifier
+                            .size(34.dp)
+                            .clip(CircleShape)
+                            .background(BrandCopper)
+                            .clickable { cameraLauncher.launch(null) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CameraAlt,
+                            contentDescription = "Cambiar Foto",
+                            tint = Color.White,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             }
 
@@ -190,7 +212,7 @@ fun CiudadanoPerfilScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Formulario de Modificación de Datos Personales (Nombre, Correo, Teléfono, Dirección)
+            // Tarjeta de Datos Personales
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -202,12 +224,37 @@ fun CiudadanoPerfilScreen(
                     modifier = Modifier.padding(18.dp),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    Text(
-                        text = "Datos Personales",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = BrandTealDark
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Datos Personales",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = BrandTealDark
+                        )
+
+                        if (!isEditing) {
+                            TextButton(
+                                onClick = {
+                                    backupNombre = nombre
+                                    backupEmail = email
+                                    backupTelefono = telefono
+                                    backupDireccion = direccion
+                                    backupFotoUrl = fotoUrl
+                                    mensajeExito = null
+                                    mensajeError = null
+                                    isEditing = true
+                                }
+                            ) {
+                                Icon(Icons.Default.Edit, contentDescription = null, tint = BrandCopper, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Editar", color = BrandCopper, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            }
+                        }
+                    }
 
                     // Nombre Completo
                     Column {
@@ -216,14 +263,23 @@ fun CiudadanoPerfilScreen(
                         OutlinedTextField(
                             value = nombre,
                             onValueChange = {
-                                nombre = it
-                                mensajeExito = null
-                                mensajeError = null
+                                if (isEditing) {
+                                    nombre = it
+                                    mensajeExito = null
+                                    mensajeError = null
+                                }
                             },
+                            readOnly = !isEditing,
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(14.dp),
                             singleLine = true,
-                            leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = BrandTealDark) }
+                            leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = if (isEditing) BrandTealDark else Color.Gray) },
+                            colors = if (!isEditing) TextFieldDefaults.colors(
+                                focusedContainerColor = Color(0xFFF9FBFA),
+                                unfocusedContainerColor = Color(0xFFF9FBFA),
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color(0xFFE5EBEA)
+                            ) else TextFieldDefaults.colors()
                         )
                     }
 
@@ -234,14 +290,23 @@ fun CiudadanoPerfilScreen(
                         OutlinedTextField(
                             value = email,
                             onValueChange = {
-                                email = it
-                                mensajeExito = null
-                                mensajeError = null
+                                if (isEditing) {
+                                    email = it
+                                    mensajeExito = null
+                                    mensajeError = null
+                                }
                             },
+                            readOnly = !isEditing,
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(14.dp),
                             singleLine = true,
-                            leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = BrandTealDark) }
+                            leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = if (isEditing) BrandTealDark else Color.Gray) },
+                            colors = if (!isEditing) TextFieldDefaults.colors(
+                                focusedContainerColor = Color(0xFFF9FBFA),
+                                unfocusedContainerColor = Color(0xFFF9FBFA),
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color(0xFFE5EBEA)
+                            ) else TextFieldDefaults.colors()
                         )
                     }
 
@@ -252,14 +317,23 @@ fun CiudadanoPerfilScreen(
                         OutlinedTextField(
                             value = telefono,
                             onValueChange = {
-                                telefono = it
-                                mensajeExito = null
-                                mensajeError = null
+                                if (isEditing) {
+                                    telefono = it
+                                    mensajeExito = null
+                                    mensajeError = null
+                                }
                             },
+                            readOnly = !isEditing,
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(14.dp),
                             singleLine = true,
-                            leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, tint = BrandTealDark) }
+                            leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, tint = if (isEditing) BrandTealDark else Color.Gray) },
+                            colors = if (!isEditing) TextFieldDefaults.colors(
+                                focusedContainerColor = Color(0xFFF9FBFA),
+                                unfocusedContainerColor = Color(0xFFF9FBFA),
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color(0xFFE5EBEA)
+                            ) else TextFieldDefaults.colors()
                         )
                     }
 
@@ -270,26 +344,37 @@ fun CiudadanoPerfilScreen(
                         OutlinedTextField(
                             value = direccion,
                             onValueChange = {
-                                direccion = it
-                                mensajeExito = null
-                                mensajeError = null
+                                if (isEditing) {
+                                    direccion = it
+                                    mensajeExito = null
+                                    mensajeError = null
+                                }
                             },
+                            readOnly = !isEditing,
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(14.dp),
                             singleLine = true,
-                            leadingIcon = { Icon(Icons.Default.Home, contentDescription = null, tint = BrandTealDark) }
+                            leadingIcon = { Icon(Icons.Default.Home, contentDescription = null, tint = if (isEditing) BrandTealDark else Color.Gray) },
+                            colors = if (!isEditing) TextFieldDefaults.colors(
+                                focusedContainerColor = Color(0xFFF9FBFA),
+                                unfocusedContainerColor = Color(0xFFF9FBFA),
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color(0xFFE5EBEA)
+                            ) else TextFieldDefaults.colors()
                         )
                     }
 
-                    // Botón para actualizar la foto del perfil
-                    OutlinedButton(
-                        onClick = { cameraLauncher.launch(null) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Icon(Icons.Default.CameraAlt, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Tomar Foto para el Perfil", fontSize = 12.sp, color = BrandTealDark, fontWeight = FontWeight.Bold)
+                    // Botón para tomar foto con la cámara (visible solo si está en modo edición)
+                    if (isEditing) {
+                        OutlinedButton(
+                            onClick = { cameraLauncher.launch(null) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(Icons.Default.CameraAlt, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Tomar Foto para el Perfil", fontSize = 12.sp, color = BrandTealDark, fontWeight = FontWeight.Bold)
+                        }
                     }
 
                     // Mensajes de éxito o error
@@ -311,53 +396,125 @@ fun CiudadanoPerfilScreen(
                         )
                     }
 
-                    // Botón Guardar Cambios
-                    Button(
-                        onClick = {
-                            if (nombre.isBlank() || email.isBlank()) {
-                                mensajeError = "El nombre y el correo no pueden estar vacíos"
-                                return@Button
+                    // Botones de acción
+                    if (isEditing) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            // Botón Cancelar
+                            OutlinedButton(
+                                onClick = {
+                                    // Restaurar valores previos
+                                    nombre = backupNombre
+                                    email = backupEmail
+                                    telefono = backupTelefono
+                                    direccion = backupDireccion
+                                    fotoUrl = backupFotoUrl
+                                    avatarBitmap = null
+                                    mensajeError = null
+                                    mensajeExito = null
+                                    isEditing = false
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp),
+                                shape = RoundedCornerShape(14.dp),
+                                enabled = !isSaving
+                            ) {
+                                Text("Cancelar", color = Color(0xFF5A6665), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                             }
-                            isSaving = true
-                            mensajeExito = null
-                            mensajeError = null
-                            coroutineScope.launch {
-                                try {
-                                    val req = UsuarioUpdateRequest(
-                                        nombre = nombre.trim(),
-                                        email = email.trim(),
-                                        telefono = telefono.trim(),
-                                        direccion = direccion.trim(),
-                                        fotoUrl = fotoUrl
-                                    )
-                                    val resp = ApiClient.getService().actualizarMiPerfil(req)
-                                    if (resp.isSuccessful && resp.body()?.data != null) {
-                                        val u = resp.body()!!.data!!
-                                        session.updateProfile(u.nombre, u.email, u.telefono, u.direccion, u.fotoUrl)
-                                        mensajeExito = "✓ Perfil actualizado exitosamente en el servidor"
-                                    } else {
-                                        mensajeError = "No se pudo actualizar: " + (resp.errorBody()?.string() ?: "Error de validación")
+
+                            // Botón Guardar Cambios (Con texto blanco visible)
+                            Button(
+                                onClick = {
+                                    if (nombre.isBlank() || email.isBlank()) {
+                                        mensajeError = "El nombre y el correo no pueden estar vacíos"
+                                        return@Button
                                     }
-                                } catch (e: Exception) {
-                                    // Guardar en sesión local como fallback
-                                    session.updateProfile(nombre, email, telefono, direccion, fotoUrl)
-                                    mensajeExito = "✓ Perfil actualizado localmente"
-                                } finally {
-                                    isSaving = false
+                                    isSaving = true
+                                    mensajeExito = null
+                                    mensajeError = null
+                                    coroutineScope.launch {
+                                        try {
+                                            val req = UsuarioUpdateRequest(
+                                                nombre = nombre.trim(),
+                                                email = email.trim(),
+                                                telefono = telefono.trim(),
+                                                direccion = direccion.trim(),
+                                                fotoUrl = fotoUrl
+                                            )
+                                            val resp = ApiClient.getService().actualizarMiPerfil(req)
+                                            if (resp.isSuccessful && resp.body()?.data != null) {
+                                                val u = resp.body()!!.data!!
+                                                session.updateProfile(u.nombre, u.email, u.telefono, u.direccion, u.fotoUrl)
+                                                backupNombre = u.nombre
+                                                backupEmail = u.email
+                                                backupTelefono = u.telefono ?: ""
+                                                backupDireccion = u.direccion ?: ""
+                                                backupFotoUrl = u.fotoUrl
+                                                mensajeExito = "✓ Perfil guardado con éxito"
+                                                isEditing = false
+                                            } else {
+                                                mensajeError = "Error: " + (resp.errorBody()?.string() ?: "No se pudo actualizar")
+                                            }
+                                        } catch (e: Exception) {
+                                            session.updateProfile(nombre, email, telefono, direccion, fotoUrl)
+                                            mensajeExito = "✓ Guardado localmente"
+                                            isEditing = false
+                                        } finally {
+                                            isSaving = false
+                                        }
+                                    }
+                                },
+                                modifier = Modifier
+                                    .weight(1.4f)
+                                    .height(48.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = BrandTealDark,
+                                    contentColor = Color.White
+                                ),
+                                shape = RoundedCornerShape(14.dp),
+                                enabled = !isSaving
+                            ) {
+                                if (isSaving) {
+                                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                                } else {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(Icons.Default.Save, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(
+                                            text = "Guardar",
+                                            color = Color.White,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
                                 }
                             }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark),
-                        shape = RoundedCornerShape(14.dp),
-                        enabled = !isSaving
-                    ) {
-                        if (isSaving) {
-                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                        } else {
-                            Text("Guardar Cambios de Perfil", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        }
+                    } else {
+                        // En modo solo lectura: botón para habilitar edición
+                        OutlinedButton(
+                            onClick = {
+                                backupNombre = nombre
+                                backupEmail = email
+                                backupTelefono = telefono
+                                backupDireccion = direccion
+                                backupFotoUrl = fotoUrl
+                                mensajeExito = null
+                                mensajeError = null
+                                isEditing = true
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = BrandTealDark)
+                        ) {
+                            Icon(Icons.Default.Edit, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Modificar Datos Personales", color = BrandTealDark, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }

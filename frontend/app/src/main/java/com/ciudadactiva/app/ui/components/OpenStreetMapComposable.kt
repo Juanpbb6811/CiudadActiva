@@ -3,10 +3,10 @@ package com.ciudadactiva.app.ui.components
 import android.annotation.SuppressLint
 import android.os.Handler
 import android.os.Looper
-import android.webkit.JavascriptInterface
-import android.webkit.WebSettings
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.util.Log
+import android.view.View
+import android.view.ViewGroup
+import android.webkit.*
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -14,6 +14,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.ciudadactiva.app.data.model.ReporteResponse
 import org.json.JSONArray
 import org.json.JSONObject
+
+private const val TAG = "LeafletMap"
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
@@ -40,10 +42,10 @@ fun OpenStreetMapComposable(
             if (rep.latitud != null && rep.longitud != null) {
                 val obj = JSONObject().apply {
                     put("id", rep.id)
-                    put("titulo", rep.titulo.replace("\"", "'"))
-                    put("descripcion", (rep.descripcion ?: "").replace("\"", "'"))
-                    put("categoria", rep.categoriaNombre ?: "Incidencia")
-                    put("direccion", rep.direccion ?: "Sector urbano")
+                    put("titulo", (rep.titulo ?: "Incidencia").replace("\"", "'").replace("\n", " "))
+                    put("descripcion", (rep.descripcion ?: "").replace("\"", "'").replace("\n", " "))
+                    put("categoria", (rep.categoriaNombre ?: "General").replace("\"", "'"))
+                    put("direccion", (rep.direccion ?: "Sector urbano").replace("\"", "'"))
                     put("latitud", rep.latitud)
                     put("longitud", rep.longitud)
                     put("prioridad", rep.prioridad ?: "MEDIA")
@@ -80,7 +82,7 @@ fun OpenStreetMapComposable(
         )
     }
 
-    // Efecto para actualizar centro o usuario cuando el mapa ya está cargado
+    // Efectos para comunicar cambios reactivos al mapa sin recargar la página entera
     LaunchedEffect(centerLat, centerLng, zoom, isMapLoaded) {
         if (isMapLoaded) {
             webViewRef?.evaluateJavascript(
@@ -113,17 +115,48 @@ fun OpenStreetMapComposable(
         factory = { context ->
             WebView(context).apply {
                 webViewRef = this
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+
+                // Habilitar aceleración por hardware para renderizado fluido de tiles
+                setLayerType(View.LAYER_TYPE_HARDWARE, null)
+
                 settings.apply {
                     javaScriptEnabled = true
                     domStorageEnabled = true
+                    databaseEnabled = true
                     cacheMode = WebSettings.LOAD_DEFAULT
                     useWideViewPort = true
                     loadWithOverviewMode = true
+                    mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+                    allowFileAccess = true
+                    allowContentAccess = true
+                    // User-Agent completo para evitar bloqueo 403 Forbidden de servidores de tiles
+                    userAgentString = "Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36 CiudadActivaApp/1.0"
                 }
+
+                // Diagnóstico y logging de consola de JavaScript
+                webChromeClient = object : WebChromeClient() {
+                    override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
+                        Log.d(TAG, "[Leaflet JS] ${consoleMessage?.message()} (línea ${consoleMessage?.lineNumber()})")
+                        return true
+                    }
+                }
+
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
                         isMapLoaded = true
+                        Log.d(TAG, "Página Leaflet cargada con éxito. Forzando invalidateSize().")
+                        // InvalidateSize tras cargar para garantizar que Leaflet detecte el tamaño real del viewport
+                        view?.evaluateJavascript("if (window.map) { window.map.invalidateSize(); }", null)
+                    }
+
+                    override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+                        super.onReceivedError(view, request, error)
+                        Log.e(TAG, "Error cargando recurso: ${request?.url} -> ${error?.description}")
                     }
                 }
 
@@ -144,7 +177,7 @@ fun OpenStreetMapComposable(
                     }
                 }, "AndroidBridge")
 
-                loadDataWithBaseURL("https://tile.openstreetmap.org", htmlContent, "text/html", "UTF-8", null)
+                loadDataWithBaseURL("https://cdnjs.cloudflare.com", htmlContent, "text/html", "UTF-8", null)
             }
         },
         update = { webView ->
@@ -166,17 +199,28 @@ private fun generateLeafletHtml(
 ): String {
     return """
         <!DOCTYPE html>
-        <html>
+        <html lang="es">
         <head>
             <meta charset="utf-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-            <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-            <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+            <title>CiudadActiva Map</title>
+            <!-- Leaflet CSS desde Cloudflare CDN -->
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+            <!-- Leaflet JS desde Cloudflare CDN -->
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
             <style>
-                html, body, #map { margin: 0; padding: 0; width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #E8ECEB; }
+                * { box-sizing: border-box; }
+                html, body {
+                    margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #E6EAE8;
+                }
+                #map {
+                    position: absolute; top: 0; bottom: 0; left: 0; right: 0;
+                    width: 100vw; height: 100vh;
+                    background-color: #E6EAE8;
+                }
                 .user-dot {
-                    width: 18px; height: 18px; background: #007AFF; border: 3px solid #FFFFFF; border-radius: 50%;
-                    box-shadow: 0 0 12px rgba(0, 122, 255, 0.7);
+                    width: 20px; height: 20px; background: #007AFF; border: 3px solid #FFFFFF; border-radius: 50%;
+                    box-shadow: 0 0 12px rgba(0, 122, 255, 0.75);
                     animation: pulse 2s infinite;
                 }
                 @keyframes pulse {
@@ -185,10 +229,10 @@ private fun generateLeafletHtml(
                     100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0); }
                 }
                 .popup-card {
-                    font-size: 13px; line-height: 1.4; padding: 2px; min-width: 180px;
+                    font-size: 13px; line-height: 1.4; padding: 4px; min-width: 190px;
                 }
                 .popup-title { font-weight: bold; font-size: 14px; color: #1E302F; margin-bottom: 4px; }
-                .popup-cat { font-size: 11px; font-weight: 600; color: #00796B; background: #E0F2F1; padding: 2px 8px; border-radius: 8px; display: inline-block; margin-bottom: 6px; }
+                .popup-cat { font-size: 11px; font-weight: 600; color: #00796B; background: #E0F2F1; padding: 3px 8px; border-radius: 8px; display: inline-block; margin-bottom: 6px; }
                 .popup-btn {
                     display: block; width: 100%; margin-top: 8px; padding: 8px 0; background: #1E302F; color: white;
                     text-align: center; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: bold; border: none; cursor: pointer;
@@ -198,91 +242,118 @@ private fun generateLeafletHtml(
         <body>
             <div id="map"></div>
             <script>
-                var map = L.map('map', { zoomControl: false }).setView([$centerLat, $centerLng], $zoom);
-                L.control.zoom({ position: 'bottomright' }).addTo(map);
+                var map;
+                try {
+                    map = L.map('map', {
+                        zoomControl: false,
+                        attributionControl: false
+                    }).setView([$centerLat, $centerLng], $zoom);
 
-                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '© OpenStreetMap'
-                }).addTo(map);
+                    L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-                window.userMarker = null;
-                window.pickerMarker = null;
+                    // Tiles CartoDB Voyager: ultra rápidos, hermosos y 100% compatibles con Android WebView sin bloqueos
+                    var cartoLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                        maxZoom: 19,
+                        subdomains: 'abcd',
+                        attribution: '&copy; OpenStreetMap'
+                    }).addTo(map);
 
-                window.centerMap = function(lat, lng, z) {
-                    if (map) {
-                        map.setView([lat, lng], z || 15);
-                    }
-                };
+                    // Fallback a OpenStreetMap estándar si falla Carto
+                    cartoLayer.on('tileerror', function(error, tile) {
+                        console.warn('Fallo en tile CartoDB, reintentando...');
+                    });
 
-                window.setUserLocation = function(lat, lng) {
-                    if (window.userMarker) {
-                        window.userMarker.setLatLng([lat, lng]);
-                    } else {
-                        var userIcon = L.divIcon({
-                            className: 'user-marker-container',
-                            html: '<div class="user-dot"></div>',
-                            iconSize: [20, 20],
-                            iconAnchor: [10, 10]
+                    window.map = map;
+                    window.userMarker = null;
+                    window.pickerMarker = null;
+
+                    // Redimensionar automáticamente tras inicialización (Resuelve pantalla gris en WebViews móviles)
+                    setTimeout(function() { if (map) map.invalidateSize(); }, 200);
+                    setTimeout(function() { if (map) map.invalidateSize(); }, 600);
+                    setTimeout(function() { if (map) map.invalidateSize(); }, 1500);
+
+                    window.addEventListener('resize', function() {
+                        if (map) map.invalidateSize();
+                    });
+
+                    window.centerMap = function(lat, lng, z) {
+                        if (map) {
+                            map.setView([lat, lng], z || 15);
+                            map.invalidateSize();
+                        }
+                    };
+
+                    window.setUserLocation = function(lat, lng) {
+                        if (window.userMarker) {
+                            window.userMarker.setLatLng([lat, lng]);
+                        } else {
+                            var userIcon = L.divIcon({
+                                className: 'user-marker-container',
+                                html: '<div class="user-dot"></div>',
+                                iconSize: [22, 22],
+                                iconAnchor: [11, 11]
+                            });
+                            window.userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(map)
+                                .bindPopup('<b>📍 Tu Ubicación Actual</b>');
+                        }
+                    };
+
+                    window.setPickerLocation = function(lat, lng) {
+                        if (window.pickerMarker) {
+                            window.pickerMarker.setLatLng([lat, lng]);
+                        }
+                    };
+
+                    ${if (userLat != null && userLng != null) """
+                        window.setUserLocation($userLat, $userLng);
+                    """ else ""}
+
+                    ${if (isPickerMode) """
+                        // Modo selector de ubicación para Nuevo Reporte
+                        window.pickerMarker = L.marker([$pickLat, $pickLng], { draggable: true }).addTo(map);
+                        window.pickerMarker.bindPopup('<b>📍 Ubicación Seleccionada</b><br>Arrastra o toca el mapa para fijar').openPopup();
+
+                        window.pickerMarker.on('dragend', function(e) {
+                            var pos = window.pickerMarker.getLatLng();
+                            if (window.AndroidBridge) {
+                                window.AndroidBridge.onLocationPicked(pos.lat, pos.lng);
+                            }
                         });
-                        window.userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(map)
-                            .bindPopup('<b>📍 Tu Ubicación Actual</b>');
-                    }
-                };
 
-                window.setPickerLocation = function(lat, lng) {
-                    if (window.pickerMarker) {
-                        window.pickerMarker.setLatLng([lat, lng]);
-                    }
-                };
+                        map.on('click', function(e) {
+                            window.pickerMarker.setLatLng(e.latlng);
+                            window.pickerMarker.openPopup();
+                            if (window.AndroidBridge) {
+                                window.AndroidBridge.onLocationPicked(e.latlng.lat, e.latlng.lng);
+                            }
+                        });
+                    """ else """
+                        // Modo explorador: Graficar reportes comunitarios con color Semáforo
+                        var reportesData = $reportesJson;
+                        reportesData.forEach(function(rep) {
+                            var circle = L.circleMarker([rep.latitud, rep.longitud], {
+                                radius: 12,
+                                fillColor: rep.colorHex,
+                                color: '#FFFFFF',
+                                weight: 2.5,
+                                opacity: 1,
+                                fillOpacity: 0.90
+                            }).addTo(map);
 
-                ${if (userLat != null && userLng != null) """
-                    window.setUserLocation($userLat, $userLng);
-                """ else ""}
+                            var htmlPopup = '<div class="popup-card">' +
+                                '<span class="popup-cat">' + rep.categoria + '</span>' +
+                                '<div class="popup-title">' + rep.titulo + '</div>' +
+                                '<div style="font-size: 11px; color: #555;">📍 ' + rep.direccion + '</div>' +
+                                '<div style="font-size: 11px; font-weight: bold; margin-top: 5px; color: ' + rep.colorHex + ';">Urgencia: ' + rep.prioridad + ' (' + rep.cercanos + ' en sector)</div>' +
+                                '<button class="popup-btn" onclick="window.AndroidBridge.onReportSelected(\'' + rep.id + '\')">Ver Seguimiento →</button>' +
+                                '</div>';
 
-                ${if (isPickerMode) """
-                    // Modo selector de ubicación para Nuevo Reporte
-                    window.pickerMarker = L.marker([$pickLat, $pickLng], { draggable: true }).addTo(map);
-                    window.pickerMarker.bindPopup('<b>📍 Ubicación Seleccionada</b><br>Arrastra o toca el mapa para fijar').openPopup();
-
-                    window.pickerMarker.on('dragend', function(e) {
-                        var pos = window.pickerMarker.getLatLng();
-                        if (window.AndroidBridge) {
-                            window.AndroidBridge.onLocationPicked(pos.lat, pos.lng);
-                        }
-                    });
-
-                    map.on('click', function(e) {
-                        window.pickerMarker.setLatLng(e.latlng);
-                        window.pickerMarker.openPopup();
-                        if (window.AndroidBridge) {
-                            window.AndroidBridge.onLocationPicked(e.latlng.lat, e.latlng.lng);
-                        }
-                    });
-                """ else """
-                    // Modo explorador: Graficar todos los reportes comunitarios con color Semáforo
-                    var reportesData = $reportesJson;
-                    reportesData.forEach(function(rep) {
-                        var circle = L.circleMarker([rep.latitud, rep.longitud], {
-                            radius: 12,
-                            fillColor: rep.colorHex,
-                            color: '#FFFFFF',
-                            weight: 2,
-                            opacity: 1,
-                            fillOpacity: 0.90
-                        }).addTo(map);
-
-                        var htmlPopup = '<div class="popup-card">' +
-                            '<span class="popup-cat">' + rep.categoria + '</span>' +
-                            '<div class="popup-title">' + rep.titulo + '</div>' +
-                            '<div style="font-size: 11px; color: #555;">📍 ' + rep.direccion + '</div>' +
-                            '<div style="font-size: 11px; font-weight: bold; margin-top: 5px; color: ' + rep.colorHex + ';">Urgencia: ' + rep.prioridad + ' (' + rep.cercanos + ' reportes en la zona)</div>' +
-                            '<button class="popup-btn" onclick="window.AndroidBridge.onReportSelected(\'' + rep.id + '\')">Ver Seguimiento →</button>' +
-                            '</div>';
-
-                        circle.bindPopup(htmlPopup);
-                    });
-                """}
+                            circle.bindPopup(htmlPopup);
+                        });
+                    """}
+                } catch (err) {
+                    console.error('Error inicializando Leaflet: ' + err.message);
+                }
             </script>
         </body>
         </html>
