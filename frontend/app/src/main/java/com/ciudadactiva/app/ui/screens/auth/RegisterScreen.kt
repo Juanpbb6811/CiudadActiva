@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -24,6 +25,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ciudadactiva.app.ui.components.CiudadActivaTopBar
+import com.ciudadactiva.app.ui.components.GoogleAuthHelper
 import com.ciudadactiva.app.ui.components.GradientButton
 import com.ciudadactiva.app.ui.theme.BackgroundLight
 import com.ciudadactiva.app.ui.theme.BrandTealDark
@@ -53,6 +55,8 @@ fun RegisterScreen(
 
     val isEmailValid = email.isBlank() || Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()
     val passwordsMatch = confirmPassword.isEmpty() || password == confirmPassword
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Success) {
@@ -97,8 +101,21 @@ fun RegisterScreen(
                 // Botón Continuar con Google
                 OutlinedButton(
                     onClick = {
-                        googleEmailInput = email.ifBlank { "" }
-                        showGoogleDialog = true
+                        GoogleAuthHelper.iniciarGoogleSignIn(
+                            context = context,
+                            coroutineScope = coroutineScope,
+                            onSuccess = { googleEmail, name ->
+                                viewModel.loginConGoogle(googleEmail, name)
+                            },
+                            onError = {
+                                googleEmailInput = email.ifBlank { "" }
+                                showGoogleDialog = true
+                            },
+                            onFallbackPrompt = {
+                                googleEmailInput = email.ifBlank { "" }
+                                showGoogleDialog = true
+                            }
+                        )
                     },
                     modifier = Modifier
                         .fillMaxWidth()

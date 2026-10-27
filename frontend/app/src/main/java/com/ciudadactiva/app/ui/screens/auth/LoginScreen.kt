@@ -38,6 +38,8 @@ import androidx.compose.ui.unit.sp
 import com.ciudadactiva.app.CiudadActivaApplication
 import com.ciudadactiva.app.R
 import com.ciudadactiva.app.data.local.DemoCredentials
+import androidx.compose.ui.platform.LocalContext
+import com.ciudadactiva.app.ui.components.GoogleAuthHelper
 import com.ciudadactiva.app.ui.components.GradientButton
 import com.ciudadactiva.app.ui.navigation.Screen
 import com.ciudadactiva.app.ui.theme.BackgroundLight
@@ -70,6 +72,8 @@ fun LoginScreen(
     }
 
     val isEmailValid = email.isBlank() || Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Success) {
@@ -128,8 +132,21 @@ fun LoginScreen(
             // Botón Continuar con Google
             OutlinedButton(
                 onClick = {
-                    googleEmailInput = email.ifBlank { "" }
-                    showGoogleDialog = true
+                    GoogleAuthHelper.iniciarGoogleSignIn(
+                        context = context,
+                        coroutineScope = coroutineScope,
+                        onSuccess = { googleEmail, name ->
+                            viewModel.loginConGoogle(googleEmail, name)
+                        },
+                        onError = {
+                            googleEmailInput = email.ifBlank { "" }
+                            showGoogleDialog = true
+                        },
+                        onFallbackPrompt = {
+                            googleEmailInput = email.ifBlank { "" }
+                            showGoogleDialog = true
+                        }
+                    )
                 },
                 modifier = Modifier
                     .fillMaxWidth()
