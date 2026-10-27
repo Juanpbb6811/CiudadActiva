@@ -1,6 +1,7 @@
 package com.ciudadactiva.app.ui.screens.admin
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,9 +11,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,33 +22,43 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.ciudadactiva.app.data.api.ApiClient
+import com.ciudadactiva.app.data.model.ReporteResponse
 import com.ciudadactiva.app.ui.components.CiudadActivaTopBar
 import com.ciudadactiva.app.ui.components.GradientButton
+import com.ciudadactiva.app.ui.components.PrioridadChip
+import com.ciudadactiva.app.ui.components.StatusChip
 import com.ciudadactiva.app.ui.theme.BackgroundLight
 import com.ciudadactiva.app.ui.theme.BrandCopper
 import com.ciudadactiva.app.ui.theme.BrandTealDark
 import com.ciudadactiva.app.ui.theme.TextDark
 import com.ciudadactiva.app.ui.viewmodel.AdminViewModel
 
-import androidx.compose.foundation.border
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Speed
-import androidx.compose.material.icons.filled.Timeline
-import androidx.compose.material.icons.filled.Warning
-
 // ================== PANEL GLOBAL ADMIN (M04_01) ==================
 @Composable
 fun AdminPanelScreen(
     viewModel: AdminViewModel,
-    onDirectorioUsuariosClick: () -> Unit,
-    onCategoriasClick: () -> Unit,
-    onAuditoriaClick: () -> Unit,
+    onDirectorioUsuariosClick: () -> Unit = {},
+    onCategoriasClick: () -> Unit = {},
+    onAuditoriaClick: () -> Unit = {},
     onPerfilClick: () -> Unit = {}
 ) {
     val stats by viewModel.estadisticas.collectAsState()
+    val reportes by viewModel.reportes.collectAsState()
+    val filtroReportes by viewModel.filtroEstadoReportes.collectAsState()
+
+    var reporteAEditar by remember { mutableStateOf<ReporteResponse?>(null) }
+    var nuevoEstadoModal by remember { mutableStateOf("ADMITIDO") }
+    var observacionesModal by remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        viewModel.cargarTodo()
+    }
 
     Column(
         modifier = Modifier
@@ -54,7 +66,7 @@ fun AdminPanelScreen(
             .background(BackgroundLight)
             .statusBarsPadding()
             .verticalScroll(rememberScrollState())
-            .padding(bottom = 80.dp)
+            .padding(bottom = 90.dp)
     ) {
         CiudadActivaTopBar(
             title = "Panel Global",
@@ -69,7 +81,7 @@ fun AdminPanelScreen(
                     Column(modifier = Modifier.padding(14.dp)) {
                         Text("TOTAL CASOS", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF90A4AE))
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text("${stats?.totalReportes ?: 0}", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
+                        Text("${stats?.totalReportes ?: reportes.size}", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
                         Text("+12% mes", fontSize = 10.sp, color = Color(0xFF00796B), fontWeight = FontWeight.Bold)
                     }
                 }
@@ -78,9 +90,9 @@ fun AdminPanelScreen(
                     Column(modifier = Modifier.padding(14.dp)) {
                         Text("RESUELTOS", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF90A4AE))
                         Spacer(modifier = Modifier.height(4.dp))
-                        val total = stats?.totalReportes ?: 1
-                        val cerrados = stats?.reportesAtendidosOCerrados ?: 0
-                        val pct = if (total > 0) (cerrados * 100 / total) else 0
+                        val total = (stats?.totalReportes ?: reportes.size.toLong()).coerceAtLeast(1L)
+                        val cerrados = stats?.reportesAtendidosOCerrados ?: reportes.count { it.estado == "CERRADO" || it.estado == "ATENDIDO" }.toLong()
+                        val pct = (cerrados * 100L / total).toInt()
                         Text("$pct%", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFF00796B))
                         Text("Objetivo 85%", fontSize = 10.sp, color = Color(0xFF00796B))
                     }
@@ -109,10 +121,10 @@ fun AdminPanelScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Matriz de Estados (Pipeline)", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
-                        Text("Total: ${stats?.totalReportes ?: 0}", fontSize = 11.sp, color = Color(0xFF78909C), fontWeight = FontWeight.SemiBold)
+                        Text("Total: ${stats?.totalReportes ?: reportes.size}", fontSize = 11.sp, color = Color(0xFF78909C), fontWeight = FontWeight.SemiBold)
                     }
 
-                    val totalReportes = stats?.totalReportes?.coerceAtLeast(1) ?: 1
+                    val totalReportes = (stats?.totalReportes ?: reportes.size.toLong()).coerceAtLeast(1L)
                     val estadosPipeline = listOf(
                         Triple("PENDIENTE", "Pendiente de Triage", Color(0xFFE65100) to Color(0xFFFFF3E0)),
                         Triple("EN_REVISION", "En Revisión Técnica", Color(0xFFEF6C00) to Color(0xFFFFE0B2)),
@@ -125,7 +137,7 @@ fun AdminPanelScreen(
 
                     estadosPipeline.forEach { (estKey, estLabel, colorsPair) ->
                         val (textColor, bgColor) = colorsPair
-                        val count = stats?.reportesPorEstado?.get(estKey) ?: 0
+                        val count = stats?.reportesPorEstado?.get(estKey) ?: reportes.count { it.estado == estKey }
                         val ratio = (count.toFloat() / totalReportes.toFloat()).coerceIn(0f, 1f)
 
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -164,7 +176,7 @@ fun AdminPanelScreen(
                 }
             }
 
-            // ================== MATRIZ 2: CRITICIDAD Y SEMÁFORO URBANO (RF03 / RF09) ==================
+            // ================== MATRIZ 2: CRITICIDAD Y SEMÁFORO URBANO ==================
             Card(
                 modifier = Modifier.fillMaxWidth().shadow(3.dp, RoundedCornerShape(20.dp)),
                 shape = RoundedCornerShape(20.dp),
@@ -173,7 +185,6 @@ fun AdminPanelScreen(
                 Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     Text("Matriz de Criticidad Urbana y Riesgo", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
 
-                    // Semáforo Territorial Global
                     val semaforo = stats?.semaforoGlobal
                     val semColor = when (semaforo?.nivelAlerta) {
                         "ALTO", "CRITICO" -> Color(0xFFD32F2F)
@@ -213,7 +224,6 @@ fun AdminPanelScreen(
                         }
                     }
 
-                    // Cuadrícula de Prioridades
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -247,97 +257,204 @@ fun AdminPanelScreen(
                 }
             }
 
-            // ================== MATRIZ 3: DESEMPEÑO OPERATIVO Y SLA ==================
+            // ================== CONTROL Y GESTIÓN GLOBAL DE REPORTES ==================
+            // Sustituye los botones reiterativos con acceso directo y modificación de todos los reportes
             Card(
                 modifier = Modifier.fillMaxWidth().shadow(3.dp, RoundedCornerShape(20.dp)),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
-                Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("Matriz de Rendimiento y Cumplimiento SLA", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
-
+                Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column {
-                            Text("Tasa de Resolución", fontSize = 11.sp, color = Color(0xFF78909C))
-                            val tot = stats?.totalReportes ?: 1
-                            val res = stats?.reportesAtendidosOCerrados ?: 0
-                            val pct = if (tot > 0) (res * 100 / tot) else 0
-                            Text("$pct% / 85% meta", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = if (pct >= 85) Color(0xFF2E7D32) else BrandCopper)
-                        }
-
-                        Column {
-                            Text("Tiempo de Respuesta", fontSize = 11.sp, color = Color(0xFF78909C))
-                            Text("${stats?.tiempoPromedioAtencionHoras ?: 0.0} horas prom.", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
-                        }
-
-                        Column {
-                            Text("Casos Pendientes", fontSize = 11.sp, color = Color(0xFF78909C))
-                            Text("${stats?.reportesPendientes ?: 0} por validar", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFFE65100))
-                        }
-                    }
-                }
-            }
-
-            // ================== MATRIZ 4: INCIDENCIAS POR CATEGORÍA ==================
-            Card(
-                modifier = Modifier.fillMaxWidth().shadow(2.dp, RoundedCornerShape(20.dp)),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
-            ) {
-                Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("Incidencias por Categoría", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
-
-                    stats?.reportesPorCategoria?.forEach { (cat, count) ->
-                        val total = stats?.totalReportes?.coerceAtLeast(1) ?: 1
-                        val pct = (count.toFloat() / total.toFloat()).coerceIn(0f, 1f)
-
-                        Column {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(cat, fontSize = 12.sp, color = TextDark)
-                                Text("$count (${(pct * 100).toInt()}%)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
-                            }
-                            Spacer(modifier = Modifier.height(4.dp))
-                            LinearProgressIndicator(
-                                progress = { pct },
-                                modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
-                                color = BrandTealDark,
-                                trackColor = Color(0xFFEBEFF0)
-                            )
-                        }
-                    }
-                }
-            }
-
-            // ================== MÓDULOS ADMINISTRATIVOS Y PERFIL ==================
-            Text("Administración del Sistema & Perfil", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF7A8B88))
-
-            val menus = listOf(
-                "Mi Perfil y Cambiar de Actor (RUP) →" to onPerfilClick,
-                "Directorio de Usuarios y Roles →" to onDirectorioUsuariosClick,
-                "Configurar Categorías de Incidencia →" to onCategoriasClick,
-                "Matriz de Trazabilidad RUP (RNF04) →" to onAuditoriaClick
-            )
-
-            menus.forEach { (nombre, click) ->
-                Card(
-                    modifier = Modifier.fillMaxWidth().shadow(2.dp, RoundedCornerShape(16.dp)).clickable(onClick = click),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(18.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(nombre, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
-                        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(18.dp))
+                        Text("Gestión Global de Reportes", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
+                        IconButton(onClick = { viewModel.cargarReportes(filtroReportes) }, modifier = Modifier.size(28.dp)) {
+                            Icon(Icons.Default.Refresh, contentDescription = "Recargar", tint = BrandTealDark)
+                        }
+                    }
+
+                    // Chips de Filtro
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        val filtros = listOf("TODOS", "PENDIENTE", "ADMITIDO", "EN_PROCESO", "ATENDIDO", "CERRADO")
+                        filtros.forEach { f ->
+                            val isSel = filtroReportes == f
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(14.dp))
+                                    .background(if (isSel) BrandTealDark else Color(0xFFF1F5F4))
+                                    .clickable { viewModel.setFiltroReportes(f) }
+                                    .padding(horizontal = 8.dp, vertical = 5.dp)
+                            ) {
+                                Text(
+                                    text = f,
+                                    fontSize = 10.sp,
+                                    fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isSel) Color.White else Color(0xFF455A64)
+                                )
+                            }
+                        }
+                    }
+
+                    if (reportes.isEmpty()) {
+                        Text(
+                            text = "No se encontraron reportes con el filtro seleccionado.",
+                            fontSize = 12.sp,
+                            color = Color(0xFF78909C),
+                            modifier = Modifier.padding(vertical = 12.dp)
+                        )
+                    } else {
+                        reportes.forEach { rep ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .border(1.dp, Color(0xFFECEFF1), RoundedCornerShape(14.dp)),
+                                shape = RoundedCornerShape(14.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFFFAFCFB))
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text("#${rep.id} • ${rep.titulo}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                                        StatusChip(status = rep.estado)
+                                    }
+
+                                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        PrioridadChip(prioridad = rep.prioridad ?: "MEDIA")
+                                        Text(
+                                            text = rep.categoriaNombre ?: "Vías",
+                                            fontSize = 11.sp,
+                                            color = Color(0xFF546E7A)
+                                        )
+                                    }
+
+                                    // Fotografía si existe
+                                    if (rep.tieneFoto == true || !rep.imagenUrl.isNullOrBlank()) {
+                                        val url = if (rep.imagenUrl?.startsWith("http") == true) {
+                                            rep.imagenUrl
+                                        } else {
+                                            "${ApiClient.getBaseUrl()}api/reportes/${rep.id}/foto"
+                                        }
+                                        AsyncImage(
+                                            model = url,
+                                            contentDescription = "Evidencia ciudadana",
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(130.dp)
+                                                .clip(RoundedCornerShape(10.dp)),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
+
+                                    Text(
+                                        text = "${rep.direccion ?: "Sin dirección"} • Ciudadano: ${rep.ciudadanoNombre ?: "Registrado"}",
+                                        fontSize = 11.sp,
+                                        color = Color(0xFF78909C)
+                                    )
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.End,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        if (rep.estado == "PENDIENTE") {
+                                            TextButton(
+                                                onClick = {
+                                                    viewModel.eliminarReporte(rep.id) {}
+                                                }
+                                            ) {
+                                                Text("Eliminar", color = Color(0xFFD32F2F), fontSize = 11.sp)
+                                            }
+                                        }
+
+                                        Button(
+                                            onClick = {
+                                                reporteAEditar = rep
+                                                nuevoEstadoModal = rep.estado
+                                                observacionesModal = ""
+                                            },
+                                            colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark),
+                                            shape = RoundedCornerShape(10.dp),
+                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                                        ) {
+                                            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(14.dp))
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text("Modificar Estado", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
+    }
+
+    // Modal para que el Admin cambie el estado de cualquier reporte
+    if (reporteAEditar != null) {
+        AlertDialog(
+            onDismissRequest = { reporteAEditar = null },
+            title = { Text("Modificar Estado Reporte #${reporteAEditar!!.id}", fontSize = 16.sp, fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("Selecciona el nuevo estado oficial:", fontSize = 12.sp, color = TextDark)
+                    val opciones = listOf("PENDIENTE", "EN_REVISION", "ADMITIDO", "EN_PROCESO", "ATENDIDO", "CERRADO", "RECHAZADO")
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        opciones.forEach { est ->
+                            val isSel = nuevoEstadoModal == est
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isSel) BrandTealDark.copy(alpha = 0.12f) else Color.Transparent)
+                                    .clickable { nuevoEstadoModal = est }
+                                    .padding(horizontal = 8.dp, vertical = 6.dp)
+                            ) {
+                                RadioButton(selected = isSel, onClick = { nuevoEstadoModal = est })
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(est, fontSize = 12.sp, fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal)
+                            }
+                        }
+                    }
+
+                    OutlinedTextField(
+                        value = observacionesModal,
+                        onValueChange = { observacionesModal = it },
+                        label = { Text("Justificación / Observaciones") },
+                        placeholder = { Text("Ej: Validación administrativa de conformidad...") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val repId = reporteAEditar!!.id
+                        viewModel.cambiarEstadoReporte(repId, nuevoEstadoModal, observacionesModal) {
+                            reporteAEditar = null
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark)
+                ) {
+                    Text("Guardar Cambio")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { reporteAEditar = null }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }
 
@@ -348,6 +465,7 @@ fun AdminUsuariosScreen(
     onBackClick: () -> Unit
 ) {
     val usuarios by viewModel.usuarios.collectAsState()
+    val filtroRol by viewModel.filtroRolUsuarios.collectAsState()
     var mostrarModalCrear by remember { mutableStateOf(false) }
 
     var nuevoNombre by remember { mutableStateOf("") }
@@ -355,49 +473,110 @@ fun AdminUsuariosScreen(
     var nuevoPass by remember { mutableStateOf("123456") }
     var nuevoRol by remember { mutableStateOf("ROLE_OPERADOR") }
 
+    LaunchedEffect(Unit) {
+        viewModel.cargarUsuarios()
+    }
+
     Column(
-        modifier = Modifier.fillMaxSize().background(BackgroundLight).padding(bottom = 70.dp)
+        modifier = Modifier.fillMaxSize().background(BackgroundLight).statusBarsPadding().padding(bottom = 80.dp)
     ) {
-        CiudadActivaTopBar(title = "Directorio Usuarios", roleTag = "USUARIOS", onBackClick = onBackClick)
+        CiudadActivaTopBar(
+            title = "Directorio Usuarios",
+            roleTag = "USUARIOS",
+            onBackClick = onBackClick
+        )
+
+        // Filtro por Rol
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            val roles = listOf("TODOS", "ROLE_CIUDADANO", "ROLE_OPERADOR", "ROLE_GESTOR", "ROLE_ADMIN")
+            roles.forEach { r ->
+                val isSel = filtroRol == r
+                val label = if (r == "TODOS") "Todos (${usuarios.size})" else r.replace("ROLE_", "")
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(if (isSel) BrandTealDark else Color.White)
+                        .border(1.dp, if (isSel) BrandTealDark else Color(0xFFDCE2E1), RoundedCornerShape(14.dp))
+                        .clickable {
+                            viewModel.filtroRolUsuarios.value = r
+                            viewModel.cargarUsuarios(r)
+                        }
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        text = label,
+                        fontSize = 11.sp,
+                        fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
+                        color = if (isSel) Color.White else Color(0xFF455A64)
+                    )
+                }
+            }
+        }
 
         LazyColumn(
             modifier = Modifier.weight(1f).padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            items(usuarios) { u ->
-                Card(
-                    modifier = Modifier.fillMaxWidth().shadow(2.dp, RoundedCornerShape(16.dp)),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(14.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+            if (usuarios.isEmpty()) {
+                item {
+                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                        Text("No se encontraron usuarios registrados en este rol.", color = Color(0xFF78909C), fontSize = 13.sp)
+                    }
+                }
+            } else {
+                items(usuarios) { u ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth().shadow(2.dp, RoundedCornerShape(16.dp)),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White)
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(u.nombre, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextDark)
-                            Text(u.email, fontSize = 12.sp, color = Color(0xFF6C757D))
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(Color(0xFFE0F2F1))
-                                    .padding(horizontal = 8.dp, vertical = 2.dp)
-                            ) {
-                                Text(u.rol.replace("ROLE_", ""), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(u.nombre, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                                Text(u.email, fontSize = 12.sp, color = Color(0xFF6C757D))
+                                if (!u.telefono.isNullOrBlank()) {
+                                    Text("Tel: ${u.telefono}", fontSize = 11.sp, color = Color(0xFF90A4AE))
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(Color(0xFFE0F2F1))
+                                            .padding(horizontal = 8.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(u.rol.replace("ROLE_", ""), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
+                                    }
+                                    if (u.activo) {
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .background(Color(0xFFE8F5E9))
+                                                .padding(horizontal = 8.dp, vertical = 2.dp)
+                                        ) {
+                                            Text("Activo", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
+                                        }
+                                    }
+                                }
                             }
-                        }
 
-                        IconButton(onClick = { viewModel.desactivarUsuario(u.id) {} }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Desactivar", tint = Color(0xFFEF5350))
+                            IconButton(onClick = { viewModel.desactivarUsuario(u.id) {} }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Desactivar", tint = Color(0xFFEF5350))
+                            }
                         }
                     }
                 }
             }
         }
 
-        Box(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
+        Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 10.dp)) {
             GradientButton(
                 text = "+ Crear Nuevo Usuario",
                 onClick = { mostrarModalCrear = true }
@@ -455,47 +634,59 @@ fun AdminCategoriasScreen(
     var nuevoNombre by remember { mutableStateOf("") }
     var nuevaDesc by remember { mutableStateOf("") }
 
+    LaunchedEffect(Unit) {
+        viewModel.cargarCategorias()
+    }
+
     Column(
-        modifier = Modifier.fillMaxSize().background(BackgroundLight).padding(bottom = 70.dp)
+        modifier = Modifier.fillMaxSize().background(BackgroundLight).statusBarsPadding().padding(bottom = 80.dp)
     ) {
         CiudadActivaTopBar(title = "Categorías", roleTag = "CATÁLOGO", onBackClick = onBackClick)
 
         LazyColumn(
-            modifier = Modifier.weight(1f).padding(horizontal = 20.dp),
+            modifier = Modifier.weight(1f).padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            items(categorias) { cat ->
-                Card(
-                    modifier = Modifier.fillMaxWidth().shadow(2.dp, RoundedCornerShape(16.dp)),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+            if (categorias.isEmpty()) {
+                item {
+                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                        Text("Cargando categorías oficiales...", color = Color(0xFF78909C), fontSize = 13.sp)
+                    }
+                }
+            } else {
+                items(categorias) { cat ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth().shadow(2.dp, RoundedCornerShape(16.dp)),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(BrandTealDark),
-                            contentAlignment = Alignment.Center
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(cat.nombre.take(1), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                        }
+                            Box(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(CircleShape)
+                                    .background(BrandTealDark),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(cat.nombre.take(1), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            }
 
-                        Spacer(modifier = Modifier.width(12.dp))
+                            Spacer(modifier = Modifier.width(14.dp))
 
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(cat.nombre, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextDark)
-                            Text(cat.descripcion ?: "Catálogo oficial", fontSize = 11.sp, color = Color(0xFF6C757D))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(cat.nombre, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                                Text(cat.descripcion ?: "Catálogo oficial municipal", fontSize = 12.sp, color = Color(0xFF6C757D))
+                            }
                         }
                     }
                 }
             }
         }
 
-        Box(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
+        Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 10.dp)) {
             GradientButton(
                 text = "+ Crear Nueva Categoría",
                 onClick = { mostrarModalCrear = true }
@@ -535,12 +726,16 @@ fun AdminAuditoriaScreen(
 ) {
     val auditoria by viewModel.auditoriaTrazabilidad.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.cargarAuditoria()
+    }
+
     Column(
-        modifier = Modifier.fillMaxSize().background(BackgroundLight).padding(bottom = 70.dp)
+        modifier = Modifier.fillMaxSize().background(BackgroundLight).statusBarsPadding().padding(bottom = 80.dp)
     ) {
         CiudadActivaTopBar(title = "Auditoría RUP", roleTag = "RNF04", onBackClick = onBackClick)
 
-        Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+        Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
             Text(
                 text = "MATRIZ DE TRAZABILIDAD INMUTABLE (RNF04)",
                 fontSize = 11.sp,
@@ -551,49 +746,65 @@ fun AdminAuditoriaScreen(
             Spacer(modifier = Modifier.height(10.dp))
 
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(auditoria) { seg ->
-                    val isRechazo = seg.estadoNuevo == "RECHAZADO"
+                if (auditoria.isEmpty()) {
+                    item {
+                        Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                            Text("No se registran eventos de auditoría.", color = Color(0xFF78909C), fontSize = 13.sp)
+                        }
+                    }
+                } else {
+                    items(auditoria) { seg ->
+                        val isRechazo = seg.estadoNuevo == "RECHAZADO"
 
-                    Card(
-                        modifier = Modifier.fillMaxWidth().shadow(2.dp, RoundedCornerShape(16.dp)),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                        Card(
+                            modifier = Modifier.fillMaxWidth().shadow(2.dp, RoundedCornerShape(16.dp)),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.White)
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "TRANSICIÓN: ${seg.estadoAnterior ?: "INICIO"} → ${seg.estadoNuevo}",
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isRechazo) Color(0xFFC62828) else BrandTealDark
-                                )
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "TRANSICIÓN: ${seg.estadoAnterior ?: "INICIO"} → ${seg.estadoNuevo}",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isRechazo) Color(0xFFC62828) else BrandTealDark
+                                    )
 
-                                Spacer(modifier = Modifier.height(4.dp))
+                                    Spacer(modifier = Modifier.height(4.dp))
 
-                                Text(
-                                    text = "Reporte #${seg.reporteId} • Usuario: ${seg.usuarioEmail ?: "sistema"}",
-                                    fontSize = 12.sp,
-                                    color = TextDark
-                                )
+                                    Text(
+                                        text = "Reporte #${seg.reporteId} • Usuario: ${seg.usuarioEmail ?: "sistema"}",
+                                        fontSize = 12.sp,
+                                        color = TextDark
+                                    )
 
-                                Spacer(modifier = Modifier.height(4.dp))
+                                    if (!seg.observaciones.isNullOrBlank()) {
+                                        Text(
+                                            text = "Nota: ${seg.observaciones}",
+                                            fontSize = 11.sp,
+                                            color = Color(0xFF546E7A)
+                                        )
+                                    }
 
-                                Text(
-                                    text = "Hash: ${seg.hashTrazabilidad ?: "sha256:7f8a9e2b..."} • ${seg.creadoEn?.substring(0, 10) ?: ""}",
-                                    fontSize = 10.sp,
-                                    color = Color(0xFF78909C)
+                                    Spacer(modifier = Modifier.height(4.dp))
+
+                                    Text(
+                                        text = "Hash: ${seg.hashTrazabilidad ?: "sha256:7f8a9e2b..."} • ${seg.creadoEn?.take(16)?.replace("T", " ") ?: ""}",
+                                        fontSize = 10.sp,
+                                        color = Color(0xFF78909C)
+                                    )
+                                }
+
+                                Box(
+                                    modifier = Modifier
+                                        .size(12.dp)
+                                        .clip(CircleShape)
+                                        .background(if (isRechazo) Color(0xFFD32F2F) else Color(0xFF00796B))
                                 )
                             }
-
-                            Box(
-                                modifier = Modifier
-                                    .size(12.dp)
-                                    .clip(CircleShape)
-                                    .background(if (isRechazo) Color(0xFFD32F2F) else Color(0xFF00796B))
-                            )
                         }
                     }
                 }

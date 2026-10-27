@@ -33,12 +33,11 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: ${JPA_DDL_AUTO:update}
+      ddl-auto: ${JPA_DDL_AUTO:none}
     show-sql: ${SHOW_SQL:false}
     properties:
       hibernate:
         format_sql: false
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
           lob:
             non_contextual_creation: true

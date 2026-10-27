@@ -42,6 +42,7 @@ fun AppNavigation() {
         Screen.MapaExplorador.route,
         Screen.CiudadanoPerfil.route,
         Screen.GestorDashboard.route,
+        Screen.GestorBandejaValidacion.route,
         Screen.GestorAsignaciones.route,
         Screen.GestorEstadisticas.route,
         Screen.OperadorTareas.route,

@@ -8,5 +8,5 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD:XoUF92rHTaxms6lj}
   jpa:
     hibernate:
-      ddl-auto: ${JPA_DDL_AUTO:update}
+      ddl-auto: ${JPA_DDL_AUTO:none}
     show-sql: false

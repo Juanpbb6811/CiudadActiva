@@ -4,34 +4,37 @@ Sistema integral para el reporte, validación, asignación operativa y seguimien
 
 ---
 
-## 📲 Descargar App Android (Release v0.1.4)
+## 📲 Descargar App Android (Release v0.1.5)
 
 Ya puedes instalar y probar la versión oficial y firmada de CiudadActiva directamente en tu dispositivo Android o emulador:
 
-[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.1.4_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.4.apk)
+[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.1.5_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.5.apk)
 [![Servidor Cloud](https://img.shields.io/badge/Descarga_Directa-Cloud_Render-blueviolet?style=for-the-badge&logo=render&logoColor=white)](https://ciudadactiva-4ah7.onrender.com/descargar)
-[![GitHub Release](https://img.shields.io/badge/Release_Tag-v0.1.4-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.1.4)
+[![GitHub Release](https://img.shields.io/badge/Release_Tag-v0.1.5-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.1.5)
 
 ### 📥 Enlaces de descarga directa:
-* 🌐 **[Servidor Oficial en la Nube (Render): Descargar CiudadActiva-v0.1.4.apk (12.2 MB)](https://ciudadactiva-4ah7.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
-* 🐙 **[GitHub Directo: Descargar CiudadActiva-v0.1.4.apk (12.2 MB)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.4.apk)**
+* 🌐 **[Servidor Oficial en la Nube (Render): Descargar CiudadActiva-v0.1.5.apk (12.2 MB)](https://ciudadactiva-4ah7.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
+* 🐙 **[GitHub Directo: Descargar CiudadActiva-v0.1.5.apk (12.2 MB)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.5.apk)**
 
 ### 🛠️ Instrucciones de Instalación en Android:
-1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.1.4.apk`.
+1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.1.5.apk`.
 2. Al finalizar la descarga, presiona **Abrir** (o ve a tu app de **Archivos / Descargas** y tócalo).
 3. Si el sistema muestra el aviso de seguridad de Android / Xiaomi, activa la opción **Confiar en esta fuente / Instalar aplicaciones desconocidas**.
 4. Pulsa **Instalar** y ¡listo!
 
-### ✨ Novedades de la versión v0.1.4:
-- 📋 **Gestor (Validación, Triage y Cambio de Estado)**: Bandeja Triage completa con filtros dinámicos (Pendientes, Admitidos, Rechazados, Todos - M02_02), visualización de evidencia fotográfica del ciudadano en la ficha de inspección (M02_04) y modal para cambio directo de estado a cualquier fase del flujo de trabajo con registro de justificación.
-- 🛠️ **Operador (Avances y Cambios en Terreno)**: Ficha de orden de trabajo en campo con foto original del reporte, registro de avances técnicos con **captura de fotografía de soporte en terreno usando la cámara móvil (M03_04)** y actualización de estado de labor física (`EN_PROCESO`, `ATENDIDO`).
-- 👤 **Apartado de Perfil y Cambio de Actor (RUP) en Administrador**: Se incorporó el acceso directo a Perfil en la barra de navegación y TopBar del Admin, incluyendo el selector dinámico **Cambiar de Actor** para alternar con un solo toque entre Ciudadano, Gestor, Operador y Administrador con autenticación demo integrada.
-- 📊 **Matrices de Seguimiento para ADMIN**:
-  - **Matriz de Estados (Pipeline)**: Control porcentual y acumulado de todo el ciclo de vida de las incidencias (Pendientes, En Revisión, Admitidos, En Proceso, Atendidos, Cerrados, Rechazados).
-  - **Matriz de Criticidad Urbana & Semáforo Territorial (RF03 / RF09)**: Clasificación de prioridades y semáforo de riesgo territorial urbano.
-  - **Matriz de Desempeño y Cumplimiento de SLA**: Tasa de resolución (% resueltos vs meta 85%) y tiempo promedio de respuesta en horas.
-  - **Matriz de Cobertura por Categorías**: Distribución porcentual y volumétrica de problemas reportados en la ciudad.
-- 🛡️ **Seguridad Supabase (RLS y PostgREST)**: Script DDL de endurecimiento de Row Level Security y revocación de acceso a endpoints públicos anónimos preservando la conexión Spring Boot JDBC.
+### ✨ Novedades de la versión v0.1.5:
+- 📋 **Acceso Total y Lista Completa de Reportes para GESTOR**:
+  - La primera pestaña de la barra inferior del Gestor ahora lleva directamente a **Reportes** (Bandeja Completa de Validación con filtros por estado: Todos, Pendientes, Admitidos, Rechazados).
+  - Botón directo de **"Cambiar Estado"** en cada tarjeta para modificar el estado y justificación técnica sin abandonar la lista.
+- 🛠️ **Acceso y Operación en Terreno para OPERADOR**:
+  - Pestaña dual en pantalla principal de labores: **"Mis Asignaciones"** y **"Reportes en Terreno"**, permitiendo al operador ver y trabajar sobre todos los reportes activos del municipio.
+  - El operador puede registrar avances con foto tomada con la cámara móvil, actualizar la situación técnica y cambiar directamente el estado (`EN_PROCESO`, `ATENDIDO`, `CERRADO`) sin bloqueos de asignación (Regla 8 adaptada a terreno).
+- 👑 **Control Integral sin Redundancia para ADMINISTRADOR**:
+  - Se eliminaron los botones redundantes del Panel Global que duplicaban la barra de navegación inferior.
+  - Se integró el nuevo módulo **Gestión y Control Global de Reportes** con filtros por estado, fotografía de evidencia, botón para modificar estado de cualquier reporte y opción de eliminación.
+  - Carga automática e instantánea al acceder a las pestañas de **Usuarios** (mostrando el directorio completo de usuarios con filtros por rol), **Categorías** (catálogo oficial con descripción e íconos) y **Auditoría RUP** (matriz inmutable de eventos con hashes SHA-256).
+- 🚀 **Optimización de Despliegue en Render y Supabase**:
+  - Ajuste de `ddl-auto: none` y timeouts de conexión para arranque inmediato de Spring Boot en producción evitando bloqueos de catálogo sobre Supavisor pooler.
 
 ---
 

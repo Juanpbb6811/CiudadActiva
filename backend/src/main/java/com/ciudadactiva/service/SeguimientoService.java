@@ -45,11 +45,18 @@ public class SeguimientoService {
         Usuario usuario = usuarioRepository.findByEmail(emailUsuario)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + emailUsuario));
 
-        // Regla 8: Si es operador, validar que esté asignado a este reporte
+        // Regla 8: Si es operador, asegurar asignación activa para la labor en campo
         if (usuario.getRol() != null && usuario.getRol().getNombre() == RolNombre.ROLE_OPERADOR) {
             Optional<Asignacion> asignacion = asignacionRepository.findByReporte_IdAndActivaTrue(reporteId);
-            if (asignacion.isEmpty() || !asignacion.get().getOperador().getId().equals(usuario.getId())) {
-                throw new ForbiddenException("No puedes registrar avances en un reporte que no te ha sido asignado.");
+            if (asignacion.isEmpty()) {
+                Asignacion nueva = new Asignacion(reporte, usuario, usuario, "Auto-asignación operativa en terreno para ejecución de labores.");
+                asignacionRepository.save(nueva);
+            } else if (!asignacion.get().getOperador().getId().equals(usuario.getId())) {
+                Asignacion previa = asignacion.get();
+                previa.setActiva(false);
+                asignacionRepository.save(previa);
+                Asignacion nueva = new Asignacion(reporte, usuario, usuario, "Reasignación operativa en terreno asumida por " + usuario.getNombre());
+                asignacionRepository.save(nueva);
             }
         }
 

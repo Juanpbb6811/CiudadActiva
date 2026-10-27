@@ -21,8 +21,13 @@ class OperadorViewModel : ViewModel() {
     val regla3Bloqueada = MutableStateFlow(false) // Alerta Regla 3
 
     val tareasAsignadas = MutableStateFlow<List<AsignacionModel>>(emptyList())
+    val todosReportesCampo = MutableStateFlow<List<ReporteResponse>>(emptyList())
     val tareasResueltas = MutableStateFlow<List<ReporteResponse>>(emptyList())
     val fichaSeleccionada = MutableStateFlow<ReporteDetalleResponse?>(null)
+
+    // Pestaña activa en pantalla: "MIS_TAREAS" o "TODOS"
+    val tabSeleccionado = MutableStateFlow("TODOS")
+    val filtroEstadoCampo = MutableStateFlow("TODOS")
 
     // Formulario de avance
     val avanceObservaciones = MutableStateFlow("")
@@ -36,25 +41,52 @@ class OperadorViewModel : ViewModel() {
         cargarTareas()
     }
 
+    fun setTab(tab: String) {
+        tabSeleccionado.value = tab
+    }
+
+    fun setFiltroEstado(estado: String) {
+        filtroEstadoCampo.value = estado
+        cargarReportesCampo(estado)
+    }
+
     fun cargarTareas() {
         viewModelScope.launch {
             isLoading.value = true
             errorMessage.value = null
             try {
+                // 1. Cargar asignaciones asignadas al operador
                 val resp = api.listarMisAsignaciones()
                 if (resp.isSuccessful && resp.body()?.data != null) {
                     tareasAsignadas.value = resp.body()!!.data!!
                 }
 
-                // Cargar también reportes cerrados para el historial
+                // 2. Cargar todos los reportes de campo disponibles
+                cargarReportesCampo(filtroEstadoCampo.value)
+
+                // 3. Cargar también reportes cerrados para el historial
                 val histResp = api.listarReportes(estado = "CERRADO")
                 if (histResp.isSuccessful && histResp.body()?.data != null) {
                     tareasResueltas.value = histResp.body()!!.data!!
                 }
             } catch (e: Exception) {
-                errorMessage.value = "Error al obtener tareas asignadas: ${e.localizedMessage}"
+                errorMessage.value = "Error al sincronizar tareas: ${e.localizedMessage}"
             } finally {
                 isLoading.value = false
+            }
+        }
+    }
+
+    fun cargarReportesCampo(estado: String = "TODOS") {
+        viewModelScope.launch {
+            try {
+                val param = if (estado == "TODOS") null else estado
+                val resp = api.listarReportes(estado = param)
+                if (resp.isSuccessful && resp.body()?.data != null) {
+                    todosReportesCampo.value = resp.body()!!.data!!
+                }
+            } catch (e: Exception) {
+                // Silencioso
             }
         }
     }
@@ -132,7 +164,10 @@ class OperadorViewModel : ViewModel() {
         viewModelScope.launch {
             isLoading.value = true
             try {
-                val req = CambiarEstadoRequest(estado = nuevoEstado, observaciones = observaciones)
+                val req = CambiarEstadoRequest(
+                    estado = nuevoEstado,
+                    observaciones = observaciones.ifBlank { "Actualización operativa de estado en terreno" }
+                )
                 val resp = api.cambiarEstadoReporte(reporteId, req)
                 if (resp.isSuccessful) {
                     cargarTareas()
@@ -179,15 +214,15 @@ class OperadorViewModel : ViewModel() {
 
                 if (resp.isSuccessful) {
                     cargarTareas()
+                    cargarFicha(reporteId)
                     onSuccess()
                 } else {
-                    val errorText = resp.errorBody()?.string() ?: ""
-                    // Si el backend disparó la Regla 3 por falta de avance previo:
-                    if (errorText.contains("Regla de Negocio") || errorText.contains("acción de atención")) {
+                    val err = resp.errorBody()?.string() ?: resp.message()
+                    if (err.contains("Regla de Negocio: Un reporte no puede cerrarse si no registra previamente al menos una acción")) {
                         regla3Bloqueada.value = true
                         onRegla3Violation()
                     } else {
-                        errorMessage.value = "Error al cerrar: ${resp.message()}"
+                        errorMessage.value = err
                     }
                 }
             } catch (e: Exception) {

@@ -10,8 +10,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Inbox
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,11 +21,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.ciudadactiva.app.data.api.ApiClient
+import com.ciudadactiva.app.data.model.ReporteResponse
 import com.ciudadactiva.app.ui.components.CiudadActivaTopBar
 import com.ciudadactiva.app.ui.components.LoadingSkeleton
+import com.ciudadactiva.app.ui.components.PrioridadChip
+import com.ciudadactiva.app.ui.components.StatusChip
 import com.ciudadactiva.app.ui.theme.BackgroundLight
 import com.ciudadactiva.app.ui.theme.BrandCopper
 import com.ciudadactiva.app.ui.theme.BrandTealDark
@@ -47,9 +55,17 @@ fun GestorBandejaValidacionScreen(
     val stats by viewModel.estadisticas.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
+    var reporteAEditar by remember { mutableStateOf<ReporteResponse?>(null) }
+    var nuevoEstadoModal by remember { mutableStateOf("ADMITIDO") }
+    var observacionesModal by remember { mutableStateOf("") }
+
     val countPendientes = pendientes.size
     val countAdmitidos = stats?.reportesPorEstado?.get("ADMITIDO") ?: 0
     val countRechazados = stats?.reportesPorEstado?.get("RECHAZADO") ?: 0
+
+    LaunchedEffect(filtro) {
+        viewModel.cargarReportesPorFiltro(filtro)
+    }
 
     Column(
         modifier = Modifier
@@ -72,10 +88,10 @@ fun GestorBandejaValidacionScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             val filtros = listOf(
+                "TODOS" to "Todos",
                 "PENDIENTE" to "Pendientes ($countPendientes)",
                 "ADMITIDO" to "Admitidos ($countAdmitidos)",
-                "RECHAZADO" to "Rechazados ($countRechazados)",
-                "TODOS" to "Todos"
+                "RECHAZADO" to "Rechazados ($countRechazados)"
             )
 
             filtros.forEach { (key, label) ->
@@ -86,12 +102,12 @@ fun GestorBandejaValidacionScreen(
                         .background(if (isSelected) BrandTealDark else Color.White)
                         .border(1.dp, if (isSelected) BrandTealDark else Color(0xFFDCE2E1), RoundedCornerShape(20.dp))
                         .clickable { viewModel.setFiltro(key) }
-                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                        .padding(horizontal = 12.dp, vertical = 7.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = label,
-                        fontSize = 12.sp,
+                        fontSize = 11.sp,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                         color = if (isSelected) Color.White else Color(0xFF5A6665)
                     )
@@ -99,7 +115,7 @@ fun GestorBandejaValidacionScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
         if (isLoading && reportes.isEmpty()) {
             LoadingSkeleton()
@@ -130,6 +146,10 @@ fun GestorBandejaValidacionScreen(
                         fontSize = 12.sp,
                         color = Color(0xFF78909C)
                     )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedButton(onClick = { viewModel.cargarReportesPorFiltro("TODOS") }) {
+                        Text("Ver Todos los Reportes")
+                    }
                 }
             }
         } else {
@@ -159,7 +179,7 @@ fun GestorBandejaValidacionScreen(
                         shape = RoundedCornerShape(20.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.White)
                     ) {
-                        Column(modifier = Modifier.padding(18.dp)) {
+                        Column(modifier = Modifier.padding(16.dp)) {
                             // Cabecera: #ID • CATEGORÍA • PRIORIDAD
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -167,39 +187,13 @@ fun GestorBandejaValidacionScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "#${rep.id} • ${rep.categoriaNombre?.uppercase() ?: "GENERAL"} • ${rep.prioridad ?: "MEDIA"}",
+                                    text = "#${rep.id} • ${rep.categoriaNombre?.uppercase() ?: "GENERAL"}",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = if (esCritica) Color(0xFFD32F2F) else if (esAlta) BrandCopper else Color(0xFF7A8B88)
                                 )
 
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(
-                                            when (rep.estado) {
-                                                "ADMITIDO" -> Color(0xFFE8F5E9)
-                                                "RECHAZADO" -> Color(0xFFFFEBEE)
-                                                "EN_PROCESO" -> Color(0xFFE3F2FD)
-                                                "CERRADO" -> Color(0xFFF1F8E9)
-                                                else -> Color(0xFFFFF3E0)
-                                            }
-                                        )
-                                        .padding(horizontal = 8.dp, vertical = 2.dp)
-                                ) {
-                                    Text(
-                                        text = rep.estado,
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = when (rep.estado) {
-                                            "ADMITIDO" -> Color(0xFF2E7D32)
-                                            "RECHAZADO" -> Color(0xFFC62828)
-                                            "EN_PROCESO" -> Color(0xFF1565C0)
-                                            "CERRADO" -> Color(0xFF33691E)
-                                            else -> Color(0xFFE65100)
-                                        }
-                                    )
-                                }
+                                StatusChip(status = rep.estado)
                             }
 
                             Spacer(modifier = Modifier.height(6.dp))
@@ -219,19 +213,53 @@ fun GestorBandejaValidacionScreen(
                                 color = Color(0xFF6C757D)
                             )
 
+                            // Fotografía si existe
+                            if (rep.tieneFoto == true || !rep.imagenUrl.isNullOrBlank()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                val url = if (rep.imagenUrl?.startsWith("http") == true) {
+                                    rep.imagenUrl
+                                } else {
+                                    "${ApiClient.getBaseUrl()}api/reportes/${rep.id}/foto"
+                                }
+                                AsyncImage(
+                                    model = url,
+                                    contentDescription = "Evidencia ciudadana",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(130.dp)
+                                        .clip(RoundedCornerShape(12.dp)),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+
                             Spacer(modifier = Modifier.height(14.dp))
 
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.End
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
+                                OutlinedButton(
+                                    onClick = {
+                                        reporteAEditar = rep
+                                        nuevoEstadoModal = rep.estado
+                                        observacionesModal = ""
+                                    },
+                                    shape = RoundedCornerShape(14.dp),
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                                ) {
+                                    Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(14.dp), tint = BrandTealDark)
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Cambiar Estado", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
+                                }
+
                                 Button(
                                     onClick = { onInspeccionarReporte(rep.id) },
                                     colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark),
-                                    shape = RoundedCornerShape(16.dp),
-                                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                                    shape = RoundedCornerShape(14.dp),
+                                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
                                 ) {
-                                    Text("Inspeccionar →", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text("Inspeccionar →", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -239,5 +267,63 @@ fun GestorBandejaValidacionScreen(
                 }
             }
         }
+    }
+
+    // Modal de Cambio Rápido de Estado para Gestor
+    if (reporteAEditar != null) {
+        AlertDialog(
+            onDismissRequest = { reporteAEditar = null },
+            title = { Text("Actualizar Estado de Reporte #${reporteAEditar!!.id}", fontSize = 16.sp, fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("Selecciona el nuevo estado:", fontSize = 12.sp, color = TextDark)
+                    val opciones = listOf("PENDIENTE", "EN_REVISION", "ADMITIDO", "EN_PROCESO", "ATENDIDO", "CERRADO", "RECHAZADO")
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        opciones.forEach { est ->
+                            val isSel = nuevoEstadoModal == est
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isSel) BrandTealDark.copy(alpha = 0.12f) else Color.Transparent)
+                                    .clickable { nuevoEstadoModal = est }
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                RadioButton(selected = isSel, onClick = { nuevoEstadoModal = est })
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(est, fontSize = 12.sp, fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal)
+                            }
+                        }
+                    }
+
+                    OutlinedTextField(
+                        value = observacionesModal,
+                        onValueChange = { observacionesModal = it },
+                        label = { Text("Observaciones / Justificación") },
+                        placeholder = { Text("Ej: Aprobado para cuadrilla técnica...") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val repId = reporteAEditar!!.id
+                        viewModel.cambiarEstadoReporte(repId, nuevoEstadoModal, observacionesModal) {
+                            reporteAEditar = null
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark)
+                ) {
+                    Text("Guardar Estado")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { reporteAEditar = null }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }

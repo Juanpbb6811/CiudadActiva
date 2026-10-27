@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AppDownloadController {
 
     @GetMapping(value = {"/descargar", "/api/app/descargar", "/app.apk"})
-    @Operation(summary = "Descargar APK de CiudadActiva", description = "Descarga directa del APK de la versión v0.1.2 con los tipos MIME oficiales de Android.")
+    @Operation(summary = "Descargar APK de CiudadActiva", description = "Descarga directa del APK oficial de CiudadActiva con tipos MIME de Android.")
     public ResponseEntity<Resource> descargarApk() {
         Resource apkResource = new ClassPathResource("static/app.apk");
         if (!apkResource.exists()) {
@@ -24,7 +24,7 @@ public class AppDownloadController {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, "application/vnd.android.package-archive")
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"CiudadActiva-v0.1.2.apk\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"CiudadActiva-v0.1.5.apk\"")
                 .body(apkResource);
     }
 }

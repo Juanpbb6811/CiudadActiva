@@ -42,9 +42,9 @@ fun CiudadActivaBottomBar(
 
     val items = when (userRole) {
         "ROLE_GESTOR" -> listOf(
-            NavItem(Screen.GestorDashboard.route, "Validar", Icons.Outlined.CheckCircle, Icons.Filled.CheckCircle),
+            NavItem(Screen.GestorBandejaValidacion.route, "Reportes", Icons.Outlined.CheckCircle, Icons.Filled.CheckCircle),
+            NavItem(Screen.GestorDashboard.route, "Triage", Icons.Outlined.Dashboard, Icons.Filled.Dashboard),
             NavItem(Screen.GestorAsignaciones.route, "Asignar", Icons.Outlined.People, Icons.Filled.People),
-            NavItem(Screen.GestorEstadisticas.route, "Stats", Icons.Outlined.BarChart, Icons.Filled.BarChart),
             NavItem(Screen.CiudadanoPerfil.route, "Perfil", Icons.Outlined.Person, Icons.Filled.Person)
         )
         "ROLE_OPERADOR" -> listOf(

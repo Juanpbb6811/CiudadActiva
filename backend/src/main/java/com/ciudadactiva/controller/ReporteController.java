@@ -205,10 +205,10 @@ public class ReporteController {
         return ResponseEntity.ok(ApiResponse.ok("Prioridad actualizada exitosamente", response));
     }
 
-    // ================== CAMBIAR ESTADO DIRECTO (GESTOR / ADMIN) ==================
+    // ================== CAMBIAR ESTADO DIRECTO (OPERADOR / GESTOR / ADMIN) ==================
     @PatchMapping("/{id}/estado")
-    @PreAuthorize("hasAnyRole('GESTOR', 'ADMIN')")
-    @Operation(summary = "Actualizar Estado del Reporte (Gestor)", description = "Permite transicionar manualmente el estado conforme al flujo.")
+    @PreAuthorize("hasAnyRole('OPERADOR', 'GESTOR', 'ADMIN')")
+    @Operation(summary = "Actualizar Estado del Reporte", description = "Permite a operadores, gestores o administradores transicionar el estado del reporte.")
     public ResponseEntity<ApiResponse<ReporteResponse>> cambiarEstado(
             @PathVariable Long id,
             Principal principal,

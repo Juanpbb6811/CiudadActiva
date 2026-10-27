@@ -45,6 +45,11 @@ import com.ciudadactiva.app.ui.theme.BrandTealDark
 import com.ciudadactiva.app.ui.theme.TextDark
 import com.ciudadactiva.app.ui.viewmodel.OperadorViewModel
 
+import com.ciudadactiva.app.data.model.ReporteResponse
+import com.ciudadactiva.app.ui.components.StatusChip
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Refresh
+
 // ================== PANEL DE TRABAJO DEL OPERADOR (M03_01) ==================
 @Composable
 fun OperadorTareasScreen(
@@ -54,6 +59,18 @@ fun OperadorTareasScreen(
     onFichaClick: (Long) -> Unit
 ) {
     val tareas by viewModel.tareasAsignadas.collectAsState()
+    val reportesCampo by viewModel.todosReportesCampo.collectAsState()
+    val tabActivo by viewModel.tabSeleccionado.collectAsState()
+    val filtroEstado by viewModel.filtroEstadoCampo.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
+    var reporteAEditar by remember { mutableStateOf<ReporteResponse?>(null) }
+    var nuevoEstadoModal by remember { mutableStateOf("EN_PROCESO") }
+    var observacionesModal by remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        viewModel.cargarTareas()
+    }
 
     Column(
         modifier = Modifier
@@ -62,77 +79,278 @@ fun OperadorTareasScreen(
             .statusBarsPadding()
             .padding(bottom = 70.dp)
     ) {
-        CiudadActivaTopBar(title = "Mis Tareas", roleTag = "OPERADOR")
+        CiudadActivaTopBar(title = "Mis Labores", roleTag = "OPERADOR")
 
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-            Text(
-                text = "ORDENES DE SERVICIO PARA HOY (${tareas.size})",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF7A8B88)
-            )
+            // Selector de Modo: Mis Asignaciones vs Todos los Reportes de Campo
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Color(0xFFEBEFF0))
+                    .padding(4.dp)
+            ) {
+                val isMisAsig = tabActivo == "MIS_TAREAS"
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(if (isMisAsig) Color.White else Color.Transparent)
+                        .clickable { viewModel.setTab("MIS_TAREAS") }
+                        .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Mis Asignaciones (${tareas.size})",
+                        fontSize = 11.sp,
+                        fontWeight = if (isMisAsig) FontWeight.Bold else FontWeight.Normal,
+                        color = if (isMisAsig) BrandTealDark else Color(0xFF607D8B)
+                    )
+                }
+
+                val isTodos = tabActivo == "TODOS"
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(if (isTodos) Color.White else Color.Transparent)
+                        .clickable { viewModel.setTab("TODOS") }
+                        .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Reportes en Terreno (${reportesCampo.size})",
+                        fontSize = 11.sp,
+                        fontWeight = if (isTodos) FontWeight.Bold else FontWeight.Normal,
+                        color = if (isTodos) BrandTealDark else Color(0xFF607D8B)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            if (tareas.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(32.dp),
-                    contentAlignment = Alignment.Center
+            // Si está en "TODOS", mostrar chips de filtro por estado
+            if (tabActivo == "TODOS") {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.Assignment, contentDescription = null, tint = Color(0xFFB0BEC5), modifier = Modifier.size(60.dp))
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text("No tienes tareas pendientes asignadas", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
-                        Text("Las nuevas órdenes de trabajo de campo asignadas por los gestores aparecerán aquí.", fontSize = 12.sp, color = Color(0xFF78909C), textAlign = TextAlign.Center)
+                    val filtros = listOf("TODOS", "ADMITIDO", "EN_PROCESO", "PENDIENTE", "ATENDIDO")
+                    filtros.forEach { f ->
+                        val isSel = filtroEstado == f
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(if (isSel) BrandTealDark else Color.White)
+                                .border(1.dp, if (isSel) BrandTealDark else Color(0xFFDCE2E1), RoundedCornerShape(14.dp))
+                                .clickable { viewModel.setFiltroEstado(f) }
+                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = f,
+                                fontSize = 10.sp,
+                                fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
+                                color = if (isSel) Color.White else Color(0xFF5A6665)
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+            }
+
+            // ================= VISTA 1: MIS ASIGNACIONES =================
+            if (tabActivo == "MIS_TAREAS") {
+                if (tareas.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.Default.Assignment, contentDescription = null, tint = Color(0xFFB0BEC5), modifier = Modifier.size(54.dp))
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text("No tienes tareas específicas asignadas", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                "Puedes ver y atender los reportes activos del municipio en la pestaña 'Reportes en Terreno'.",
+                                fontSize = 12.sp,
+                                color = Color(0xFF78909C),
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(14.dp))
+                            Button(
+                                onClick = { viewModel.setTab("TODOS") },
+                                colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark),
+                                shape = RoundedCornerShape(14.dp)
+                            ) {
+                                Text("Ver Reportes en Terreno →", fontSize = 12.sp)
+                            }
+                        }
+                    }
+                } else {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        items(tareas) { tarea ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .shadow(3.dp, RoundedCornerShape(20.dp))
+                                    .clickable { onFichaClick(tarea.reporteId) },
+                                shape = RoundedCornerShape(20.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color.White)
+                            ) {
+                                Column(modifier = Modifier.padding(18.dp)) {
+                                    PrioridadChip(prioridad = "ALTA")
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(
+                                        text = "#${tarea.reporteId} • ${tarea.reporteTitulo ?: "Incidencia en Campo"}",
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextDark
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = tarea.notas ?: "Atención y diagnóstico programado para cuadrilla",
+                                        fontSize = 12.sp,
+                                        color = Color(0xFF5A6665)
+                                    )
+
+                                    Spacer(modifier = Modifier.height(14.dp))
+
+                                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                        Button(
+                                            onClick = { onRegistrarAvanceClick(tarea.reporteId) },
+                                            modifier = Modifier.weight(1f).height(44.dp),
+                                            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                                            border = androidx.compose.foundation.BorderStroke(1.dp, BrandTealDark),
+                                            shape = RoundedCornerShape(22.dp)
+                                        ) {
+                                            Text("Registrar Avance", color = BrandTealDark, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                        }
+
+                                        Button(
+                                            onClick = { onCerrarReporteClick(tarea.reporteId) },
+                                            modifier = Modifier.weight(1f).height(44.dp),
+                                            colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark),
+                                            shape = RoundedCornerShape(22.dp)
+                                        ) {
+                                            Text("Cerrar con Foto →", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    items(tareas) { tarea ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .shadow(3.dp, RoundedCornerShape(20.dp))
-                                .clickable { onFichaClick(tarea.reporteId) },
-                            shape = RoundedCornerShape(20.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White)
-                        ) {
-                            Column(modifier = Modifier.padding(18.dp)) {
-                                PrioridadChip(prioridad = "ALTA")
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Text(
-                                    text = "#${tarea.reporteId} • ${tarea.reporteTitulo ?: "Incidencia en Campo"}",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = TextDark
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = tarea.notas ?: "Atención y diagnóstico programado para cuadrilla",
-                                    fontSize = 12.sp,
-                                    color = Color(0xFF5A6665)
-                                )
-
-                                Spacer(modifier = Modifier.height(14.dp))
-
-                                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                    Button(
-                                        onClick = { onRegistrarAvanceClick(tarea.reporteId) },
-                                        modifier = Modifier.weight(1f).height(44.dp),
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                                        border = androidx.compose.foundation.BorderStroke(1.dp, BrandTealDark),
-                                        shape = RoundedCornerShape(22.dp)
+                // ================= VISTA 2: TODOS LOS REPORTES EN TERRENO =================
+                if (reportesCampo.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.Default.Assignment, contentDescription = null, tint = Color(0xFFB0BEC5), modifier = Modifier.size(54.dp))
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Text("No hay reportes con este estado", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
+                        }
+                    }
+                } else {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        items(reportesCampo) { rep ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .shadow(3.dp, RoundedCornerShape(20.dp))
+                                    .clickable { onFichaClick(rep.id) },
+                                shape = RoundedCornerShape(20.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color.White)
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text("Registrar Avance", color = BrandTealDark, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                        Text("#${rep.id} • ${rep.categoriaNombre?.uppercase() ?: "GENERAL"}", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF7A8B88))
+                                        StatusChip(status = rep.estado)
                                     }
 
-                                    Button(
-                                        onClick = { onCerrarReporteClick(tarea.reporteId) },
-                                        modifier = Modifier.weight(1f).height(44.dp),
-                                        colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark),
-                                        shape = RoundedCornerShape(22.dp)
+                                    Spacer(modifier = Modifier.height(6.dp))
+
+                                    Text(
+                                        text = rep.titulo,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextDark
+                                    )
+
+                                    Spacer(modifier = Modifier.height(4.dp))
+
+                                    Text(
+                                        text = "${rep.direccion ?: "Sector Urbano"} • Reporta: ${rep.ciudadanoNombre ?: "Ciudadano"}",
+                                        fontSize = 12.sp,
+                                        color = Color(0xFF6C757D)
+                                    )
+
+                                    if (rep.tieneFoto == true || !rep.imagenUrl.isNullOrBlank()) {
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        val url = if (rep.imagenUrl?.startsWith("http") == true) {
+                                            rep.imagenUrl
+                                        } else {
+                                            "${ApiClient.getBaseUrl()}api/reportes/${rep.id}/foto"
+                                        }
+                                        AsyncImage(
+                                            model = url,
+                                            contentDescription = "Evidencia ciudadana",
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(120.dp)
+                                                .clip(RoundedCornerShape(12.dp)),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.height(12.dp))
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
-                                        Text("Cerrar con Foto →", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                        OutlinedButton(
+                                            onClick = {
+                                                reporteAEditar = rep
+                                                nuevoEstadoModal = rep.estado
+                                                observacionesModal = ""
+                                            },
+                                            modifier = Modifier.weight(1f).height(40.dp),
+                                            shape = RoundedCornerShape(14.dp),
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                                        ) {
+                                            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(13.dp), tint = BrandTealDark)
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text("Estado", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
+                                        }
+
+                                        Button(
+                                            onClick = { onRegistrarAvanceClick(rep.id) },
+                                            modifier = Modifier.weight(1.3f).height(40.dp),
+                                            colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark),
+                                            shape = RoundedCornerShape(14.dp),
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                                        ) {
+                                            Icon(Icons.Default.CameraAlt, contentDescription = null, modifier = Modifier.size(14.dp))
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text("Avance / Foto", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        }
+
+                                        Button(
+                                            onClick = { onCerrarReporteClick(rep.id) },
+                                            modifier = Modifier.weight(1f).height(40.dp),
+                                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00796B)),
+                                            shape = RoundedCornerShape(14.dp),
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                                        ) {
+                                            Text("Cerrar", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        }
                                     }
                                 }
                             }
@@ -141,6 +359,64 @@ fun OperadorTareasScreen(
                 }
             }
         }
+    }
+
+    // Modal para que el Operador actualice el estado directamente
+    if (reporteAEditar != null) {
+        AlertDialog(
+            onDismissRequest = { reporteAEditar = null },
+            title = { Text("Actualizar Estado Operativo #${reporteAEditar!!.id}", fontSize = 16.sp, fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("Selecciona el nuevo estado conforme al avance en sitio:", fontSize = 12.sp, color = TextDark)
+                    val opciones = listOf("EN_PROCESO", "ATENDIDO", "CERRADO")
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        opciones.forEach { est ->
+                            val isSel = nuevoEstadoModal == est
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isSel) BrandTealDark.copy(alpha = 0.12f) else Color.Transparent)
+                                    .clickable { nuevoEstadoModal = est }
+                                    .padding(horizontal = 8.dp, vertical = 6.dp)
+                            ) {
+                                RadioButton(selected = isSel, onClick = { nuevoEstadoModal = est })
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(est, fontSize = 12.sp, fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal)
+                            }
+                        }
+                    }
+
+                    OutlinedTextField(
+                        value = observacionesModal,
+                        onValueChange = { observacionesModal = it },
+                        label = { Text("Detalle de las labores realizadas") },
+                        placeholder = { Text("Ej: Inicio de labores en calzada, señalización instalada...") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val repId = reporteAEditar!!.id
+                        viewModel.cambiarEstado(repId, nuevoEstadoModal, observacionesModal) {
+                            reporteAEditar = null
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark)
+                ) {
+                    Text("Guardar Estado")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { reporteAEditar = null }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }
 

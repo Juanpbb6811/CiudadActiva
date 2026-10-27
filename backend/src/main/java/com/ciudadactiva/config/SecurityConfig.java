@@ -84,7 +84,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/asignaciones").hasAnyRole("GESTOR", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/estadisticas/reportes").hasAnyRole("GESTOR", "ADMIN")
 
-                        // Operaciones de campo (Operador, Gestor, Admin)
+                        // Operaciones de campo y estado (Operador, Gestor, Admin)
+                        .requestMatchers(HttpMethod.PATCH, "/api/reportes/*/estado").hasAnyRole("OPERADOR", "GESTOR", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/reportes/*/seguimientos").hasAnyRole("OPERADOR", "GESTOR", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/reportes/*/cerrar").hasAnyRole("OPERADOR", "GESTOR", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/reportes/*/foto-solucion").hasAnyRole("OPERADOR", "GESTOR", "ADMIN")

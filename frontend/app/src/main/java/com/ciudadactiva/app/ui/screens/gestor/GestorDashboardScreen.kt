@@ -42,6 +42,10 @@ fun GestorDashboardScreen(
         pendientes.firstOrNull { it.prioridad == "CRITICA" } ?: pendientes.firstOrNull()
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.cargarDashboard()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
