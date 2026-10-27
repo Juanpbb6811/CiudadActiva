@@ -83,6 +83,17 @@ public class ReporteController {
         return ResponseEntity.ok(ApiResponse.ok("Detalle del reporte obtenido", detalle));
     }
 
+    // ================== RETIRAR / ELIMINAR REPORTE PENDIENTE ==================
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Retirar o Eliminar Reporte Pendiente", description = "Permite al ciudadano autor o administrador eliminar un reporte si aún se encuentra en estado PENDIENTE.")
+    public ResponseEntity<ApiResponse<Void>> eliminarReportePendiente(
+            @PathVariable Long id,
+            Principal principal
+    ) {
+        reporteService.eliminarReportePendiente(id, principal.getName());
+        return ResponseEntity.ok(ApiResponse.ok("Reporte retirado y eliminado exitosamente", null));
+    }
+
     // ================== RF02: REGISTRAR INCIDENCIA (JSON / BASE64) ==================
     @PostMapping
     @Operation(summary = "Registrar Incidencia", description = "Crea un nuevo reporte con categoría, descripción, geolocalización simulada y fotografía opcional (URL o Base64).")

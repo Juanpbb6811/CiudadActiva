@@ -40,8 +40,41 @@ fun MisReportesScreen(
     val misReportes by viewModel.misReportes.collectAsState()
     val reportesComunidad by viewModel.reportesCercanos.collectAsState()
 
+    var reporteParaEliminar by remember { mutableStateOf<ReporteResponse?>(null) }
+    val currentUserId = remember { com.ciudadactiva.app.CiudadActivaApplication.sessionManager.getUserId() }
+    val currentUserRole = remember { com.ciudadactiva.app.CiudadActivaApplication.sessionManager.getRol() }
+
     LaunchedEffect(Unit) {
         viewModel.cargarDatosHome()
+    }
+
+    if (reporteParaEliminar != null) {
+        val rep = reporteParaEliminar!!
+        AlertDialog(
+            onDismissRequest = { reporteParaEliminar = null },
+            icon = { Icon(Icons.Default.DeleteOutline, contentDescription = null, tint = Color(0xFFD32F2F)) },
+            title = { Text("¿Retirar este reporte?", fontWeight = FontWeight.Bold) },
+            text = {
+                Text("¿Estás seguro de que deseas retirar el reporte \"${rep.titulo}\"? Como se encuentra en estado PENDIENTE, se retirará y eliminará permanentemente del sistema.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val idAEliminar = rep.id
+                        reporteParaEliminar = null
+                        viewModel.eliminarReporte(idAEliminar)
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
+                ) {
+                    Text("Sí, retirar reporte", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { reporteParaEliminar = null }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 
     var pestanaSeleccionada by remember { mutableStateOf(0) } // 0: Comunidad, 1: Mis Reportes
@@ -198,9 +231,12 @@ fun MisReportesScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(reportesFiltrados) { reporte ->
+                    val esAutor = (reporte.ciudadanoId == currentUserId || currentUserRole == "ROLE_ADMIN")
+                    val puedeEliminar = esAutor && reporte.estado == "PENDIENTE"
                     ReporteFeedItemCard(
                         reporte = reporte,
-                        onClick = { onVerReporteClick(reporte.id) }
+                        onClick = { onVerReporteClick(reporte.id) },
+                        onEliminarClick = if (puedeEliminar) { { reporteParaEliminar = reporte } } else null
                     )
                 }
             }
@@ -211,7 +247,8 @@ fun MisReportesScreen(
 @Composable
 fun ReporteFeedItemCard(
     reporte: ReporteResponse,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onEliminarClick: (() -> Unit)? = null
 ) {
     Card(
         modifier = Modifier
@@ -319,26 +356,46 @@ fun ReporteFeedItemCard(
             ) {
                 PrioridadChip(prioridad = reporte.prioridad)
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFFE0F2F1))
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Comment,
-                        contentDescription = "Comentar",
-                        tint = BrandTealDark,
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "Ver y Comentar 💬",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = BrandTealDark
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (onEliminarClick != null) {
+                        IconButton(
+                            onClick = onEliminarClick,
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFFFEBEE))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.DeleteOutline,
+                                contentDescription = "Retirar reporte",
+                                tint = Color(0xFFD32F2F),
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xFFE0F2F1))
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Comment,
+                            contentDescription = "Comentar",
+                            tint = BrandTealDark,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Ver y Comentar 💬",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = BrandTealDark
+                        )
+                    }
                 }
             }
         }

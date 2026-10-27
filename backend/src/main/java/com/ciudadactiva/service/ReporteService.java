@@ -6,6 +6,7 @@ import com.ciudadactiva.dto.common.SemaforoDTO;
 import com.ciudadactiva.dto.reporte.*;
 import com.ciudadactiva.dto.seguimiento.SeguimientoResponse;
 import com.ciudadactiva.entity.*;
+import com.ciudadactiva.exception.BadRequestException;
 import com.ciudadactiva.exception.BusinessRuleException;
 import com.ciudadactiva.exception.ResourceNotFoundException;
 import com.ciudadactiva.repository.*;
@@ -659,6 +660,48 @@ public class ReporteService {
                         reporteRepository.save(cercano);
                     }
                 });
+    }
+
+    // ================== RETIRAR / ELIMINAR REPORTE PENDIENTE ==================
+    @Transactional
+    public void eliminarReportePendiente(Long reporteId, String userEmail) {
+        Reporte reporte = reporteRepository.findById(reporteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Reporte no encontrado con ID: " + reporteId));
+
+        Usuario usuario = usuarioRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con email: " + userEmail));
+
+        boolean esAutor = reporte.getCiudadano() != null && reporte.getCiudadano().getId().equals(usuario.getId());
+        boolean esAdmin = usuario.getRol() != null && "ROLE_ADMIN".equals(usuario.getRol().getNombre().name());
+
+        if (!esAutor && !esAdmin) {
+            throw new BadRequestException("No tienes permisos para retirar este reporte. Solo el ciudadano autor o un administrador pueden retirarlo.");
+        }
+
+        if (reporte.getEstado() != EstadoReporte.PENDIENTE) {
+            throw new BadRequestException("Solo se pueden retirar o eliminar reportes que se encuentren en estado PENDIENTE.");
+        }
+
+        // 1. Eliminar comentarios asociados
+        List<Comentario> comentarios = comentarioRepository.findByReporte_IdOrderByCreadoEnAsc(reporteId);
+        if (!comentarios.isEmpty()) {
+            comentarioRepository.deleteAll(comentarios);
+        }
+
+        // 2. Eliminar seguimientos asociados
+        List<Seguimiento> seguimientos = seguimientoRepository.findByReporte_IdOrderByCreadoEnAsc(reporteId);
+        if (!seguimientos.isEmpty()) {
+            seguimientoRepository.deleteAll(seguimientos);
+        }
+
+        // 3. Eliminar asignaciones asociadas si existieran
+        List<Asignacion> asignaciones = asignacionRepository.findByReporte_IdOrderByCreadoEnDesc(reporteId);
+        if (!asignaciones.isEmpty()) {
+            asignacionRepository.deleteAll(asignaciones);
+        }
+
+        // 4. Eliminar el reporte
+        reporteRepository.delete(reporte);
     }
 
     public ReporteResponse mapearReporteResponse(Reporte reporte) {

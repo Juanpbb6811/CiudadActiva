@@ -199,4 +199,36 @@ class CiudadanoViewModel : ViewModel() {
             }
         }
     }
+
+    fun eliminarReporte(
+        reporteId: Long,
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            isLoading.value = true
+            try {
+                val resp = api.eliminarReporte(reporteId)
+                if (resp.isSuccessful) {
+                    cargarDatosHome()
+                    onSuccess()
+                } else {
+                    val err = resp.errorBody()?.string() ?: ""
+                    val msg = if (err.contains("PENDIENTE")) {
+                        "Solo se pueden retirar reportes en estado PENDIENTE."
+                    } else {
+                        "No se pudo retirar el reporte."
+                    }
+                    errorMessage.value = msg
+                    onError(msg)
+                }
+            } catch (e: Exception) {
+                val msg = "Error de conexión: ${e.localizedMessage}"
+                errorMessage.value = msg
+                onError(msg)
+            } finally {
+                isLoading.value = false
+            }
+        }
+    }
 }

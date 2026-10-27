@@ -52,6 +52,9 @@ interface CiudadActivaApiService {
     @GET("api/reportes/{id}")
     suspend fun obtenerDetalleReporte(@Path("id") id: Long): Response<ApiResponse<ReporteDetalleResponse>>
 
+    @DELETE("api/reportes/{id}")
+    suspend fun eliminarReporte(@Path("id") id: Long): Response<ApiResponse<Void>>
+
     @POST("api/reportes")
     suspend fun crearReporte(@Body request: ReporteCreateRequest): Response<ApiResponse<ReporteResponse>>
 

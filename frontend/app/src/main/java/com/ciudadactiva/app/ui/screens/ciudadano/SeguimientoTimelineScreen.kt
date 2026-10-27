@@ -42,6 +42,10 @@ fun SeguimientoTimelineScreen(
     val comentarios by viewModel.comentariosList.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     var nuevoComentarioTexto by remember { mutableStateOf("") }
+    var showConfirmDeleteDialog by remember { mutableStateOf(false) }
+
+    val currentUserId = CiudadActivaApplication.sessionManager.getUserId()
+    val currentUserRole = CiudadActivaApplication.sessionManager.getRol()
 
     LaunchedEffect(reporteId) {
         viewModel.cargarDetalleReporte(reporteId)
@@ -53,6 +57,40 @@ fun SeguimientoTimelineScreen(
     }
 
     val rep = detalle
+    val esAutor = rep != null && (rep.ciudadanoId == currentUserId || currentUserRole == "ROLE_ADMIN")
+    val puedeEliminar = esAutor && rep?.estado == "PENDIENTE"
+
+    if (showConfirmDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showConfirmDeleteDialog = false },
+            icon = { Icon(Icons.Default.DeleteOutline, contentDescription = null, tint = Color(0xFFD32F2F)) },
+            title = { Text("¿Retirar este reporte?") },
+            text = {
+                Text("Este reporte se encuentra en estado PENDIENTE. Al retirarlo, se eliminará permanentemente del sistema.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showConfirmDeleteDialog = false
+                        viewModel.eliminarReporte(
+                            reporteId = reporteId,
+                            onSuccess = {
+                                onBackClick()
+                            }
+                        )
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
+                ) {
+                    Text("Sí, retirar reporte", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showConfirmDeleteDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 
     fun resolverUrlFoto(url: String?): String? {
         if (url.isNullOrBlank()) return null
@@ -163,6 +201,33 @@ fun SeguimientoTimelineScreen(
                                     )
                                 }
                                 PrioridadChip(prioridad = rep.prioridad)
+                            }
+
+                            if (puedeEliminar) {
+                                Spacer(modifier = Modifier.height(14.dp))
+                                OutlinedButton(
+                                    onClick = { showConfirmDeleteDialog = true },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = ButtonDefaults.outlinedButtonColors(
+                                        contentColor = Color(0xFFD32F2F)
+                                    ),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFCDD2)),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.DeleteOutline,
+                                        contentDescription = "Retirar reporte",
+                                        modifier = Modifier.size(16.dp),
+                                        tint = Color(0xFFD32F2F)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "Retirar este reporte (Pendiente)",
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color(0xFFD32F2F)
+                                    )
+                                }
                             }
                         }
                     }
