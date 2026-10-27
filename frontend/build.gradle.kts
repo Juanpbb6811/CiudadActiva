@@ -1,3 +1,5 @@
+import java.io.File
+
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
     id("com.android.application") version "8.4.1" apply false
@@ -6,6 +8,6 @@ plugins {
 
 // Si el proyecto reside en OneDrive, reubicar la carpeta temporal build para evitar errores de ReparsePoint y bloqueos de Windows
 if (projectDir.absolutePath.contains("OneDrive", ignoreCase = true)) {
-    val localBuildBase = java.io.File(System.getProperty("user.home"), ".gradle-builds/CiudadActiva/root")
+    val localBuildBase = File(System.getProperty("user.home"), ".gradle-builds/CiudadActiva/root")
     layout.buildDirectory.set(localBuildBase)
 }

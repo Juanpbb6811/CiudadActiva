@@ -515,13 +515,13 @@ fun NuevoReportePaso3Screen(
                             )
                             Spacer(modifier = Modifier.height(10.dp))
                             Text(
-                                text = "Adjunta una fotografía",
+                                text = "Toca aquí para tomar foto",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = BrandTealDark
                             )
                             Text(
-                                text = "Puedes tomarla en vivo o elegir de la galería",
+                                text = "O usa los botones de abajo para cámara o galería",
                                 fontSize = 12.sp,
                                 color = Color(0xFF6C757D)
                             )
@@ -539,12 +539,15 @@ fun NuevoReportePaso3Screen(
                     modifier = Modifier
                         .weight(1f)
                         .height(48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BrandTealDark,
+                        contentColor = Color.White
+                    ),
                     shape = RoundedCornerShape(14.dp)
                 ) {
-                    Icon(Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.PhotoCamera, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = "Cámara", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    Text(text = "Tomar Foto", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 }
 
                 Button(
@@ -558,7 +561,7 @@ fun NuevoReportePaso3Screen(
                 ) {
                     Icon(Icons.Default.Image, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = "Galería", color = BrandTealDark, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    Text(text = "Elegir Galería", color = BrandTealDark, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
 

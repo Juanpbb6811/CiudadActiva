@@ -251,16 +251,23 @@ private fun generateLeafletHtml(
 
                     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-                    // Tiles CartoDB Voyager: ultra rápidos, hermosos y 100% compatibles con Android WebView sin bloqueos
-                    var cartoLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                    // OpenStreetMap estándar oficial: 100% libre, sin API key, sin marcas de agua
+                    var osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         maxZoom: 19,
-                        subdomains: 'abcd',
-                        attribution: '&copy; OpenStreetMap'
+                        attribution: '&copy; OpenStreetMap contributors'
                     }).addTo(map);
 
-                    // Fallback a OpenStreetMap estándar si falla Carto
-                    cartoLayer.on('tileerror', function(error, tile) {
-                        console.warn('Fallo en tile CartoDB, reintentando...');
+                    window.fallbackActive = false;
+                    // Fallback automático de alta velocidad a ESRI World Street Map si falla alguna tesela
+                    osmLayer.on('tileerror', function(error, tile) {
+                        if (!window.fallbackActive) {
+                            window.fallbackActive = true;
+                            console.log('Activando capa de respaldo ESRI...');
+                            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+                                maxZoom: 19,
+                                attribution: '&copy; Esri'
+                            }).addTo(map);
+                        }
                     });
 
                     window.map = map;

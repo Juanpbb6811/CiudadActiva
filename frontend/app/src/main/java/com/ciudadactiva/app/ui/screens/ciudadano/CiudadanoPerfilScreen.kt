@@ -158,24 +158,44 @@ fun CiudadanoPerfilScreen(
                     }
                 }
 
-                // Botón para cambiar foto solo habilitado si está en modo edición
-                if (isEditing) {
-                    Box(
-                        modifier = Modifier
-                            .size(34.dp)
-                            .clip(CircleShape)
-                            .background(BrandCopper)
-                            .clickable { tomarFotoPerfil() },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CameraAlt,
-                            contentDescription = "Cambiar Foto",
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
+                // Botón circular para cambiar foto
+                Box(
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(CircleShape)
+                        .background(BrandCopper)
+                        .clickable {
+                            if (!isEditing) isEditing = true
+                            tomarFotoPerfil()
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CameraAlt,
+                        contentDescription = "Cambiar Foto",
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
                 }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Botón con texto explícito "Tomar Foto"
+            OutlinedButton(
+                onClick = {
+                    if (!isEditing) isEditing = true
+                    tomarFotoPerfil()
+                },
+                shape = RoundedCornerShape(20.dp),
+                colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White, contentColor = BrandTealDark),
+                border = androidx.compose.foundation.BorderStroke(1.dp, BrandTealDark.copy(alpha = 0.6f)),
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 2.dp),
+                modifier = Modifier.height(34.dp)
+            ) {
+                Icon(Icons.Default.CameraAlt, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(15.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Tomar Foto", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
             }
 
             Spacer(modifier = Modifier.height(12.dp))

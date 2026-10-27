@@ -1,3 +1,5 @@
+import java.io.File
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -5,7 +7,7 @@ plugins {
 
 // Si el proyecto reside en OneDrive, reubicar la carpeta temporal build para evitar errores de ReparsePoint y bloqueos de Windows
 if (projectDir.absolutePath.contains("OneDrive", ignoreCase = true)) {
-    val localBuildBase = java.io.File(System.getProperty("user.home"), ".gradle-builds/CiudadActiva/app")
+    val localBuildBase = File(System.getProperty("user.home"), ".gradle-builds/CiudadActiva/app")
     layout.buildDirectory.set(localBuildBase)
 }
 
