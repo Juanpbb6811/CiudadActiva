@@ -16,8 +16,8 @@ class SessionManager(context: Context) {
         private const val KEY_ROL = "user_role"
         private const val KEY_BASE_URL = "base_url"
 
-        // IP por defecto para Emulador Android apuntando al Backend Spring Boot local en Windows
-        const val DEFAULT_BASE_URL = "http://10.0.2.2:8080/"
+        // IP por defecto: si es teléfono físico en Wi-Fi usa 192.168.1.22; si es emulador usa 10.0.2.2; o la URL pública de Render
+        const val DEFAULT_BASE_URL = "http://192.168.1.22:8080/"
     }
 
     fun saveAuth(token: String, id: Long, email: String, nombre: String, rol: String) {

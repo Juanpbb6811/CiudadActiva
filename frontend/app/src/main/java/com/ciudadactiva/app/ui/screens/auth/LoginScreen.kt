@@ -13,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ciudadactiva.app.CiudadActivaApplication
 import com.ciudadactiva.app.R
 import com.ciudadactiva.app.data.local.DemoCredentials
 import com.ciudadactiva.app.ui.components.GradientButton
@@ -53,6 +55,10 @@ fun LoginScreen(
     val rememberSession by viewModel.rememberSession.collectAsState()
 
     var passwordVisible by remember { mutableStateOf(false) }
+    var showServerDialog by remember { mutableStateOf(false) }
+    var currentServerUrl by remember {
+        mutableStateOf(CiudadActivaApplication.sessionManager.getBaseUrl())
+    }
 
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Success) {
@@ -288,6 +294,88 @@ fun LoginScreen(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // Botón superior de configuración de servidor / URL
+        IconButton(
+            onClick = {
+                currentServerUrl = CiudadActivaApplication.sessionManager.getBaseUrl()
+                showServerDialog = true
+            },
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(12.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Settings,
+                contentDescription = "Configurar Servidor",
+                tint = BrandTealDark
+            )
+        }
+
+        // Diálogo para cambiar la URL del Backend
+        if (showServerDialog) {
+            AlertDialog(
+                onDismissRequest = { showServerDialog = false },
+                title = { Text("Conexión del Backend", fontWeight = FontWeight.Bold) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            text = "Selecciona o escribe la URL del servidor:",
+                            fontSize = 12.sp,
+                            color = TextMuted
+                        )
+                        OutlinedTextField(
+                            value = currentServerUrl,
+                            onValueChange = { currentServerUrl = it },
+                            label = { Text("URL Base") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            OutlinedButton(
+                                onClick = { currentServerUrl = "http://192.168.1.22:8080/" },
+                                modifier = Modifier.weight(1f),
+                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp)
+                            ) {
+                                Text("Wi-Fi PC", fontSize = 11.sp)
+                            }
+                            OutlinedButton(
+                                onClick = { currentServerUrl = "https://ciudadactiva-backend.onrender.com/" },
+                                modifier = Modifier.weight(1f),
+                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp)
+                            ) {
+                                Text("Render", fontSize = 11.sp)
+                            }
+                            OutlinedButton(
+                                onClick = { currentServerUrl = "http://10.0.2.2:8080/" },
+                                modifier = Modifier.weight(1f),
+                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp)
+                            ) {
+                                Text("Emulador", fontSize = 11.sp)
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            CiudadActivaApplication.sessionManager.setBaseUrl(currentServerUrl)
+                            showServerDialog = false
+                        }
+                    ) {
+                        Text("Guardar")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showServerDialog = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
         }
     }
 }
