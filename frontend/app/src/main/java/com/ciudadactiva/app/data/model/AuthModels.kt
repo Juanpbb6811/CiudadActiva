@@ -15,12 +15,26 @@ data class RegisterRequest(
 
 data class AuthResponse(
     val token: String,
-    val tipo: String,
-    val id: Long,
-    val email: String,
-    val nombre: String,
-    val rol: String
-)
+    val tipoToken: String? = "Bearer",
+    val tipo: String? = "Bearer",
+    val usuario: UsuarioModel? = null,
+    val id: Long? = null,
+    val email: String? = null,
+    val nombre: String? = null,
+    val rol: String? = null
+) {
+    val userId: Long
+        get() = usuario?.id ?: id ?: -1L
+
+    val userEmail: String
+        get() = usuario?.email ?: email ?: ""
+
+    val userNombre: String
+        get() = usuario?.nombre ?: nombre ?: ""
+
+    val userRol: String
+        get() = usuario?.rol ?: rol ?: "ROLE_CIUDADANO"
+}
 
 data class UsuarioModel(
     val id: Long,

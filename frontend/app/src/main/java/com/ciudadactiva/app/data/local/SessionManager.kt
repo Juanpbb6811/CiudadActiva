@@ -20,13 +20,13 @@ class SessionManager(context: Context) {
         const val DEFAULT_BASE_URL = "http://192.168.1.22:8080/"
     }
 
-    fun saveAuth(token: String, id: Long, email: String, nombre: String, rol: String) {
+    fun saveAuth(token: String, id: Long, email: String?, nombre: String?, rol: String?) {
         prefs.edit()
             .putString(KEY_TOKEN, token)
             .putLong(KEY_USER_ID, id)
-            .putString(KEY_EMAIL, email)
-            .putString(KEY_NOMBRE, nombre)
-            .putString(KEY_ROL, rol)
+            .putString(KEY_EMAIL, email ?: "")
+            .putString(KEY_NOMBRE, nombre ?: "")
+            .putString(KEY_ROL, rol ?: "")
             .apply()
     }
 

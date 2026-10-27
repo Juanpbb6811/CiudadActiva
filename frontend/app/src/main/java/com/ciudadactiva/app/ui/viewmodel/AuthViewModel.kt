@@ -45,14 +45,15 @@ class AuthViewModel : ViewModel() {
                 val response = api.login(LoginRequest(email.trim(), pass))
                 if (response.isSuccessful && response.body()?.data != null) {
                     val auth = response.body()!!.data!!
+                    val userRol = auth.userRol
                     session.saveAuth(
                         token = auth.token,
-                        id = auth.id,
-                        email = auth.email,
-                        nombre = auth.nombre,
-                        rol = auth.rol
+                        id = auth.userId,
+                        email = auth.userEmail,
+                        nombre = auth.userNombre,
+                        rol = userRol
                     )
-                    _uiState.value = AuthUiState.Success(auth.rol)
+                    _uiState.value = AuthUiState.Success(userRol)
                 } else {
                     val errMsg = response.errorBody()?.string() ?: "Credenciales incorrectas"
                     _uiState.value = AuthUiState.Error("Credenciales inválidas. Verifica tu correo y contraseña.")
@@ -70,14 +71,15 @@ class AuthViewModel : ViewModel() {
                 val response = api.registrar(RegisterRequest(nombre, email, pass, tel, dir))
                 if (response.isSuccessful && response.body()?.data != null) {
                     val auth = response.body()!!.data!!
+                    val userRol = auth.userRol
                     session.saveAuth(
                         token = auth.token,
-                        id = auth.id,
-                        email = auth.email,
-                        nombre = auth.nombre,
-                        rol = auth.rol
+                        id = auth.userId,
+                        email = auth.userEmail,
+                        nombre = auth.userNombre,
+                        rol = userRol
                     )
-                    _uiState.value = AuthUiState.Success(auth.rol)
+                    _uiState.value = AuthUiState.Success(userRol)
                 } else {
                     _uiState.value = AuthUiState.Error("No se pudo registrar la cuenta. Verifique que el correo no esté duplicado.")
                 }
