@@ -19,8 +19,8 @@ class SessionManager(context: Context) {
         private const val KEY_FOTO_URL = "user_photo_url"
         private const val KEY_BASE_URL = "base_url"
 
-        // IP por defecto: si es teléfono físico en Wi-Fi usa 192.168.1.22; si es emulador usa 10.0.2.2; o la URL pública de Render
-        const val DEFAULT_BASE_URL = "http://192.168.1.22:8080/"
+        // URL pública de producción en Render (accesible desde cualquier parte del mundo)
+        const val DEFAULT_BASE_URL = "https://ciudadactiva-4ah7.onrender.com/"
     }
 
     fun saveAuth(token: String, id: Long, email: String?, nombre: String?, rol: String?, fotoUrl: String? = null) {
@@ -62,7 +62,14 @@ class SessionManager(context: Context) {
 
     fun isLoggedIn(): Boolean = !getToken().isNullOrBlank()
 
-    fun getBaseUrl(): String = prefs.getString(KEY_BASE_URL, DEFAULT_BASE_URL) ?: DEFAULT_BASE_URL
+    fun getBaseUrl(): String {
+        val saved = prefs.getString(KEY_BASE_URL, null)
+        if (saved.isNullOrBlank() || saved.contains("192.168.1.22") || saved.contains("ciudadactiva-backend.onrender.com")) {
+            setBaseUrl(DEFAULT_BASE_URL)
+            return DEFAULT_BASE_URL
+        }
+        return saved
+    }
 
     fun setBaseUrl(url: String) {
         val cleanUrl = if (!url.endsWith("/")) "$url/" else url

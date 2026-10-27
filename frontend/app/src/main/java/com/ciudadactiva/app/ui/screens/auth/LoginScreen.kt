@@ -344,11 +344,11 @@ fun LoginScreen(
                                 Text("Wi-Fi PC", fontSize = 11.sp)
                             }
                             OutlinedButton(
-                                onClick = { currentServerUrl = "https://ciudadactiva-backend.onrender.com/" },
+                                onClick = { currentServerUrl = "https://ciudadactiva-4ah7.onrender.com/" },
                                 modifier = Modifier.weight(1f),
                                 contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp)
                             ) {
-                                Text("Render", fontSize = 11.sp)
+                                Text("Render Nube", fontSize = 11.sp)
                             }
                             OutlinedButton(
                                 onClick = { currentServerUrl = "http://10.0.2.2:8080/" },

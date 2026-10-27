@@ -74,14 +74,20 @@ El backend está configurado para conectarse directamente a Supabase:
 - **Autenticación:** Usuario `postgres.otbdykjhvusjkzjzclqw` (pooler) o `postgres` (directo).
 - **Esquema:** Las tablas (`usuarios`, `roles`, `categorias`, `reportes`, `asignaciones`, `seguimientos`, `comentarios`) se crean y actualizan automáticamente mediante Hibernate (`ddl-auto: update`) y `DataInitializer` precarga los roles y usuarios iniciales.
 
+### 🌐 Servidor en Producción (Cloud Render)
+El backend se encuentra desplegado y activo en la nube:
+- **URL Base de la API:** `https://ciudadactiva-4ah7.onrender.com`
+- **Documentación Interactiva Swagger UI:** `https://ciudadactiva-4ah7.onrender.com/swagger-ui/index.html`
+- **Health Check en Vivo:** `https://ciudadactiva-4ah7.onrender.com/api/health`
+
 ### Ejecución Local
 ```bash
 cd backend
 mvn clean compile
 mvn spring-boot:run
 ```
-- **Documentación Swagger UI:** `http://localhost:8080/swagger-ui/index.html`
-- **Health Check:** `http://localhost:8080/api/health`
+- **Documentación Swagger UI Local:** `http://localhost:8080/swagger-ui/index.html`
+- **Health Check Local:** `http://localhost:8080/api/health`
 
 ---
 
