@@ -1,7 +1,10 @@
 package com.ciudadactiva.app.ui.screens.auth
 
 import android.util.Patterns
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,12 +21,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ciudadactiva.app.R
 import com.ciudadactiva.app.ui.components.CiudadActivaTopBar
 import com.ciudadactiva.app.ui.components.GoogleAuthHelper
 import com.ciudadactiva.app.ui.components.GradientButton
@@ -57,6 +62,16 @@ fun RegisterScreen(
     val passwordsMatch = confirmPassword.isEmpty() || password == confirmPassword
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+
+    // Launcher del panel oficial de cuentas de Google de Android
+    val googleAccountPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val cuenta = GoogleAuthHelper.procesarResultadoSelector(result.resultCode, result.data)
+        if (cuenta != null) {
+            viewModel.loginConGoogle(cuenta.first, cuenta.second)
+        }
+    }
 
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Success) {
@@ -107,13 +122,14 @@ fun RegisterScreen(
                             onSuccess = { googleEmail, name ->
                                 viewModel.loginConGoogle(googleEmail, name)
                             },
-                            onError = {
-                                googleEmailInput = email.ifBlank { "" }
-                                showGoogleDialog = true
-                            },
-                            onFallbackPrompt = {
-                                googleEmailInput = email.ifBlank { "" }
-                                showGoogleDialog = true
+                            onLaunchNativePicker = {
+                                try {
+                                    val intent = GoogleAuthHelper.crearIntentSelectorCuentasGoogle()
+                                    googleAccountPickerLauncher.launch(intent)
+                                } catch (e: Exception) {
+                                    googleEmailInput = email.ifBlank { "" }
+                                    showGoogleDialog = true
+                                }
                             }
                         )
                     },
@@ -128,20 +144,11 @@ fun RegisterScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        Surface(
-                            shape = RoundedCornerShape(4.dp),
-                            color = Color(0xFF4285F4),
-                            modifier = Modifier.size(20.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text(
-                                    text = "G",
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 13.sp
-                                )
-                            }
-                        }
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_google_logo),
+                            contentDescription = "Google Logo",
+                            modifier = Modifier.size(22.dp)
+                        )
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
                             text = "Registrarse con Google / Gmail",
@@ -351,15 +358,11 @@ fun RegisterScreen(
                 onDismissRequest = { showGoogleDialog = false },
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(
-                            shape = RoundedCornerShape(4.dp),
-                            color = Color(0xFF4285F4),
-                            modifier = Modifier.size(22.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text("G", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            }
-                        }
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_google_logo),
+                            contentDescription = "Google",
+                            modifier = Modifier.size(24.dp)
+                        )
                         Spacer(modifier = Modifier.width(10.dp))
                         Text("Acceder con Google", fontWeight = FontWeight.Bold)
                     }

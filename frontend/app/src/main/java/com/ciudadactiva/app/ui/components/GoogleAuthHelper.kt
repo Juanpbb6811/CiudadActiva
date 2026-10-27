@@ -1,6 +1,9 @@
 package com.ciudadactiva.app.ui.components
 
+import android.accounts.AccountManager
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
@@ -19,19 +22,55 @@ object GoogleAuthHelper {
 
     private const val TAG = "GoogleAuthHelper"
 
+    /**
+     * Crea el Intent oficial del sistema Android para mostrar el panel modal
+     * con la lista de todas las cuentas de Google (@gmail.com / institucionales)
+     * vinculadas al dispositivo móvil del usuario.
+     */
+    fun crearIntentSelectorCuentasGoogle(): Intent {
+        return AccountManager.newChooseAccountIntent(
+            null, // Cuenta preseleccionada
+            null, // Cuentas permitidas
+            arrayOf("com.google"), // Filtro exclusivo para cuentas de Google
+            null, // Descripción personalizada
+            null, // Token type
+            null, // Required features
+            null  // Opciones adicionales
+        )
+    }
+
+    /**
+     * Procesa la cuenta seleccionada por el usuario en el panel nativo de Android.
+     */
+    fun procesarResultadoSelector(resultCode: Int, data: Intent?): Pair<String, String>? {
+        if (resultCode == Activity.RESULT_OK && data != null) {
+            val accountEmail = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME)
+            if (!accountEmail.isNullOrBlank()) {
+                val inferredName = accountEmail.substringBefore("@")
+                    .replace(".", " ")
+                    .split(" ")
+                    .joinToString(" ") { palabra -> palabra.replaceFirstChar { it.uppercase() } }
+                return Pair(accountEmail.trim().lowercase(), inferredName)
+            }
+        }
+        return null
+    }
+
+    /**
+     * Intenta autenticación federada con Credential Manager si GOOGLE_WEB_CLIENT_ID
+     * está configurado, o delega al selector nativo de cuentas.
+     */
     fun iniciarGoogleSignIn(
         context: Context,
         coroutineScope: CoroutineScope,
         onSuccess: (email: String, displayName: String) -> Unit,
-        onError: (String) -> Unit,
-        onFallbackPrompt: () -> Unit
+        onLaunchNativePicker: () -> Unit
     ) {
         val serverClientId = BuildConfig.GOOGLE_WEB_CLIENT_ID.trim()
 
-        // Si todavía no han pegado la clave en local.properties, abrir el diálogo seguro de Google
         if (serverClientId.isBlank()) {
-            Log.d(TAG, "GOOGLE_WEB_CLIENT_ID no configurado en local.properties. Abriendo selector de cuenta.")
-            onFallbackPrompt()
+            Log.d(TAG, "GOOGLE_WEB_CLIENT_ID no presente en local.properties. Abriendo panel nativo de cuentas de Google.")
+            onLaunchNativePicker()
             return
         }
 
@@ -59,25 +98,24 @@ object GoogleAuthHelper {
                     val email = googleIdToken.id
                     val displayName = googleIdToken.displayName ?: email.substringBefore("@")
                     withContext(Dispatchers.Main) {
-                        onSuccess(email, displayName)
+                        onSuccess(email.trim().lowercase(), displayName)
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        onError("Tipo de credencial no soportado")
+                        onLaunchNativePicker()
                     }
                 }
             } catch (e: GetCredentialCancellationException) {
-                Log.d(TAG, "Inicio de sesión con Google cancelado por el usuario.")
+                Log.d(TAG, "Inicio con Google cancelado por el usuario.")
             } catch (e: GetCredentialException) {
-                Log.e(TAG, "Error en Credential Manager: ${e.message}", e)
+                Log.e(TAG, "Error en Credential Manager: ${e.message}. Usando selector nativo.", e)
                 withContext(Dispatchers.Main) {
-                    // Fallback amigable al prompt si falta configurar SHA1 o Client ID en Google Cloud
-                    onFallbackPrompt()
+                    onLaunchNativePicker()
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Excepción inesperada en Google Sign-In: ${e.message}", e)
+                Log.e(TAG, "Fallo inesperado: ${e.message}. Usando selector nativo.", e)
                 withContext(Dispatchers.Main) {
-                    onFallbackPrompt()
+                    onLaunchNativePicker()
                 }
             }
         }
