@@ -223,6 +223,17 @@ fun AppNavigation() {
                         navController.navigate(Screen.Login.route) {
                             popUpTo(0) { inclusive = true }
                         }
+                    },
+                    onCambiarActor = { nuevoRol ->
+                        val destino = when (nuevoRol) {
+                            "ROLE_GESTOR" -> Screen.GestorDashboard.route
+                            "ROLE_OPERADOR" -> Screen.OperadorTareas.route
+                            "ROLE_ADMIN" -> Screen.AdminPanel.route
+                            else -> Screen.CiudadanoHome.route
+                        }
+                        navController.navigate(destino) {
+                            popUpTo(0) { inclusive = true }
+                        }
                     }
                 )
             }
@@ -241,14 +252,12 @@ fun AppNavigation() {
             }
 
             composable(Screen.GestorBandejaValidacion.route) {
-                GestorDashboardScreen(
+                GestorBandejaValidacionScreen(
                     viewModel = gestorViewModel,
-                    onVerBandejaValidacion = {},
-                    onVerAsignaciones = { navController.navigate(Screen.GestorAsignaciones.route) },
-                    onVerEstadisticas = { navController.navigate(Screen.GestorEstadisticas.route) },
                     onInspeccionarReporte = { id ->
                         navController.navigate(Screen.GestorFichaInspeccion.createRoute(id))
-                    }
+                    },
+                    onBackClick = { navController.popBackStack() }
                 )
             }
 
@@ -355,7 +364,8 @@ fun AppNavigation() {
                     viewModel = adminViewModel,
                     onDirectorioUsuariosClick = { navController.navigate(Screen.AdminUsuarios.route) },
                     onCategoriasClick = { navController.navigate(Screen.AdminCategorias.route) },
-                    onAuditoriaClick = { navController.navigate(Screen.AdminAuditoria.route) }
+                    onAuditoriaClick = { navController.navigate(Screen.AdminAuditoria.route) },
+                    onPerfilClick = { navController.navigate(Screen.CiudadanoPerfil.route) }
                 )
             }
 

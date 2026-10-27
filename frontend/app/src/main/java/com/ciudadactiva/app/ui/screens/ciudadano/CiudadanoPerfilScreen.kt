@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.ciudadactiva.app.CiudadActivaApplication
 import com.ciudadactiva.app.data.api.ApiClient
+import com.ciudadactiva.app.data.local.DemoCredentials
+import com.ciudadactiva.app.data.model.LoginRequest
 import com.ciudadactiva.app.data.model.UsuarioUpdateRequest
 import com.ciudadactiva.app.ui.components.CiudadActivaTopBar
 import com.ciudadactiva.app.ui.components.rememberCameraLauncher
@@ -42,7 +44,8 @@ import java.io.ByteArrayOutputStream
 
 @Composable
 fun CiudadanoPerfilScreen(
-    onCerrarSesion: () -> Unit
+    onCerrarSesion: () -> Unit,
+    onCambiarActor: (String) -> Unit = {}
 ) {
     val session = CiudadActivaApplication.sessionManager
     val coroutineScope = rememberCoroutineScope()
@@ -66,6 +69,7 @@ fun CiudadanoPerfilScreen(
     var backupFotoUrl by remember { mutableStateOf(fotoUrl) }
 
     var isSaving by remember { mutableStateOf(false) }
+    var isSwitchingActor by remember { mutableStateOf(false) }
     var mensajeExito by remember { mutableStateOf<String?>(null) }
     var mensajeError by remember { mutableStateOf<String?>(null) }
 
@@ -534,6 +538,149 @@ fun CiudadanoPerfilScreen(
                             Icon(Icons.Default.Edit, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Modificar Datos Personales", color = BrandTealDark, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+
+            // Tarjeta de Cambio de Rol / Actor (Metodología RUP)
+            Spacer(modifier = Modifier.height(20.dp))
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(3.dp, RoundedCornerShape(20.dp)),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "Cambiar de Rol / Actor",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = BrandTealDark
+                            )
+                            Text(
+                                text = "Alterna entre los 4 actores del sistema RUP",
+                                fontSize = 11.sp,
+                                color = Color(0xFF6C757D)
+                            )
+                        }
+
+                        if (isSwitchingActor) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp,
+                                color = BrandTealDark
+                            )
+                        }
+                    }
+
+                    // Botones de los 4 actores
+                    val actores = listOf(
+                        Triple("ROLE_CIUDADANO", "Ciudadano", "Reportar y seguir incidencias"),
+                        Triple("ROLE_GESTOR", "Gestor", "Triage, validar y priorizar"),
+                        Triple("ROLE_OPERADOR", "Operador", "Órdenes de campo y avances"),
+                        Triple("ROLE_ADMIN", "Administrador", "Panel global y auditoría")
+                    )
+
+                    actores.forEach { (rolActor, titulo, desc) ->
+                        val esRolActual = rol == rolActor
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(
+                                    width = if (esRolActual) 1.5.dp else 1.dp,
+                                    color = if (esRolActual) BrandTealDark else Color(0xFFE5EBEA),
+                                    shape = RoundedCornerShape(14.dp)
+                                )
+                                .clickable(enabled = !isSwitchingActor && !esRolActual) {
+                                    val acc = DemoCredentials.accounts.firstOrNull { it.rolEnum == rolActor }
+                                    if (acc != null) {
+                                        isSwitchingActor = true
+                                        coroutineScope.launch {
+                                            try {
+                                                val resp = ApiClient.getService().login(LoginRequest(acc.email, acc.pass))
+                                                if (resp.isSuccessful && resp.body()?.data != null) {
+                                                    val auth = resp.body()!!.data!!
+                                                    session.saveAuth(
+                                                        token = auth.token,
+                                                        id = auth.userId,
+                                                        email = auth.userEmail,
+                                                        nombre = auth.userNombre,
+                                                        rol = auth.userRol
+                                                    )
+                                                    onCambiarActor(auth.userRol)
+                                                } else {
+                                                    session.saveAuth("token_demo_${acc.rolTag}", 1L, acc.email, acc.label, acc.rolEnum)
+                                                    onCambiarActor(acc.rolEnum)
+                                                }
+                                            } catch (_: Exception) {
+                                                session.saveAuth("token_demo_${acc.rolTag}", 1L, acc.email, acc.label, acc.rolEnum)
+                                                onCambiarActor(acc.rolEnum)
+                                            } finally {
+                                                isSwitchingActor = false
+                                            }
+                                        }
+                                    }
+                                },
+                            shape = RoundedCornerShape(14.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (esRolActual) Color(0xFFE0F2F1) else Color(0xFFFAFCFB)
+                            )
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(14.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = titulo,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (esRolActual) BrandTealDark else TextDark
+                                    )
+                                    Text(
+                                        text = desc,
+                                        fontSize = 11.sp,
+                                        color = Color(0xFF6C757D)
+                                    )
+                                }
+
+                                if (esRolActual) {
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(BrandTealDark)
+                                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    ) {
+                                        Text(
+                                            text = "ACTIVO ✓",
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                    }
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.SwapHoriz,
+                                        contentDescription = "Cambiar",
+                                        tint = BrandTealDark,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
                         }
                     }
                 }

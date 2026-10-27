@@ -20,11 +20,38 @@ class GestorViewModel : ViewModel() {
     val operadoresDisponibles = MutableStateFlow<List<UsuarioModel>>(emptyList())
     val estadisticas = MutableStateFlow<EstadisticasModel?>(null)
 
+    // Filtros de Bandeja Triage (M02_02)
+    val filtroEstado = MutableStateFlow("PENDIENTE")
+    val reportesFiltrados = MutableStateFlow<List<ReporteResponse>>(emptyList())
+
     // Ficha actual
     val reporteSeleccionado = MutableStateFlow<ReporteDetalleResponse?>(null)
 
     init {
         cargarDashboard()
+        cargarReportesPorFiltro("PENDIENTE")
+    }
+
+    fun setFiltro(estado: String) {
+        filtroEstado.value = estado
+        cargarReportesPorFiltro(estado)
+    }
+
+    fun cargarReportesPorFiltro(estado: String) {
+        viewModelScope.launch {
+            isLoading.value = true
+            try {
+                val param = if (estado == "TODOS") null else estado
+                val resp = api.listarReportes(estado = param)
+                if (resp.isSuccessful && resp.body()?.data != null) {
+                    reportesFiltrados.value = resp.body()!!.data!!
+                }
+            } catch (e: Exception) {
+                errorMessage.value = e.localizedMessage
+            } finally {
+                isLoading.value = false
+            }
+        }
     }
 
     fun cargarDashboard() {
@@ -116,6 +143,29 @@ class GestorViewModel : ViewModel() {
                     onSuccess()
                 } else {
                     errorMessage.value = resp.message()
+                }
+            } catch (e: Exception) {
+                errorMessage.value = e.localizedMessage
+            } finally {
+                isLoading.value = false
+            }
+        }
+    }
+
+    // Transición directa y validación de estado por el Gestor
+    fun cambiarEstadoReporte(reporteId: Long, nuevoEstado: String, observaciones: String, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            isLoading.value = true
+            try {
+                val req = CambiarEstadoRequest(estado = nuevoEstado, observaciones = observaciones)
+                val resp = api.cambiarEstadoReporte(reporteId, req)
+                if (resp.isSuccessful) {
+                    cargarDashboard()
+                    cargarFichaInspeccion(reporteId)
+                    cargarReportesPorFiltro(filtroEstado.value)
+                    onSuccess()
+                } else {
+                    errorMessage.value = resp.errorBody()?.string() ?: resp.message()
                 }
             } catch (e: Exception) {
                 errorMessage.value = e.localizedMessage

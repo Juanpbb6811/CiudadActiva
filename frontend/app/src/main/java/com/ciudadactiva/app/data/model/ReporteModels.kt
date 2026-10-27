@@ -88,3 +88,8 @@ data class CerrarReporteRequest(
     val evidenciaCierreUrl: String,
     val observaciones: String? = null
 )
+
+data class CambiarEstadoRequest(
+    val estado: String,
+    val observaciones: String? = null
+)

@@ -75,8 +75,18 @@ class OperadorViewModel : ViewModel() {
         }
     }
 
-    // RF06: Registrar avance operativo
+    // RF06: Registrar avance operativo con fotografía opcional en terreno
     fun registrarAvance(reporteId: Long, observaciones: String, onSuccess: () -> Unit) {
+        registrarAvanceConEvidencia(reporteId, observaciones, null, "EN_PROCESO", onSuccess)
+    }
+
+    fun registrarAvanceConEvidencia(
+        reporteId: Long,
+        observaciones: String,
+        fotoSoporte: Bitmap?,
+        nuevoEstado: String = "EN_PROCESO",
+        onSuccess: () -> Unit
+    ) {
         if (observaciones.isBlank()) {
             errorMessage.value = "Debe especificar las observaciones técnicas del avance."
             return
@@ -84,17 +94,52 @@ class OperadorViewModel : ViewModel() {
         viewModelScope.launch {
             isLoading.value = true
             try {
+                // Si adjuntó foto de soporte en campo, subirla
+                if (fotoSoporte != null) {
+                    val stream = ByteArrayOutputStream()
+                    fotoSoporte.compress(Bitmap.CompressFormat.JPEG, 85, stream)
+                    val reqFoto = stream.toByteArray().toRequestBody("image/jpeg".toMediaTypeOrNull())
+                    val partFoto = MultipartBody.Part.createFormData("foto", "avance_${System.currentTimeMillis()}.jpg", reqFoto)
+                    val reqObs = observaciones.toRequestBody(MultipartBody.FORM)
+                    try {
+                        api.subirFotoSolucion(reporteId, partFoto, reqObs)
+                    } catch (_: Exception) {}
+                }
+
                 val req = SeguimientoCreateRequest(
-                    nuevoEstado = "EN_PROCESO",
+                    nuevoEstado = nuevoEstado,
                     accion = "AVANCE_OPERATIVO",
                     observaciones = observaciones
                 )
                 val resp = api.registrarAvance(reporteId, req)
                 if (resp.isSuccessful) {
                     cargarTareas()
+                    cargarFicha(reporteId)
                     onSuccess()
                 } else {
                     errorMessage.value = resp.message()
+                }
+            } catch (e: Exception) {
+                errorMessage.value = e.localizedMessage
+            } finally {
+                isLoading.value = false
+            }
+        }
+    }
+
+    // Transición directa de estado por el Operador (ej. marcar EN_PROCESO o ATENDIDO)
+    fun cambiarEstado(reporteId: Long, nuevoEstado: String, observaciones: String, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            isLoading.value = true
+            try {
+                val req = CambiarEstadoRequest(estado = nuevoEstado, observaciones = observaciones)
+                val resp = api.cambiarEstadoReporte(reporteId, req)
+                if (resp.isSuccessful) {
+                    cargarTareas()
+                    cargarFicha(reporteId)
+                    onSuccess()
+                } else {
+                    errorMessage.value = resp.errorBody()?.string() ?: resp.message()
                 }
             } catch (e: Exception) {
                 errorMessage.value = e.localizedMessage

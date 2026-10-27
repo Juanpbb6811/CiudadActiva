@@ -31,13 +31,20 @@ import com.ciudadactiva.app.ui.theme.BrandTealDark
 import com.ciudadactiva.app.ui.theme.TextDark
 import com.ciudadactiva.app.ui.viewmodel.AdminViewModel
 
+import androidx.compose.foundation.border
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Timeline
+import androidx.compose.material.icons.filled.Warning
+
 // ================== PANEL GLOBAL ADMIN (M04_01) ==================
 @Composable
 fun AdminPanelScreen(
     viewModel: AdminViewModel,
     onDirectorioUsuariosClick: () -> Unit,
     onCategoriasClick: () -> Unit,
-    onAuditoriaClick: () -> Unit
+    onAuditoriaClick: () -> Unit,
+    onPerfilClick: () -> Unit = {}
 ) {
     val stats by viewModel.estadisticas.collectAsState()
 
@@ -47,12 +54,16 @@ fun AdminPanelScreen(
             .background(BackgroundLight)
             .statusBarsPadding()
             .verticalScroll(rememberScrollState())
-            .padding(bottom = 70.dp)
+            .padding(bottom = 80.dp)
     ) {
-        CiudadActivaTopBar(title = "Panel Global", roleTag = "ADMIN")
+        CiudadActivaTopBar(
+            title = "Panel Global",
+            roleTag = "ADMIN",
+            onProfileClick = onPerfilClick
+        )
 
         Column(modifier = Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            // 3 Tarjetas Superiores de Métricas
+            // 3 Tarjetas Superiores de Métricas (M04_01)
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                 Card(modifier = Modifier.weight(1f).shadow(2.dp, RoundedCornerShape(18.dp)), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
                     Column(modifier = Modifier.padding(14.dp)) {
@@ -85,14 +96,199 @@ fun AdminPanelScreen(
                 }
             }
 
-            // Incidencias por Categoría
+            // ================== MATRIZ 1: PIPELINE Y ESTADOS DE REPORTES ==================
+            Card(
+                modifier = Modifier.fillMaxWidth().shadow(3.dp, RoundedCornerShape(20.dp)),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Matriz de Estados (Pipeline)", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
+                        Text("Total: ${stats?.totalReportes ?: 0}", fontSize = 11.sp, color = Color(0xFF78909C), fontWeight = FontWeight.SemiBold)
+                    }
+
+                    val totalReportes = stats?.totalReportes?.coerceAtLeast(1) ?: 1
+                    val estadosPipeline = listOf(
+                        Triple("PENDIENTE", "Pendiente de Triage", Color(0xFFE65100) to Color(0xFFFFF3E0)),
+                        Triple("EN_REVISION", "En Revisión Técnica", Color(0xFFEF6C00) to Color(0xFFFFE0B2)),
+                        Triple("ADMITIDO", "Admitido para Campo", Color(0xFF2E7D32) to Color(0xFFE8F5E9)),
+                        Triple("EN_PROCESO", "En Proceso / Terreno", Color(0xFF1565C0) to Color(0xFFE3F2FD)),
+                        Triple("ATENDIDO", "Atendido por Cuadrilla", Color(0xFF4527A0) to Color(0xFFEDE7F6)),
+                        Triple("CERRADO", "Cerrado con Solución", Color(0xFF1B5E20) to Color(0xFFC8E6C9)),
+                        Triple("RECHAZADO", "Rechazado (Regla 1)", Color(0xFFC62828) to Color(0xFFFFEBEE))
+                    )
+
+                    estadosPipeline.forEach { (estKey, estLabel, colorsPair) ->
+                        val (textColor, bgColor) = colorsPair
+                        val count = stats?.reportesPorEstado?.get(estKey) ?: 0
+                        val ratio = (count.toFloat() / totalReportes.toFloat()).coerceIn(0f, 1f)
+
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(bgColor)
+                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(text = estKey, fontSize = 9.sp, fontWeight = FontWeight.Bold, color = textColor)
+                                    }
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(text = estLabel, fontSize = 12.sp, color = TextDark)
+                                }
+                                Text(
+                                    text = "$count (${(ratio * 100).toInt()}%)",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = BrandTealDark
+                                )
+                            }
+                            LinearProgressIndicator(
+                                progress = { ratio },
+                                modifier = Modifier.fillMaxWidth().height(5.dp).clip(CircleShape),
+                                color = textColor,
+                                trackColor = Color(0xFFF1F5F4)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // ================== MATRIZ 2: CRITICIDAD Y SEMÁFORO URBANO (RF03 / RF09) ==================
+            Card(
+                modifier = Modifier.fillMaxWidth().shadow(3.dp, RoundedCornerShape(20.dp)),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Text("Matriz de Criticidad Urbana y Riesgo", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
+
+                    // Semáforo Territorial Global
+                    val semaforo = stats?.semaforoGlobal
+                    val semColor = when (semaforo?.nivelAlerta) {
+                        "ALTO", "CRITICO" -> Color(0xFFD32F2F)
+                        "MEDIO", "MODERADO" -> Color(0xFFFFA000)
+                        else -> Color(0xFF388E3C)
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(semColor.copy(alpha = 0.12f))
+                            .border(1.dp, semColor.copy(alpha = 0.4f), RoundedCornerShape(14.dp))
+                            .padding(12.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .clip(CircleShape)
+                                    .background(semColor)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = "Semáforo Territorial: ${semaforo?.nivelAlerta ?: "BAJO"}",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = semColor
+                                )
+                                Text(
+                                    text = semaforo?.descripcion ?: "Nivel óptimo de atención en vías urbanas.",
+                                    fontSize = 11.sp,
+                                    color = Color(0xFF455A64)
+                                )
+                            }
+                        }
+                    }
+
+                    // Cuadrícula de Prioridades
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        val prioridades = listOf(
+                            Triple("CRITICA", Color(0xFFD32F2F), stats?.reportesPorPrioridad?.get("CRITICA") ?: 0),
+                            Triple("ALTA", Color(0xFFE65100), stats?.reportesPorPrioridad?.get("ALTA") ?: 0),
+                            Triple("MEDIA", Color(0xFFF57C00), stats?.reportesPorPrioridad?.get("MEDIA") ?: 0),
+                            Triple("BAJA", Color(0xFF388E3C), stats?.reportesPorPrioridad?.get("BAJA") ?: 0)
+                        )
+
+                        prioridades.forEach { (prio, color, cant) ->
+                            Card(
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.08f)),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.3f))
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(8.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(prio, fontSize = 9.sp, fontWeight = FontWeight.Bold, color = color)
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text("$cant", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = color)
+                                    Text("casos", fontSize = 9.sp, color = color)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ================== MATRIZ 3: DESEMPEÑO OPERATIVO Y SLA ==================
+            Card(
+                modifier = Modifier.fillMaxWidth().shadow(3.dp, RoundedCornerShape(20.dp)),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("Matriz de Rendimiento y Cumplimiento SLA", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text("Tasa de Resolución", fontSize = 11.sp, color = Color(0xFF78909C))
+                            val tot = stats?.totalReportes ?: 1
+                            val res = stats?.reportesAtendidosOCerrados ?: 0
+                            val pct = if (tot > 0) (res * 100 / tot) else 0
+                            Text("$pct% / 85% meta", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = if (pct >= 85) Color(0xFF2E7D32) else BrandCopper)
+                        }
+
+                        Column {
+                            Text("Tiempo de Respuesta", fontSize = 11.sp, color = Color(0xFF78909C))
+                            Text("${stats?.tiempoPromedioAtencionHoras ?: 0.0} horas prom.", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
+                        }
+
+                        Column {
+                            Text("Casos Pendientes", fontSize = 11.sp, color = Color(0xFF78909C))
+                            Text("${stats?.reportesPendientes ?: 0} por validar", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFFE65100))
+                        }
+                    }
+                }
+            }
+
+            // ================== MATRIZ 4: INCIDENCIAS POR CATEGORÍA ==================
             Card(
                 modifier = Modifier.fillMaxWidth().shadow(2.dp, RoundedCornerShape(20.dp)),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
                 Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("Incidencias por Categoría", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
+                    Text("Incidencias por Categoría", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
 
                     stats?.reportesPorCategoria?.forEach { (cat, count) ->
                         val total = stats?.totalReportes?.coerceAtLeast(1) ?: 1
@@ -115,10 +311,11 @@ fun AdminPanelScreen(
                 }
             }
 
-            // Módulos Administrativos
-            Text("Administración del Sistema", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF7A8B88))
+            // ================== MÓDULOS ADMINISTRATIVOS Y PERFIL ==================
+            Text("Administración del Sistema & Perfil", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF7A8B88))
 
             val menus = listOf(
+                "Mi Perfil y Cambiar de Actor (RUP) →" to onPerfilClick,
                 "Directorio de Usuarios y Roles →" to onDirectorioUsuariosClick,
                 "Configurar Categorías de Incidencia →" to onCategoriasClick,
                 "Matriz de Trazabilidad RUP (RNF04) →" to onAuditoriaClick

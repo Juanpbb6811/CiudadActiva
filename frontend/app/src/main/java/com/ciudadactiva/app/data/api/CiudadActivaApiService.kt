@@ -90,6 +90,12 @@ interface CiudadActivaApiService {
         @Body request: CambiarPrioridadRequest
     ): Response<ApiResponse<ReporteResponse>>
 
+    @PATCH("api/reportes/{id}/estado")
+    suspend fun cambiarEstadoReporte(
+        @Path("id") id: Long,
+        @Body request: CambiarEstadoRequest
+    ): Response<ApiResponse<ReporteResponse>>
+
     @POST("api/reportes/{id}/asignaciones")
     suspend fun asignarOperador(
         @Path("id") id: Long,

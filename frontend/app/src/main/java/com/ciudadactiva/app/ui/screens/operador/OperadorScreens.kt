@@ -34,6 +34,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ciudadactiva.app.ui.components.CiudadActivaTopBar
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import com.ciudadactiva.app.data.api.ApiClient
 import com.ciudadactiva.app.ui.components.GradientButton
 import com.ciudadactiva.app.ui.components.PrioridadChip
 import com.ciudadactiva.app.ui.components.rememberCameraLauncher
@@ -200,23 +203,67 @@ fun OperadorFichaScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        Text("FOTO REPORTE ORIGINAL:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF7A8B88))
+                        Text("FOTO REPORTE ORIGINAL (CIUDADANO):", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF7A8B88))
                         Spacer(modifier = Modifier.height(6.dp))
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0xFFF1F5F4))
-                                .padding(12.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.CameraAlt, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(20.dp))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Foto de evidencia original en BD (Disponible)", fontSize = 12.sp, color = BrandTealDark)
+                        val fotoUrl = if (f.tieneFoto == true) "${ApiClient.getBaseUrl()}api/reportes/${f.id}/foto" else f.imagenUrl
+                        if (!fotoUrl.isNullOrBlank()) {
+                            AsyncImage(
+                                model = fotoUrl,
+                                contentDescription = "Foto original del reporte",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(180.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color(0xFFF1F5F4)),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color(0xFFF1F5F4))
+                                    .padding(12.dp)
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.CameraAlt, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(20.dp))
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Sin foto adjunta por el ciudadano", fontSize = 12.sp, color = BrandTealDark)
+                                }
                             }
                         }
 
                         Spacer(modifier = Modifier.height(20.dp))
+
+                        // Cambio rápido de estado en campo
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            OutlinedButton(
+                                onClick = {
+                                    viewModel.cambiarEstado(f.id, "EN_PROCESO", "Operador inició labores en terreno") {}
+                                },
+                                modifier = Modifier.weight(1f).height(40.dp),
+                                shape = RoundedCornerShape(20.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF1976D2))
+                            ) {
+                                Text("En Proceso", color = Color(0xFF1976D2), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+
+                            OutlinedButton(
+                                onClick = {
+                                    viewModel.cambiarEstado(f.id, "ATENDIDO", "Operador finalizó labores físicas en terreno") {}
+                                },
+                                modifier = Modifier.weight(1f).height(40.dp),
+                                shape = RoundedCornerShape(20.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF388E3C))
+                            ) {
+                                Text("Atendido", color = Color(0xFF388E3C), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
 
                         Button(
                             onClick = { onRegistrarAvance(f.id) },
@@ -254,13 +301,22 @@ fun OperadorAvanceScreen(
     onBackClick: () -> Unit
 ) {
     var observaciones by remember { mutableStateOf("") }
+    var fotoSoporte by remember { mutableStateOf<Bitmap?>(null) }
+    var nuevoEstadoSeleccionado by remember { mutableStateOf("EN_PROCESO") }
     val isLoading by viewModel.isLoading.collectAsState()
+
+    val tomarFotoLauncher = rememberCameraLauncher(
+        onPhotoTaken = { bitmap ->
+            fotoSoporte = bitmap
+        }
+    )
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(BackgroundLight)
             .verticalScroll(rememberScrollState())
+            .padding(bottom = 40.dp)
     ) {
         CiudadActivaTopBar(title = "Registrar Avance", roleTag = "RF06", onBackClick = onBackClick)
 
@@ -271,7 +327,7 @@ fun OperadorAvanceScreen(
                 colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
                 Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    Text("INCIDENCIA #$reporteId", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF7A8B88))
+                    Text("INCIDENCIA #$reporteId • REGISTRO DE CAMPO", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF7A8B88))
 
                     Column {
                         Text("Observaciones Técnicas del Avance *", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextDark)
@@ -280,18 +336,116 @@ fun OperadorAvanceScreen(
                             value = observaciones,
                             onValueChange = { observaciones = it },
                             placeholder = { Text("Ej: Se inspeccionó el cableado y se reemplazó balastro defectuoso...", fontSize = 12.sp) },
-                            modifier = Modifier.fillMaxWidth().height(120.dp),
+                            modifier = Modifier.fillMaxWidth().height(110.dp),
                             shape = RoundedCornerShape(14.dp),
                             maxLines = 5
                         )
                     }
+
+                    // Fotografía de Soporte en Terreno (M03_04)
+                    Column {
+                        Text("Fotografía de Soporte en Terreno", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        if (fotoSoporte != null) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(180.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .border(1.5.dp, BrandTealDark, RoundedCornerShape(16.dp))
+                            ) {
+                                Image(
+                                    bitmap = fotoSoporte!!.asImageBitmap(),
+                                    contentDescription = "Evidencia de avance",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                                Button(
+                                    onClick = { tomarFotoLauncher() },
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .padding(8.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark)
+                                ) {
+                                    Icon(Icons.Default.CameraAlt, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Tomar otra foto", fontSize = 11.sp)
+                                }
+                            }
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(130.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(Color(0xFFF1F5F4))
+                                    .border(1.5.dp, BrandTealDark.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                                    .clickable { tomarFotoLauncher() },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Icon(Icons.Default.CameraAlt, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(36.dp))
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(
+                                        text = "Tocar para tomar fotografía con la cámara",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = BrandTealDark
+                                    )
+                                    Text(
+                                        text = "Adjunta foto del trabajo realizado en sitio",
+                                        fontSize = 10.sp,
+                                        color = Color(0xFF78909C)
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Transición de estado opcional
+                    Column {
+                        Text("Estado del Reporte tras este avance:", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            val opciones = listOf("EN_PROCESO" to "En Proceso", "ATENDIDO" to "Atendido (Listo)")
+                            opciones.forEach { (est, label) ->
+                                val isSel = nuevoEstadoSeleccionado == est
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(if (isSel) BrandTealDark else Color(0xFFF1F5F4))
+                                        .clickable { nuevoEstadoSeleccionado = est }
+                                        .padding(vertical = 10.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = if (isSel) "$label ✓" else label,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isSel) Color.White else Color(0xFF5A6665)
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(6.dp))
 
                     GradientButton(
                         text = "Guardar Avance en Trazabilidad",
                         enabled = observaciones.isNotBlank(),
                         isLoading = isLoading,
                         onClick = {
-                            viewModel.registrarAvance(reporteId, observaciones, onSuccess)
+                            viewModel.registrarAvanceConEvidencia(
+                                reporteId = reporteId,
+                                observaciones = observaciones,
+                                fotoSoporte = fotoSoporte,
+                                nuevoEstado = nuevoEstadoSeleccionado,
+                                onSuccess = onSuccess
+                            )
                         }
                     )
                 }

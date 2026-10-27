@@ -23,6 +23,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ciudadactiva.app.ui.components.CiudadActivaTopBar
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import com.ciudadactiva.app.data.api.ApiClient
 import com.ciudadactiva.app.ui.components.GradientButton
 import com.ciudadactiva.app.ui.components.LoadingSkeleton
 import com.ciudadactiva.app.ui.components.StatusChip
@@ -50,6 +53,11 @@ fun GestorFichaInspeccionScreen(
     var mostrarModalAsignar by remember { mutableStateOf(false) }
     var operadorSeleccionadoId by remember { mutableStateOf<Long?>(null) }
     var notasAsignacion by remember { mutableStateOf("") }
+
+    // Validación y cambio de estado directo por el Gestor
+    var mostrarModalCambiarEstado by remember { mutableStateOf(false) }
+    var estadoSeleccionado by remember { mutableStateOf("ADMITIDO") }
+    var observacionesCambioEstado by remember { mutableStateOf("") }
 
     LaunchedEffect(reporteId) {
         viewModel.cargarFichaInspeccion(reporteId)
@@ -124,21 +132,35 @@ fun GestorFichaInspeccionScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Caja de Evidencia
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(140.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(Color(0xFFE4ECEB)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = if (rep.tieneFoto == true) "Evidencia del Ciudadano (Foto en BD)" else "Sin fotografía adjunta",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = BrandTealDark
+                        // Caja de Evidencia con Foto Real o Placeholder
+                        val fotoUrl = if (rep.tieneFoto == true) "${ApiClient.getBaseUrl()}api/reportes/${rep.id}/foto" else rep.imagenUrl
+                        if (!fotoUrl.isNullOrBlank()) {
+                            AsyncImage(
+                                model = fotoUrl,
+                                contentDescription = "Evidencia Fotográfica del Ciudadano",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(180.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(Color(0xFFE4ECEB)),
+                                contentScale = ContentScale.Crop
                             )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(120.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(Color(0xFFE4ECEB)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Sin fotografía adjunta",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF78909C)
+                                )
+                            }
                         }
                     }
                 }
@@ -183,11 +205,62 @@ fun GestorFichaInspeccionScreen(
                     }
                 }
 
+                // CONTROL DE ESTADO DIRECTO POR EL GESTOR
+                Card(
+                    modifier = Modifier.fillMaxWidth().shadow(2.dp, RoundedCornerShape(20.dp)),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "ESTADO ACTUAL DEL REPORTE:",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF7A8B88)
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Color(0xFFE0F2F1))
+                                    .padding(horizontal = 8.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = rep.estado,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = BrandTealDark
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        OutlinedButton(
+                            onClick = {
+                                estadoSeleccionado = rep.estado
+                                observacionesCambioEstado = ""
+                                mostrarModalCambiarEstado = true
+                            },
+                            modifier = Modifier.fillMaxWidth().height(44.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, BrandTealDark),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = BrandTealDark)
+                        ) {
+                            Text("Cambiar Estado del Reporte...", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        }
+                    }
+                }
+
                 if (errorMsg != null) {
                     Text(text = errorMsg!!, color = Color(0xFFD32F2F), fontSize = 12.sp)
                 }
 
-                // Botones de Acción (Rechazar o Admitir)
+                // Botones de Acción Rápida (Rechazar o Admitir)
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Button(
                         onClick = { mostrarModalRechazo = true },
@@ -345,6 +418,77 @@ fun GestorFichaInspeccionScreen(
             dismissButton = {
                 TextButton(onClick = { mostrarModalAsignar = false }) {
                     Text("Omitir Asignación")
+                }
+            }
+        )
+    }
+
+    // Modal para que el Gestor cambie el estado del reporte con observaciones
+    if (mostrarModalCambiarEstado) {
+        val estadosDisponibles = listOf("PENDIENTE", "EN_REVISION", "ADMITIDO", "EN_PROCESO", "ATENDIDO", "CERRADO", "RECHAZADO")
+        AlertDialog(
+            onDismissRequest = { mostrarModalCambiarEstado = false },
+            title = {
+                Text("Actualizar Estado del Reporte", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
+            },
+            text = {
+                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("Selecciona el nuevo estado oficial:", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
+                    
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        estadosDisponibles.chunked(2).forEach { rowEstados ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                                rowEstados.forEach { est ->
+                                    val isSel = estadoSeleccionado == est
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(if (isSel) BrandTealDark else Color(0xFFF1F5F4))
+                                            .clickable { estadoSeleccionado = est }
+                                            .padding(vertical = 8.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = est,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isSel) Color.White else Color(0xFF5A6665)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("Observación o Justificación del Cambio:", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
+                    OutlinedTextField(
+                        value = observacionesCambioEstado,
+                        onValueChange = { observacionesCambioEstado = it },
+                        placeholder = { Text("Ej: Aprobado tras validación técnica en terreno...", fontSize = 12.sp) },
+                        modifier = Modifier.fillMaxWidth().height(90.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val obs = if (observacionesCambioEstado.isBlank()) "Transición de estado a $estadoSeleccionado por Gestor" else observacionesCambioEstado
+                        viewModel.cambiarEstadoReporte(reporteId, estadoSeleccionado, obs) {
+                            mostrarModalCambiarEstado = false
+                            onAccionTerminada()
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark)
+                ) {
+                    Text("Aplicar Cambio")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarModalCambiarEstado = false }) {
+                    Text("Cancelar", color = Color(0xFF6C757D))
                 }
             }
         )

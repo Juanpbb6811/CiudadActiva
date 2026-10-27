@@ -4,33 +4,34 @@ Sistema integral para el reporte, validación, asignación operativa y seguimien
 
 ---
 
-## 📲 Descargar App Android (Release v0.1.3)
+## 📲 Descargar App Android (Release v0.1.4)
 
 Ya puedes instalar y probar la versión oficial y firmada de CiudadActiva directamente en tu dispositivo Android o emulador:
 
-[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.1.3_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.3.apk)
+[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.1.4_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.4.apk)
 [![Servidor Cloud](https://img.shields.io/badge/Descarga_Directa-Cloud_Render-blueviolet?style=for-the-badge&logo=render&logoColor=white)](https://ciudadactiva-4ah7.onrender.com/descargar)
-[![GitHub Release](https://img.shields.io/badge/Release_Tag-v0.1.3-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.1.3)
+[![GitHub Release](https://img.shields.io/badge/Release_Tag-v0.1.4-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.1.4)
 
 ### 📥 Enlaces de descarga directa:
-* 🌐 **[Servidor Oficial en la Nube (Render): Descargar CiudadActiva-v0.1.3.apk (12.2 MB)](https://ciudadactiva-4ah7.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
-* 🐙 **[GitHub Directo: Descargar CiudadActiva-v0.1.3.apk (12.2 MB)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.3.apk)**
+* 🌐 **[Servidor Oficial en la Nube (Render): Descargar CiudadActiva-v0.1.4.apk (12.2 MB)](https://ciudadactiva-4ah7.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
+* 🐙 **[GitHub Directo: Descargar CiudadActiva-v0.1.4.apk (12.2 MB)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.4.apk)**
 
 ### 🛠️ Instrucciones de Instalación en Android:
-1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.1.3.apk`.
+1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.1.4.apk`.
 2. Al finalizar la descarga, presiona **Abrir** (o ve a tu app de **Archivos / Descargas** y tócalo).
 3. Si el sistema muestra el aviso de seguridad de Android / Xiaomi, activa la opción **Confiar en esta fuente / Instalar aplicaciones desconocidas**.
 4. Pulsa **Instalar** y ¡listo!
 
-### ✨ Novedades de la versión v0.1.3:
-- 🚀 **Compilación de Producción (Release) Universal**: Certificado criptográfico oficial y compatibilidad amplia desde **Android 7.0 (API 24) hasta Android 14 (API 34)** sin bandera `testOnly`.
-- 🗑️ **Retiro de Reportes Pendientes**: Permite al ciudadano autor retirar/eliminar su propio reporte si aún se encuentra en estado `PENDIENTE`.
-- 💬 **Muro Comunitario y Comentarios en Vivo**: Los ciudadanos pueden ver los reportes de otros vecinos, dejar comentarios y consultar trazabilidad completa.
-- 🔑 **Inicio de Sesión y Registro con Google**: Selector nativo de cuentas Google y formulario de registro con confirmación y visibilidad de contraseña.
-- ☁️ **Servidor de Descarga Directa Cloud**: Endpoint público en `https://ciudadactiva-4ah7.onrender.com/descargar` con tipos MIME oficiales para evitar descargas truncadas en móviles.
-- 🗺️ **Mapa interactivo OpenStreetMap** sin restricciones ni marcas de agua, con visualización de reportes geolocalizados y pines interactivos.
-- 🚦 **Cálculo inteligente de urgencia por proximidad y categoría**: los reportes cercanos se agrupan por tipo de problema elevando su prioridad automáticamente.
-- 📸 **Captura con Cámara nativa y Galería**: soporte completo para adjuntar evidencia fotográfica a las incidencias.
+### ✨ Novedades de la versión v0.1.4:
+- 📋 **Gestor (Validación, Triage y Cambio de Estado)**: Bandeja Triage completa con filtros dinámicos (Pendientes, Admitidos, Rechazados, Todos - M02_02), visualización de evidencia fotográfica del ciudadano en la ficha de inspección (M02_04) y modal para cambio directo de estado a cualquier fase del flujo de trabajo con registro de justificación.
+- 🛠️ **Operador (Avances y Cambios en Terreno)**: Ficha de orden de trabajo en campo con foto original del reporte, registro de avances técnicos con **captura de fotografía de soporte en terreno usando la cámara móvil (M03_04)** y actualización de estado de labor física (`EN_PROCESO`, `ATENDIDO`).
+- 👤 **Apartado de Perfil y Cambio de Actor (RUP) en Administrador**: Se incorporó el acceso directo a Perfil en la barra de navegación y TopBar del Admin, incluyendo el selector dinámico **Cambiar de Actor** para alternar con un solo toque entre Ciudadano, Gestor, Operador y Administrador con autenticación demo integrada.
+- 📊 **Matrices de Seguimiento para ADMIN**:
+  - **Matriz de Estados (Pipeline)**: Control porcentual y acumulado de todo el ciclo de vida de las incidencias (Pendientes, En Revisión, Admitidos, En Proceso, Atendidos, Cerrados, Rechazados).
+  - **Matriz de Criticidad Urbana & Semáforo Territorial (RF03 / RF09)**: Clasificación de prioridades y semáforo de riesgo territorial urbano.
+  - **Matriz de Desempeño y Cumplimiento de SLA**: Tasa de resolución (% resueltos vs meta 85%) y tiempo promedio de respuesta en horas.
+  - **Matriz de Cobertura por Categorías**: Distribución porcentual y volumétrica de problemas reportados en la ciudad.
+- 🛡️ **Seguridad Supabase (RLS y PostgREST)**: Script DDL de endurecimiento de Row Level Security y revocación de acceso a endpoints públicos anónimos preservando la conexión Spring Boot JDBC.
 
 ---
 

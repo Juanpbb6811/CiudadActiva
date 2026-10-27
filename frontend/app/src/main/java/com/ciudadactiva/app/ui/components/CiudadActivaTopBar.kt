@@ -25,6 +25,7 @@ fun CiudadActivaTopBar(
     title: String,
     roleTag: String? = null,
     onBackClick: (() -> Unit)? = null,
+    onProfileClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -72,7 +73,25 @@ fun CiudadActivaTopBar(
             text = title,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            color = BrandTealDark
+            color = BrandTealDark,
+            modifier = Modifier.weight(1f)
         )
+
+        if (onProfileClick != null) {
+            IconButton(
+                onClick = onProfileClick,
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
+                    .background(Color.White)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(CircleShape)
+                        .background(BrandTealDark)
+                )
+            }
+        }
     }
 }

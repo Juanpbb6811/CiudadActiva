@@ -26,6 +26,8 @@ object ApiClient {
             .build()
     }
 
+    fun getBaseUrl(): String = CiudadActivaApplication.sessionManager.getBaseUrl()
+
     fun getService(): CiudadActivaApiService {
         val currentBaseUrl = CiudadActivaApplication.sessionManager.getBaseUrl()
         if (retrofit == null || lastBaseUrl != currentBaseUrl) {

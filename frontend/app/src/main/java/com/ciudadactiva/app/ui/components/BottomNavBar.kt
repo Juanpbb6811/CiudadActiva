@@ -56,7 +56,8 @@ fun CiudadActivaBottomBar(
             NavItem(Screen.AdminPanel.route, "Panel", Icons.Outlined.Dashboard, Icons.Filled.Dashboard),
             NavItem(Screen.AdminUsuarios.route, "Usuarios", Icons.Outlined.Group, Icons.Filled.Group),
             NavItem(Screen.AdminCategorias.route, "Categorías", Icons.Outlined.Category, Icons.Filled.Category),
-            NavItem(Screen.AdminAuditoria.route, "Auditoría", Icons.Outlined.Security, Icons.Filled.Security)
+            NavItem(Screen.AdminAuditoria.route, "Auditoría", Icons.Outlined.Security, Icons.Filled.Security),
+            NavItem(Screen.CiudadanoPerfil.route, "Perfil", Icons.Outlined.Person, Icons.Filled.Person)
         )
         else -> listOf(
             NavItem(Screen.CiudadanoHome.route, "Inicio", Icons.Outlined.Home, Icons.Filled.Home),
