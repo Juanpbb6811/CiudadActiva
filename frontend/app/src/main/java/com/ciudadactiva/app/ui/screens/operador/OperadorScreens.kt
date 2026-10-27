@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.ciudadactiva.app.ui.components.CiudadActivaTopBar
 import com.ciudadactiva.app.ui.components.GradientButton
 import com.ciudadactiva.app.ui.components.PrioridadChip
+import com.ciudadactiva.app.ui.components.rememberCameraLauncher
 import com.ciudadactiva.app.ui.theme.BackgroundLight
 import com.ciudadactiva.app.ui.theme.BrandTealDark
 import com.ciudadactiva.app.ui.theme.TextDark
@@ -313,13 +314,11 @@ fun OperadorCierreScreen(
     val regla3Bloqueada by viewModel.regla3Bloqueada.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicturePreview()
-    ) { bitmap: Bitmap? ->
-        if (bitmap != null) {
+    val tomarFotoSolucion = rememberCameraLauncher(
+        onPhotoTaken = { bitmap ->
             fotoSolucion = bitmap
         }
-    }
+    )
 
     // SI LA REGLA 3 FUE VIOLADA POR INTENTAR CERRAR SIN AVANCE PREVIO (M03_06)
     if (regla3Bloqueada) {
@@ -408,7 +407,7 @@ fun OperadorCierreScreen(
                             .border(1.dp, Color(0xFF74A596), RoundedCornerShape(16.dp))
                             .clip(RoundedCornerShape(16.dp))
                             .background(Color(0xFFE4ECEB))
-                            .clickable { cameraLauncher.launch() },
+                            .clickable { tomarFotoSolucion() },
                         contentAlignment = Alignment.Center
                     ) {
                         if (fotoSolucion != null) {

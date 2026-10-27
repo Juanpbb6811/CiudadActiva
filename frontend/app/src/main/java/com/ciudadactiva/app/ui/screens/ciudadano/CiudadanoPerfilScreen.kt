@@ -32,6 +32,7 @@ import com.ciudadactiva.app.CiudadActivaApplication
 import com.ciudadactiva.app.data.api.ApiClient
 import com.ciudadactiva.app.data.model.UsuarioUpdateRequest
 import com.ciudadactiva.app.ui.components.CiudadActivaTopBar
+import com.ciudadactiva.app.ui.components.rememberCameraLauncher
 import com.ciudadactiva.app.ui.theme.BackgroundLight
 import com.ciudadactiva.app.ui.theme.BrandCopper
 import com.ciudadactiva.app.ui.theme.BrandTealDark
@@ -70,18 +71,16 @@ fun CiudadanoPerfilScreen(
 
     val rol = session.getRol() ?: "ROLE_CIUDADANO"
 
-    // Launcher para tomar foto de perfil con la cámara del celular
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicturePreview()
-    ) { bitmap: Bitmap? ->
-        if (bitmap != null) {
+    // Launcher seguro para tomar foto de perfil con verificación de permisos en tiempo de ejecución
+    val tomarFotoPerfil = rememberCameraLauncher(
+        onPhotoTaken = { bitmap ->
             avatarBitmap = bitmap
             val stream = ByteArrayOutputStream()
             bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream)
             val base64 = "data:image/jpeg;base64," + Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
             fotoUrl = base64
         }
-    }
+    )
 
     // Cargar perfil actual desde backend al inicio
     LaunchedEffect(Unit) {
@@ -166,7 +165,7 @@ fun CiudadanoPerfilScreen(
                             .size(34.dp)
                             .clip(CircleShape)
                             .background(BrandCopper)
-                            .clickable { cameraLauncher.launch(null) },
+                            .clickable { tomarFotoPerfil() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -367,7 +366,7 @@ fun CiudadanoPerfilScreen(
                     // Botón para tomar foto con la cámara (visible solo si está en modo edición)
                     if (isEditing) {
                         OutlinedButton(
-                            onClick = { cameraLauncher.launch(null) },
+                            onClick = { tomarFotoPerfil() },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp)
                         ) {

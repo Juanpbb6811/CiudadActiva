@@ -37,6 +37,7 @@ import com.ciudadactiva.app.ui.components.CiudadActivaTopBar
 import com.ciudadactiva.app.ui.components.GradientButton
 import com.ciudadactiva.app.ui.components.LocationHelper
 import com.ciudadactiva.app.ui.components.OpenStreetMapComposable
+import com.ciudadactiva.app.ui.components.rememberCameraLauncher
 import com.ciudadactiva.app.ui.theme.BackgroundLight
 import com.ciudadactiva.app.ui.theme.BrandCopper
 import com.ciudadactiva.app.ui.theme.BrandTealDark
@@ -417,15 +418,13 @@ fun NuevoReportePaso3Screen(
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
-    // Tomar foto con la cámara del dispositivo
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicturePreview()
-    ) { bitmap: Bitmap? ->
-        if (bitmap != null) {
+    // Tomar foto con la cámara del dispositivo con validación de permisos en tiempo de ejecución
+    val tomarFotoCamara = rememberCameraLauncher(
+        onPhotoTaken = { bitmap ->
             viewModel.setFotoCamara(bitmap)
             Toast.makeText(context, "📸 Foto capturada con éxito", Toast.LENGTH_SHORT).show()
         }
-    }
+    )
 
     // Seleccionar foto desde la galería
     val galleryLauncher = rememberLauncherForActivityResult(
@@ -473,7 +472,12 @@ fun NuevoReportePaso3Screen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(240.dp)
-                    .border(1.5.dp, Color(0xFF74A596), RoundedCornerShape(24.dp)),
+                    .border(1.5.dp, Color(0xFF74A596), RoundedCornerShape(24.dp))
+                    .clickable {
+                        if (fotoBitmap == null) {
+                            tomarFotoCamara()
+                        }
+                    },
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFE4ECEB))
             ) {
@@ -531,7 +535,7 @@ fun NuevoReportePaso3Screen(
             // Botones: Tomar con Cámara y Elegir de Galería
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Button(
-                    onClick = { cameraLauncher.launch() },
+                    onClick = { tomarFotoCamara() },
                     modifier = Modifier
                         .weight(1f)
                         .height(48.dp),
