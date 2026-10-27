@@ -24,18 +24,21 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ciudadactiva.app.R
 import com.ciudadactiva.app.data.model.CategoriaModel
 import com.ciudadactiva.app.data.model.ReporteResponse
 import com.ciudadactiva.app.ui.components.LoadingSkeleton
+import com.ciudadactiva.app.ui.components.PrioridadChip
 import com.ciudadactiva.app.ui.components.SemaforoBadge
 import com.ciudadactiva.app.ui.components.StatusChip
 import com.ciudadactiva.app.ui.theme.BackgroundLight
 import com.ciudadactiva.app.ui.theme.BrandCopper
 import com.ciudadactiva.app.ui.theme.BrandTealDark
 import com.ciudadactiva.app.ui.theme.TextDark
+import com.ciudadactiva.app.ui.theme.TextMuted
 import com.ciudadactiva.app.ui.viewmodel.CiudadanoViewModel
 
 @Composable
@@ -51,6 +54,10 @@ fun CiudadanoHomeScreen(
     val reporteActivo by viewModel.reporteActivo.collectAsState()
     val reportesCercanos by viewModel.reportesCercanos.collectAsState()
 
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        viewModel.cargarDatosHome()
+    }
+
     if (isLoading && categorias.isEmpty()) {
         LoadingSkeleton()
         return
@@ -62,7 +69,7 @@ fun CiudadanoHomeScreen(
             .background(BackgroundLight)
             .statusBarsPadding()
             .verticalScroll(rememberScrollState())
-            .padding(bottom = 80.dp)
+            .padding(bottom = 90.dp)
     ) {
         // Top Logo + Saludo
         Row(
@@ -120,7 +127,7 @@ fun CiudadanoHomeScreen(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Solo toma una foto o escribe",
+                        text = "Toma una foto y geolocaliza la incidencia",
                         fontSize = 13.sp,
                         color = Color(0xFF6C757D)
                     )
@@ -134,7 +141,7 @@ fun CiudadanoHomeScreen(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Ubicación lista • Cra 5 #12-30",
+                            text = "GPS y Cámara listos",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color(0xFF00796B)
@@ -162,7 +169,7 @@ fun CiudadanoHomeScreen(
 
         // Fila REPORTE RÁPIDO
         Text(
-            text = "REPORTE RÁPIDO Y SEMÁFORO",
+            text = "CATEGORÍAS Y SEMÁFOROS DE RIESGO",
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF7A8B88),
@@ -234,7 +241,7 @@ fun CiudadanoHomeScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // TU REPORTE ACTIVO (M01_01)
+        // TU REPORTE ACTIVO (si el usuario tiene uno propio en curso)
         if (reporteActivo != null) {
             val activo = reporteActivo!!
             Text(
@@ -280,7 +287,6 @@ fun CiudadanoHomeScreen(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // Indicador de pasos visual (Registrado -> En atención -> Cerrado)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -307,11 +313,11 @@ fun CiudadanoHomeScreen(
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(14.dp))
         }
 
-        Spacer(modifier = Modifier.height(14.dp))
-
-        // Cerca de ti (Radar / Mapa Preview)
+        // Radar / Mapa de Incidencias
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -320,13 +326,13 @@ fun CiudadanoHomeScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Cerca de ti",
+                text = "Mapa de Incidencias",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = BrandTealDark
             )
             Text(
-                text = "${reportesCercanos.size} reportes • Ver mapa",
+                text = "Abrir mapa interactivo 🗺️",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = BrandCopper,
@@ -336,45 +342,286 @@ fun CiudadanoHomeScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Vista previa simulada de Mapa (según Mockup M01_01)
+        // Vista previa de mapa interactivo
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(130.dp)
+                .height(95.dp)
                 .padding(horizontal = 20.dp)
                 .shadow(2.dp, RoundedCornerShape(20.dp))
                 .clickable(onClick = onVerMapaClick),
             shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFEBE6DC))
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFE8EFEB))
         ) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                // Pin central
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.8f)),
-                    contentAlignment = Alignment.Center
-                ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 18.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
-                            .size(16.dp)
+                            .size(44.dp)
                             .clip(CircleShape)
-                            .background(BrandTealDark)
+                            .background(Color.White),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Explore,
+                            contentDescription = null,
+                            tint = BrandTealDark,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "${reportesCercanos.size} reportes en la ciudad",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = BrandTealDark
+                        )
+                        Text(
+                            text = "Explora los reportes con semáforo y coordenadas",
+                            fontSize = 11.sp,
+                            color = Color(0xFF5A6B68)
+                        )
+                    }
+                }
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    tint = BrandTealDark
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // SECCIÓN DESTACADA: MURO COMUNITARIO DE REPORTES
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Muro de la Comunidad",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = BrandTealDark
+            )
+            Text(
+                text = "${reportesCercanos.size} publicaciones",
+                fontSize = 12.sp,
+                color = Color(0xFF7A8B88),
+                fontWeight = FontWeight.Medium
+            )
+        }
+
+        Text(
+            text = "Explora lo que reportan otros vecinos y deja tus comentarios:",
+            fontSize = 12.sp,
+            color = Color(0xFF6C757D),
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (reportesCercanos.isEmpty()) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ChatBubbleOutline,
+                        contentDescription = null,
+                        tint = Color(0xFFB0BEC5),
+                        modifier = Modifier.size(36.dp)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Aún no hay reportes publicados",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = TextDark
+                    )
+                    Text(
+                        text = "¡Sé el primero en reportar una incidencia en tu barrio!",
+                        fontSize = 12.sp,
+                        color = Color(0xFF7A8B88)
                     )
                 }
+            }
+        } else {
+            Column(
+                modifier = Modifier.padding(horizontal = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                reportesCercanos.forEach { reporte ->
+                    ReporteComunitarioCard(
+                        reporte = reporte,
+                        onClick = { onVerReporteClick(reporte.id) }
+                    )
+                }
+            }
+        }
+    }
+}
 
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = 10.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color.White)
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
-                ) {
+@Composable
+fun ReporteComunitarioCard(
+    reporte: ReporteResponse,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(2.dp, RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Header: Categoría + Estado
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFE8F5E9)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = when (reporte.categoriaIcono) {
+                                "road" -> Icons.Default.DirectionsCar
+                                "lightbulb" -> Icons.Default.Lightbulb
+                                "trash" -> Icons.Default.Delete
+                                "park" -> Icons.Default.Park
+                                "water" -> Icons.Default.WaterDrop
+                                else -> Icons.Default.ReportProblem
+                            },
+                            contentDescription = null,
+                            tint = Color(0xFF2E7D32),
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Cra 5 #12-30 (Tu ubicación)",
-                        fontSize = 11.sp,
+                        text = reporte.categoriaNombre ?: "Incidencia Urbana",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF2E7D32)
+                    )
+                }
+                StatusChip(status = reporte.estado)
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Título
+            Text(
+                text = reporte.titulo,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextDark,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            if (!reporte.descripcion.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = reporte.descripcion,
+                    fontSize = 12.sp,
+                    color = Color(0xFF555555),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Datos de contexto: Autor y Dirección
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = Color(0xFF8B9695),
+                    modifier = Modifier.size(14.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = reporte.ciudadanoNombre ?: "Vecino Ciudadano",
+                    fontSize = 11.sp,
+                    color = Color(0xFF7A8B88),
+                    fontWeight = FontWeight.Medium
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = null,
+                    tint = Color(0xFF8B9695),
+                    modifier = Modifier.size(14.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = reporte.direccion ?: "Sector Urbano",
+                    fontSize = 11.sp,
+                    color = Color(0xFF7A8B88),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(color = Color(0xFFF0F4F3))
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Footer con botón de Comentar
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                PrioridadChip(prioridad = reporte.prioridad)
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFFE0F2F1))
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Comment,
+                        contentDescription = "Comentarios",
+                        tint = BrandTealDark,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Ver y Comentar",
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = BrandTealDark
                     )

@@ -348,7 +348,7 @@ fun MapaExploradorScreen(
                     Spacer(modifier = Modifier.height(2.dp))
 
                     GradientButton(
-                        text = "Ver Seguimiento y Trazabilidad →",
+                        text = "Ver Trazabilidad y Comentarios 💬 →",
                         onClick = {
                             val id = rep.id
                             selectedReporte = null
