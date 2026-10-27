@@ -4,6 +4,31 @@ Sistema integral para el reporte, validación, asignación operativa y seguimien
 
 ---
 
+## 📲 Descargar App Android (Release v0.1)
+
+Ya puedes instalar y probar la versión precompilada de CiudadActiva directamente en tu dispositivo Android o emulador:
+
+[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.1_Debug-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.apk)
+[![GitHub Release](https://img.shields.io/badge/Release_Tag-v0.1-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.1)
+
+### 📥 Enlace de descarga directa:
+👉 **[Descargar CiudadActiva-v0.1.apk (16.5 MB)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.apk)**
+
+### 🛠️ Instrucciones de Instalación en Android:
+1. Abre el enlace anterior en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.1.apk`.
+2. Al finalizar la descarga, presiona **Abrir**.
+3. Si el sistema muestra el aviso de seguridad de Android, ve a **Configuración** y activa la opción **Permitir desde esta fuente / Instalar aplicaciones desconocidas**.
+4. Pulsa **Instalar** y ¡listo! Puedes iniciar sesión de inmediato con cualquiera de las cuentas de prueba.
+
+### ✨ Novedades incluidas en la Release v0.1:
+- 🗺️ **Mapa interactivo OpenStreetMap** sin restricciones ni marcas de agua, con visualización de reportes geolocalizados y pines interactivos.
+- 🚦 **Cálculo inteligente de urgencia por proximidad y categoría**: los reportes cercanos se agrupan por tipo de problema (p. ej. postes eléctricos/alcantarillado tienen ponderación de riesgo superior a baches o basura) elevando su prioridad automáticamente a Media o Alta.
+- 📸 **Captura con Cámara nativa y Galería**: soporte completo para adjuntar evidencia fotográfica a las quejas con solicitud segura de permisos en tiempo de ejecución.
+- 👤 **Gestión de Perfil de Ciudadano**: modo de solo lectura por defecto con botón "Modificar Datos Personales", edición controlada de nombre, correo y avatar, y botón "Guardar" optimizado.
+- 🔄 **Conectividad dual**: selector de servidor personalizable y modo sin conexión con reportes de prueba precargados para demostraciones.
+
+---
+
 ## 📁 Estructura del Proyecto
 
 El repositorio se divide en dos módulos independientes:

@@ -11,6 +11,7 @@ target/
 build/
 **/build/
 *.apk
+!releases/*.apk
 *.aab
 local.properties
 .cxx/
