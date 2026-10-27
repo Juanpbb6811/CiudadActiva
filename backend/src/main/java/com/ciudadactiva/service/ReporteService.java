@@ -64,7 +64,7 @@ public class ReporteService {
                 categoria,
                 ciudadano
         );
-        PrioridadReporte prioridadCalculada = calcularPrioridadPorProximidad(reporte.getLatitud(), reporte.getLongitud(), null);
+        PrioridadReporte prioridadCalculada = calcularPrioridadPorProximidad(reporte.getLatitud(), reporte.getLongitud(), categoria.getId(), null);
         reporte.setEstado(EstadoReporte.PENDIENTE);
         reporte.setPrioridad(prioridadCalculada);
 
@@ -72,7 +72,7 @@ public class ReporteService {
         procesarFotoBase64(reporte, request.getImagenUrl());
 
         Reporte guardado = reporteRepository.save(reporte);
-        escalarPrioridadCluster(guardado.getLatitud(), guardado.getLongitud(), guardado.getId(), prioridadCalculada);
+        escalarPrioridadCluster(guardado.getLatitud(), guardado.getLongitud(), categoria.getId(), guardado.getId(), prioridadCalculada);
 
         // Si se procesaron bytes en BD, fijar URL al endpoint local de descarga
         if (guardado.getFotoBytes() != null && guardado.getFotoBytes().length > 0) {
@@ -123,7 +123,7 @@ public class ReporteService {
                 categoria,
                 ciudadano
         );
-        PrioridadReporte prioridadCalculada = calcularPrioridadPorProximidad(reporte.getLatitud(), reporte.getLongitud(), null);
+        PrioridadReporte prioridadCalculada = calcularPrioridadPorProximidad(reporte.getLatitud(), reporte.getLongitud(), categoria.getId(), null);
         reporte.setEstado(EstadoReporte.PENDIENTE);
         reporte.setPrioridad(prioridadCalculada);
 
@@ -134,7 +134,7 @@ public class ReporteService {
         }
 
         Reporte guardado = reporteRepository.save(reporte);
-        escalarPrioridadCluster(guardado.getLatitud(), guardado.getLongitud(), guardado.getId(), prioridadCalculada);
+        escalarPrioridadCluster(guardado.getLatitud(), guardado.getLongitud(), categoria.getId(), guardado.getId(), prioridadCalculada);
 
         if (guardado.getFotoBytes() != null) {
             guardado.setImagenUrl("/api/reportes/" + guardado.getId() + "/foto");
@@ -566,13 +566,23 @@ public class ReporteService {
 
     /**
      * Calcula dinámicamente la prioridad según el número de reportes acumulados
-     * en un radio de proximidad geográfica de 100 metros (Escala Semáforo 1 a 10):
-     * - 1 reporte: BAJA (Verde #4CAF50 - Reporte aislado)
-     * - 2 a 4 reportes: MEDIA (Amarillo/Lima #8BC34A - Alerta moderada)
-     * - 5 a 7 reportes: ALTA (Naranja #FF9800 - Atención urgente)
-     * - 8 a 10+ reportes: CRITICA (Rojo #F44336 - Punto crítico de emergencia comunitaria)
+     * de la MISMA categoría en un radio de proximidad geográfica de 100 metros:
+     * - Categorías de alto riesgo físico (Alumbrado, Señalización, Alcantarillado):
+     *     * 1 reporte: MEDIA (Atención preventiva por riesgo físico)
+     *     * 2-3 reportes: ALTA (Intervención urgente en sector)
+     *     * 4+ reportes: CRITICA (Emergencia comunitaria en infraestructura de riesgo)
+     * - Categorías de malla vial y pavimento:
+     *     * 1 reporte: BAJA (Daño puntual)
+     *     * 2-4 reportes: MEDIA (Deterioro moderado acumulado)
+     *     * 5-7 reportes: ALTA (Afectación vial notable)
+     *     * 8+ reportes: CRITICA (Tramo intransitable)
+     * - Categorías de aseo, basuras y parques:
+     *     * 1-2 reportes: BAJA
+     *     * 3-5 reportes: MEDIA
+     *     * 6-8 reportes: ALTA
+     *     * 9+ reportes: CRITICA
      */
-    public PrioridadReporte calcularPrioridadPorProximidad(Double latitud, Double longitud, Long excluirReporteId) {
+    public PrioridadReporte calcularPrioridadPorProximidad(Double latitud, Double longitud, Long categoriaId, Long excluirReporteId) {
         if (latitud == null || longitud == null) {
             return PrioridadReporte.MEDIA;
         }
@@ -580,6 +590,8 @@ public class ReporteService {
         List<Reporte> activos = reporteRepository.findAll().stream()
                 .filter(r -> (excluirReporteId == null || !r.getId().equals(excluirReporteId))
                         && r.getLatitud() != null && r.getLongitud() != null
+                        && r.getCategoria() != null
+                        && (categoriaId == null || r.getCategoria().getId().equals(categoriaId))
                         && r.getEstado() != EstadoReporte.RECHAZADO
                         && r.getEstado() != EstadoReporte.CERRADO
                         && calcularDistanciaMetros(latitud, longitud, r.getLatitud(), r.getLongitud()) <= 100.0)
@@ -587,24 +599,57 @@ public class ReporteService {
 
         int totalCluster = activos.size() + 1; // Contando el nuevo reporte
 
-        if (totalCluster <= 1) {
+        Categoria cat = categoriaId != null ? categoriaRepository.findById(categoriaId).orElse(null) : null;
+        String catNombre = cat != null ? cat.getNombre().toLowerCase() : "";
+
+        // 1. Categorías de Alto Riesgo Inmediato: Alumbrado / Riesgo Eléctrico / Señalización / Alcantarillado
+        if (catNombre.contains("alumbrado") || catNombre.contains("luz") || catNombre.contains("poste") ||
+            catNombre.contains("señal") || catNombre.contains("semaforo") || catNombre.contains("semáforo") ||
+            catNombre.contains("alcantarill") || catNombre.contains("acueducto")) {
+
+            if (totalCluster <= 1) {
+                return PrioridadReporte.MEDIA;
+            } else if (totalCluster <= 3) {
+                return PrioridadReporte.ALTA;
+            } else {
+                return PrioridadReporte.CRITICA;
+            }
+        }
+
+        // 2. Malla Vial y Pavimento (Baches, hundimientos)
+        if (catNombre.contains("vía") || catNombre.contains("via") || catNombre.contains("pavimento") || catNombre.contains("calzada")) {
+            if (totalCluster <= 1) {
+                return PrioridadReporte.BAJA;
+            } else if (totalCluster <= 4) {
+                return PrioridadReporte.MEDIA;
+            } else if (totalCluster <= 7) {
+                return PrioridadReporte.ALTA;
+            } else {
+                return PrioridadReporte.CRITICA;
+            }
+        }
+
+        // 3. Basuras, Aseo y Parques
+        if (totalCluster <= 2) {
             return PrioridadReporte.BAJA;
-        } else if (totalCluster <= 4) {
+        } else if (totalCluster <= 5) {
             return PrioridadReporte.MEDIA;
-        } else if (totalCluster <= 7) {
+        } else if (totalCluster <= 8) {
             return PrioridadReporte.ALTA;
         } else {
             return PrioridadReporte.CRITICA;
         }
     }
 
-    private void escalarPrioridadCluster(Double latitud, Double longitud, Long reporteId, PrioridadReporte nuevaPrioridad) {
+    private void escalarPrioridadCluster(Double latitud, Double longitud, Long categoriaId, Long reporteId, PrioridadReporte nuevaPrioridad) {
         if (latitud == null || longitud == null) {
             return;
         }
         reporteRepository.findAll().stream()
                 .filter(r -> !r.getId().equals(reporteId)
                         && r.getLatitud() != null && r.getLongitud() != null
+                        && r.getCategoria() != null
+                        && (categoriaId == null || r.getCategoria().getId().equals(categoriaId))
                         && r.getEstado() != EstadoReporte.RECHAZADO
                         && r.getEstado() != EstadoReporte.CERRADO
                         && calcularDistanciaMetros(latitud, longitud, r.getLatitud(), r.getLongitud()) <= 100.0)
@@ -625,16 +670,19 @@ public class ReporteService {
                     }
                 });
 
-        // Calcular conteo de reportes en la misma zona geográfica y semáforo
-        if (reporte.getLatitud() != null && reporte.getLongitud() != null) {
+        // Calcular conteo de reportes en la misma zona geográfica y semáforo dentro de la MISMA categoría
+        if (reporte.getLatitud() != null && reporte.getLongitud() != null && reporte.getCategoria() != null) {
+            Long catId = reporte.getCategoria().getId();
+            String catNombre = reporte.getCategoria().getNombre();
             List<Reporte> cercanos = reporteRepository.findAll().stream()
                     .filter(r -> r.getLatitud() != null && r.getLongitud() != null
+                            && r.getCategoria() != null && r.getCategoria().getId().equals(catId)
                             && r.getEstado() != EstadoReporte.RECHAZADO
                             && r.getEstado() != EstadoReporte.CERRADO
                             && calcularDistanciaMetros(reporte.getLatitud(), reporte.getLongitud(), r.getLatitud(), r.getLongitud()) <= 100.0)
                     .collect(Collectors.toList());
             int clusterCount = Math.max(1, cercanos.size());
-            SemaforoDTO sem = SemaforoDTO.calcular(clusterCount);
+            SemaforoDTO sem = SemaforoDTO.calcularPorCategoria(clusterCount, catNombre);
             response.setReportesCercanos(clusterCount);
             response.setSemaforoColorHex(sem.getColorHex());
             response.setSemaforoNivel(sem.getNivelAlerta());
