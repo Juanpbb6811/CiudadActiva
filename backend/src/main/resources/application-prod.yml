@@ -10,3 +10,26 @@ spring:
     hibernate:
       ddl-auto: ${JPA_DDL_AUTO:none}
     show-sql: false
+
+  mail:
+    host: ${SPRING_MAIL_HOST:smtp.gmail.com}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME:juanpablobejarano0@gmail.com}
+    password: ${SPRING_MAIL_PASSWORD:soutnfebbtijprmp}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            trust: "smtp.gmail.com"
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
+
+app:
+  mail:
+    provider: ${MAIL_PROVIDER:smtp}
+    from: ${MAIL_FROM:CiudadActiva <juanpablobejarano0@gmail.com>}

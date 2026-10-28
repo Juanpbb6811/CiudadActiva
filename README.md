@@ -4,38 +4,32 @@ Sistema integral para el reporte, validación, asignación operativa y seguimien
 
 ---
 
-## 📲 Descargar App Android (Release v0.2.0)
+## 📲 Descargar App Android (Release v0.2.1)
 
 Ya puedes instalar y probar la versión oficial y firmada de CiudadActiva directamente en tu dispositivo Android o emulador:
 
-[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.2.0_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.2.0.apk)
+[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.2.1_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.2.1.apk)
 [![Servidor Cloud](https://img.shields.io/badge/Descarga_Directa-Cloud_Render-blueviolet?style=for-the-badge&logo=render&logoColor=white)](https://ciudadactiva-4ah7.onrender.com/descargar)
-[![GitHub Release](https://img.shields.io/badge/Release_Tag-v0.2.0-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.2.0)
+[![GitHub Release](https://img.shields.io/badge/Release_Tag-v0.2.1-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.2.1)
 
 ### 📥 Enlaces de descarga directa:
-* 🌐 **[Servidor Oficial en la Nube (Render): Descargar CiudadActiva-v0.2.0.apk (12.3 MB)](https://ciudadactiva-4ah7.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
-* 🐙 **[GitHub Directo: Descargar CiudadActiva-v0.2.0.apk (12.3 MB)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.2.0.apk)**
+* 🌐 **[Servidor Oficial en la Nube (Render): Descargar CiudadActiva-v0.2.1.apk (12.3 MB)](https://ciudadactiva-4ah7.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
+* 🐙 **[GitHub Directo: Descargar CiudadActiva-v0.2.1.apk (12.3 MB)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.2.1.apk)**
 
 ### 🛠️ Instrucciones de Instalación en Android:
-1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.2.0.apk`.
+1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.2.1.apk`.
 2. Al finalizar la descarga, presiona **Abrir** (o ve a tu app de **Archivos / Descargas** y tócalo).
 3. Si el sistema muestra el aviso de seguridad de Android / Xiaomi, activa la opción **Confiar en esta fuente / Instalar aplicaciones desconocidas**.
 4. Pulsa **Instalar** y ¡listo!
 
-### ✨ Novedades de la versión v0.2.0:
-- 📧 **Envío Real de Correos Transaccionales (Resend API & SMTP)**:
-  - Integración de `EmailService` en Spring Boot 3.4 con plantilla HTML institucional de alta fidelidad para códigos OTP.
-  - Soporte nativo para **Resend API** (3.000 emails/mes gratis sobre HTTPS puerto 443, inmune a bloqueos de firewalls) y para **SMTP** (Gmail App Passwords / Brevo / Outlook).
-- 🔒 **Eliminación Total de Fugas y Autocompletado de Códigos OTP en la App**:
-  - Se eliminó el chip de autocompletado y la filtración del código en las respuestas del servidor.
-  - El usuario debe revisar su bandeja de correo electrónico real (o carpeta de spam) e ingresar manualmente los 6 dígitos recibidos.
-  - Temporizador de enfriamiento de 60 segundos para reenvío seguro de códigos OTP.
-- 🏙️ **Integración de Ciudad y Departamento en la API y Base de Datos**:
-  - Incorporación formal de las columnas `ciudad` y `departamento` en la entidad `Reporte` y en los contratos DTO del backend (`ReporteCreateRequest`, `ReporteResponse`).
-- 📍 **Detección Automática y Dinámica de Barrio / Sector según la Posición en el Mapa**:
-  - Georreferenciación inversa multietapa (Android Geocoder nativo, OpenStreetMap Nominatim y motor heurístico de coordenadas colombianas 100% offline).
-- 🚫 **Eliminación de Direcciones Genéricas Forzadas**:
-  - El formulario no pre-asigna direcciones fijas o genéricas ni obliga a inventar nomenclaturas artificiales.
+### ✨ Novedades de la versión v0.2.1:
+- 🚀 **Conexión Exitosa y Activación de Gmail SMTP**:
+  - Servicio de correo activo con autenticación oficial de Google (`smtp.gmail.com:587`, TLS 1.3/1.2).
+  - Los códigos de verificación de cuenta y recuperación de contraseña ahora se despachan y entregan inmediatamente a las bandejas reales de los usuarios (con firma DKIM y SPF de Google para evitar spam).
+- 🔒 **Seguridad OTP Completa y Sin Filtraciones**:
+  - Sin autocompletado en pantalla ni fugas en respuestas HTTP. El usuario recibe su código en el correo y lo introduce de forma segura en la interfaz de 6 casillas.
+- 🏙️ **Georreferenciación Automática**:
+  - Inclusión de Ciudad, Departamento y detección dinámica de Barrio según coordenadas del mapa.
 
 ---
 

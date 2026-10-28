@@ -145,7 +145,7 @@ public class EmailService {
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(smtpUsername);
+            helper.setFrom(smtpUsername, "CiudadActiva");
             helper.setTo(toEmail);
             helper.setSubject(asunto);
             helper.setText(html, true);
