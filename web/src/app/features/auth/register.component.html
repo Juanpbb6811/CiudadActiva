@@ -38,3 +38,21 @@
     </form>
   </div>
 </div>
+
+@if (otpModal()) {
+  <app-modal title="Verificación de Correo" (closed)="otpModal.set(false)">
+    <p class="muted small mb">Hemos enviado un código OTP de 6 dígitos a <b>{{ emailRegistrado }}</b>. Ingrésalo para activar tu cuenta ciudadana:</p>
+    <label class="field">
+      <span>Código OTP de 6 dígitos</span>
+      <input type="text" maxlength="6" [(ngModel)]="codigoOtp" placeholder="000000" style="text-align:center;font-size:22px;letter-spacing:6px;font-weight:700" />
+    </label>
+    @if (otpExito()) { <div class="alert ok"><app-icon name="check-circle" [size]="16" /><span>{{ otpExito() }}</span></div> }
+    @if (otpError()) { <div class="alert error"><app-icon name="alert" [size]="16" /><span>{{ otpError() }}</span></div> }
+    <ng-container footer>
+      <button class="btn ghost" type="button" [disabled]="otpCargando()" (click)="reenviarOtp()">Reenviar Código</button>
+      <button class="btn primary" type="button" [disabled]="otpCargando()" (click)="confirmarOtp()">
+        {{ otpCargando() ? 'Verificando...' : 'Verificar y Entrar' }}
+      </button>
+    </ng-container>
+  </app-modal>
+}

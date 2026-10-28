@@ -23,6 +23,30 @@ export class ApiService {
   registrar(body: M.RegisterRequest): Observable<M.AuthResponse> {
     return this.http.post<M.ApiResponse<M.AuthResponse>>(this.url('auth/register'), body).pipe(this.data());
   }
+  verificarCodigo(body: M.VerificarCodigoRequest): Observable<M.AuthResponse> {
+    return this.http.post<M.ApiResponse<M.AuthResponse>>(this.url('auth/verificar-codigo'), body).pipe(this.data());
+  }
+  reenviarCodigo(body: M.ReenviarCodigoRequest): Observable<string> {
+    return this.http.post<M.ApiResponse<string>>(this.url('auth/reenviar-codigo'), body).pipe(this.data());
+  }
+  solicitarRecuperacionPassword(body: M.ForgotPasswordRequest): Observable<string> {
+    return this.http.post<M.ApiResponse<string>>(this.url('auth/recuperar-password'), body).pipe(this.data());
+  }
+  resetPassword(body: M.ResetPasswordRequest): Observable<string> {
+    return this.http.post<M.ApiResponse<string>>(this.url('auth/reset-password'), body).pipe(this.data());
+  }
+  cambiarPassword(body: M.CambiarPasswordRequest): Observable<string> {
+    return this.http.post<M.ApiResponse<string>>(this.url('auth/cambiar-password'), body).pipe(this.data());
+  }
+  urlDescargarApk(): string {
+    return `${this.cfg.baseUrl()}/descargar`;
+  }
+  urlSwaggerDocs(): string {
+    return `${this.cfg.baseUrl()}/swagger-ui/index.html`;
+  }
+  healthCheck(): Observable<any> {
+    return this.http.get<any>(`${this.cfg.baseUrl()}/api/health`);
+  }
   miPerfil(): Observable<M.Usuario> {
     return this.http.get<M.ApiResponse<M.Usuario>>(this.url('usuarios/me')).pipe(this.data());
   }

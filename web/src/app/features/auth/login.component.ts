@@ -33,6 +33,24 @@ export class LoginComponent {
   error = signal('');
   expirada = !!this.route.snapshot.queryParamMap.get('expirada');
 
+  // Recuperación de Contraseña con OTP
+  recuperarModal = signal(false);
+  recuperarPaso = signal<1 | 2>(1);
+  recuperarEmail = '';
+  recuperarCodigo = '';
+  recuperarNuevaPass = '';
+  recuperarCargando = signal(false);
+  recuperarMensaje = signal('');
+  recuperarError = signal('');
+
+  // Verificación de Cuenta OTP
+  verificarModal = signal(false);
+  verificarEmail = '';
+  verificarCodigo = '';
+  verificarCargando = signal(false);
+  verificarMensaje = signal('');
+  verificarError = signal('');
+
   // Diálogo "Conexión del Backend"
   servidorAbierto = signal(false);
   urlServidor = '';
@@ -53,7 +71,103 @@ export class LoginComponent {
       },
       error: (e) => {
         this.cargando.set(false);
-        this.error.set(e.status === 401 || e.status === 403 ? 'Credenciales inválidas. Verifica tu correo y contraseña.' : mensajeError(e));
+        const msg = mensajeError(e);
+        if (msg.toLowerCase().includes('verificar') || msg.toLowerCase().includes('inactiva') || msg.toLowerCase().includes('código')) {
+          this.verificarEmail = email.trim().toLowerCase();
+          this.verificarModal.set(true);
+        } else {
+          this.error.set(e.status === 401 || e.status === 403 ? 'Credenciales inválidas. Verifica tu correo y contraseña.' : msg);
+        }
+      },
+    });
+  }
+
+  cargarDemo(email: string, pass = 'Ciudadano123*'): void {
+    this.form.patchValue({ email, password: pass });
+  }
+
+  abrirRecuperar(): void {
+    this.recuperarEmail = this.form.get('email')?.value || '';
+    this.recuperarPaso.set(1);
+    this.recuperarMensaje.set('');
+    this.recuperarError.set('');
+    this.recuperarModal.set(true);
+  }
+
+  solicitarOtpRecuperacion(): void {
+    if (!this.recuperarEmail.trim()) { this.recuperarError.set('Ingresa tu correo'); return; }
+    this.recuperarCargando.set(true);
+    this.recuperarError.set('');
+    this.api.solicitarRecuperacionPassword({ email: this.recuperarEmail.trim().toLowerCase() }).subscribe({
+      next: (msg) => {
+        this.recuperarCargando.set(false);
+        this.recuperarMensaje.set(msg || 'Código OTP enviado a tu correo.');
+        this.recuperarPaso.set(2);
+      },
+      error: (e) => {
+        this.recuperarCargando.set(false);
+        this.recuperarError.set(mensajeError(e, 'No se pudo enviar el código de recuperación.'));
+      },
+    });
+  }
+
+  confirmarResetPassword(): void {
+    if (!this.recuperarCodigo.trim() || !this.recuperarNuevaPass.trim()) {
+      this.recuperarError.set('Ingresa el código OTP y tu nueva contraseña');
+      return;
+    }
+    this.recuperarCargando.set(true);
+    this.recuperarError.set('');
+    this.api.resetPassword({
+      email: this.recuperarEmail.trim().toLowerCase(),
+      codigo: this.recuperarCodigo.trim(),
+      nuevaPassword: this.recuperarNuevaPass.trim(),
+    }).subscribe({
+      next: () => {
+        this.recuperarCargando.set(false);
+        this.recuperarModal.set(false);
+        this.form.patchValue({ email: this.recuperarEmail.trim().toLowerCase(), password: this.recuperarNuevaPass });
+        this.ingresar();
+      },
+      error: (e) => {
+        this.recuperarCargando.set(false);
+        this.recuperarError.set(mensajeError(e, 'Código OTP inválido o expirado.'));
+      },
+    });
+  }
+
+  confirmarActivacionOtp(): void {
+    if (!this.verificarCodigo.trim()) { this.verificarError.set('Ingresa el código de 6 dígitos'); return; }
+    this.verificarCargando.set(true);
+    this.verificarError.set('');
+    this.api.verificarCodigo({
+      email: this.verificarEmail.trim().toLowerCase(),
+      codigo: this.verificarCodigo.trim(),
+    }).subscribe({
+      next: (auth) => {
+        this.verificarCargando.set(false);
+        this.verificarModal.set(false);
+        this.session.save(auth.token, auth.usuario, true);
+        this.router.navigateByUrl(homePorRol(auth.usuario.rol), { replaceUrl: true });
+      },
+      error: (e) => {
+        this.verificarCargando.set(false);
+        this.verificarError.set(mensajeError(e, 'Código OTP no válido o expirado.'));
+      },
+    });
+  }
+
+  reenviarOtpActivacion(): void {
+    if (!this.verificarEmail.trim()) return;
+    this.verificarCargando.set(true);
+    this.api.reenviarCodigo({ email: this.verificarEmail.trim().toLowerCase(), tipo: 'VERIFICACION' }).subscribe({
+      next: (msg) => {
+        this.verificarCargando.set(false);
+        this.verificarMensaje.set(msg || 'Nuevo código enviado con éxito.');
+      },
+      error: (e) => {
+        this.verificarCargando.set(false);
+        this.verificarError.set(mensajeError(e, 'No se pudo reenviar el código.'));
       },
     });
   }

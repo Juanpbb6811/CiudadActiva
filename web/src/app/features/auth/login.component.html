@@ -32,6 +32,7 @@
 
       <div class="row between">
         <label class="check"><input type="checkbox" formControlName="remember" /> Recordar sesión</label>
+        <button type="button" class="link xs" (click)="abrirRecuperar()">¿Olvidaste tu contraseña?</button>
       </div>
 
       @if (error()) { <div class="alert error"><app-icon name="alert" [size]="18" /><span>{{ error() }}</span></div> }
@@ -41,14 +42,82 @@
       </button>
     </form>
 
+    <div class="divider">Acceso Rápido Demo</div>
+    <div class="pills mb" style="justify-content:center">
+      <button type="button" class="pill" (click)="cargarDemo('ciudadano@ciudadactiva.gov.co')">Ciudadano</button>
+      <button type="button" class="pill" (click)="cargarDemo('gestor@ciudadactiva.gov.co', 'Gestor123*')">Gestor</button>
+      <button type="button" class="pill" (click)="cargarDemo('operador@ciudadactiva.gov.co', 'Operador123*')">Operador</button>
+      <button type="button" class="pill" (click)="cargarDemo('admin@ciudadactiva.gov.co', 'Admin123*')">Admin</button>
+    </div>
+
     <div class="divider">¿No tienes una cuenta aún?</div>
     <a routerLink="/register" class="btn ghost block">Crear cuenta de Ciudadano</a>
 
     <p class="center mt-lg xs muted">
-      Servidor: {{ cfg.baseUrl() }} · <button type="button" class="link xs" (click)="abrirServidor()">Cambiar</button>
+      <a routerLink="/" class="link xs">← Volver al Portal de Descarga</a> · Servidor: {{ cfg.baseUrl() }} · <button type="button" class="link xs" (click)="abrirServidor()">Cambiar</button>
     </p>
   </div>
 </div>
+
+@if (recuperarModal()) {
+  <app-modal title="Recuperar Contraseña" (closed)="recuperarModal.set(false)">
+    @if (recuperarPaso() === 1) {
+      <p class="muted small mb">Ingresa tu correo institucional o personal para enviarte un código OTP de recuperación de 6 dígitos:</p>
+      <label class="field">
+        <span>Correo Electrónico</span>
+        <input type="email" [(ngModel)]="recuperarEmail" placeholder="ejemplo@correo.com" />
+      </label>
+      @if (recuperarError()) { <div class="alert error"><app-icon name="alert" [size]="16" /><span>{{ recuperarError() }}</span></div> }
+    } @else {
+      <div class="alert ok mb">
+        <app-icon name="check-circle" [size]="16" />
+        <span>{{ recuperarMensaje() }}</span>
+      </div>
+      <p class="muted small mb">Ingresa el código OTP que enviamos a tu correo y tu nueva contraseña:</p>
+      <label class="field">
+        <span>Código OTP de 6 dígitos</span>
+        <input type="text" maxlength="6" [(ngModel)]="recuperarCodigo" placeholder="Ej: 492810" style="text-align:center;font-size:18px;letter-spacing:4px" />
+      </label>
+      <label class="field">
+        <span>Nueva Contraseña</span>
+        <input type="password" [(ngModel)]="recuperarNuevaPass" placeholder="Mínimo 6 caracteres" />
+      </label>
+      @if (recuperarError()) { <div class="alert error"><app-icon name="alert" [size]="16" /><span>{{ recuperarError() }}</span></div> }
+    }
+
+    <ng-container footer>
+      @if (recuperarPaso() === 1) {
+        <button class="btn ghost" type="button" (click)="recuperarModal.set(false)">Cancelar</button>
+        <button class="btn primary" type="button" [disabled]="recuperarCargando()" (click)="solicitarOtpRecuperacion()">
+          {{ recuperarCargando() ? 'Enviando OTP...' : 'Enviar Código OTP' }}
+        </button>
+      } @else {
+        <button class="btn ghost" type="button" (click)="recuperarPaso.set(1)">Atrás</button>
+        <button class="btn primary" type="button" [disabled]="recuperarCargando()" (click)="confirmarResetPassword()">
+          {{ recuperarCargando() ? 'Actualizando...' : 'Cambiar Contraseña e Ingresar' }}
+        </button>
+      }
+    </ng-container>
+  </app-modal>
+}
+
+@if (verificarModal()) {
+  <app-modal title="Activar Cuenta con OTP" (closed)="verificarModal.set(false)">
+    <p class="muted small mb">Tu cuenta requiere verificación. Ingresa el código OTP de 6 dígitos enviado a <b>{{ verificarEmail }}</b>:</p>
+    <label class="field">
+      <span>Código OTP</span>
+      <input type="text" maxlength="6" [(ngModel)]="verificarCodigo" placeholder="000000" style="text-align:center;font-size:20px;letter-spacing:6px" />
+    </label>
+    @if (verificarMensaje()) { <div class="alert ok"><app-icon name="check-circle" [size]="16" /><span>{{ verificarMensaje() }}</span></div> }
+    @if (verificarError()) { <div class="alert error"><app-icon name="alert" [size]="16" /><span>{{ verificarError() }}</span></div> }
+    <ng-container footer>
+      <button class="btn ghost" type="button" [disabled]="verificarCargando()" (click)="reenviarOtpActivacion()">Reenviar Código</button>
+      <button class="btn primary" type="button" [disabled]="verificarCargando()" (click)="confirmarActivacionOtp()">
+        {{ verificarCargando() ? 'Verificando...' : 'Activar Cuenta' }}
+      </button>
+    </ng-container>
+  </app-modal>
+}
 
 @if (servidorAbierto()) {
   <app-modal title="Conexión del Backend" (closed)="servidorAbierto.set(false)">

@@ -7,7 +7,8 @@ import { ShellComponent } from './shared/shell.component';
  * data.nav: 'tab' (pantalla principal con barra), 'detail' (sin barra en móvil), 'none' (asistente sin menú).
  */
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'splash' },
+  { path: '', loadComponent: () => import('./features/landing/landing.component').then((m) => m.LandingComponent) },
+  { path: 'portal', loadComponent: () => import('./features/landing/landing.component').then((m) => m.LandingComponent) },
   { path: 'splash', loadComponent: () => import('./features/auth/splash.component').then((m) => m.SplashComponent) },
   { path: 'login', canActivate: [guestGuard], loadComponent: () => import('./features/auth/login.component').then((m) => m.LoginComponent) },
   { path: 'register', canActivate: [guestGuard], loadComponent: () => import('./features/auth/register.component').then((m) => m.RegisterComponent) },

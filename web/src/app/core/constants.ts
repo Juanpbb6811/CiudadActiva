@@ -6,6 +6,11 @@ export const ROLES: Rol[] = ['ROLE_CIUDADANO', 'ROLE_GESTOR', 'ROLE_OPERADOR', '
 
 export interface EstadoStyle { bg: string; text: string; border: string; }
 
+export function etiquetaEstado(estado: string | null | undefined): string {
+  if (!estado) return 'PENDIENTE';
+  return estado.replace(/_/g, ' ');
+}
+
 /** Paleta semántica por estado (ui/theme/Color.kt + StatusChip.kt). */
 export function estadoStyle(estado: string | null | undefined): EstadoStyle {
   switch ((estado ?? '').toUpperCase().replace(/ /g, '_')) {

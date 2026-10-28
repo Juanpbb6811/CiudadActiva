@@ -14,6 +14,11 @@ export interface ApiResponse<T> {
 // ---------- Auth / Usuarios ----------
 export interface LoginRequest { email: string; password: string; }
 export interface RegisterRequest { nombre: string; email: string; password: string; telefono?: string | null; direccion?: string | null; }
+export interface VerificarCodigoRequest { email: string; codigo: string; }
+export interface ReenviarCodigoRequest { email: string; tipo?: string | null; }
+export interface ForgotPasswordRequest { email: string; }
+export interface ResetPasswordRequest { email: string; codigo: string; nuevaPassword: string; }
+export interface CambiarPasswordRequest { passwordActual: string; nuevaPassword: string; }
 export interface Usuario {
   id: number; nombre: string; email: string; telefono?: string | null; direccion?: string | null;
   fotoUrl?: string | null; activo: boolean; rol: Rol; laboresActivas?: number | null; creadoEn?: string | null;
