@@ -31,5 +31,12 @@ spring:
 
 app:
   mail:
-    provider: ${MAIL_PROVIDER:smtp}
+    provider: ${MAIL_PROVIDER:auto}
     from: ${MAIL_FROM:CiudadActiva <juanpablobejarano0@gmail.com>}
+    resend-api-key: ${RESEND_API_KEY:}
+    brevo-api-key: ${BREVO_API_KEY:}
+
+management:
+  health:
+    mail:
+      enabled: false

@@ -29,6 +29,9 @@ public class EmailService {
     @Value("${app.mail.resend-api-key:}")
     private String resendApiKey;
 
+    @Value("${app.mail.brevo-api-key:}")
+    private String brevoApiKey;
+
     @Value("${spring.mail.username:}")
     private String smtpUsername;
 
@@ -85,7 +88,20 @@ public class EmailService {
             }
         }
 
-        // 2. Intento con SMTP (JavaMailSender / Gmail / Brevo)
+        // 2. Intento con Brevo API (HTTP REST en puerto 443, no bloqueado por firewalls de hosting)
+        if (brevoApiKey != null && !brevoApiKey.isBlank() && !"smtp".equalsIgnoreCase(mailProvider)) {
+            try {
+                enviado = enviarViaBrevo(toEmail, asunto, html);
+                if (enviado) {
+                    log.info("📧 Correo de {} enviado con éxito a {} mediante Brevo API.", tipo, toEmail);
+                    return true;
+                }
+            } catch (Exception e) {
+                log.warn("Fallo al enviar correo con Brevo API ({}): {}. Intentando alternativa...", tipo, e.getMessage());
+            }
+        }
+
+        // 3. Intento con SMTP (JavaMailSender / Gmail / Brevo SMTP)
         if (javaMailSender != null && smtpUsername != null && !smtpUsername.isBlank()) {
             try {
                 enviado = enviarViaSmtp(toEmail, asunto, html);
@@ -94,7 +110,7 @@ public class EmailService {
                     return true;
                 }
             } catch (Exception e) {
-                log.warn("Fallo al enviar correo con SMTP ({}): {}", tipo, e.getMessage());
+                log.warn("Fallo al enviar correo con SMTP ({}): {}. (Nota: Render capa gratuita bloquea puertos SMTP 25, 465 y 587. Configura RESEND_API_KEY o BREVO_API_KEY para envío HTTPS garantizado en Render).", tipo, e.getMessage());
             }
         }
 
@@ -137,6 +153,35 @@ public class EmailService {
             return true;
         } else {
             throw new RuntimeException("Resend API retornó status " + response.statusCode() + ": " + response.body());
+        }
+    }
+
+    private boolean enviarViaBrevo(String toEmail, String asunto, String html) throws Exception {
+        String remitenteEmail = (smtpUsername != null && !smtpUsername.isBlank()) ? smtpUsername : "juanpablobejarano0@gmail.com";
+        String jsonPayload = String.format(
+                "{\"sender\":{\"name\":\"CiudadActiva\",\"email\":%s},\"to\":[{\"email\":%s}],\"subject\":%s,\"htmlContent\":%s}",
+                escapeJson(remitenteEmail),
+                escapeJson(toEmail),
+                escapeJson(asunto),
+                escapeJson(html)
+        );
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.brevo.com/v3/smtp/email"))
+                .header("api-key", brevoApiKey.trim())
+                .header("accept", "application/json")
+                .header("content-type", "application/json")
+                .header("User-Agent", "CiudadActiva-Backend/1.0")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
+                .timeout(Duration.ofSeconds(8))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() >= 200 && response.statusCode() < 300) {
+            return true;
+        } else {
+            throw new RuntimeException("Brevo API retornó status " + response.statusCode() + ": " + response.body());
         }
     }
 

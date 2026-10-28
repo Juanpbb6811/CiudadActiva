@@ -71,9 +71,10 @@ spring:
 # Configuración JWT y Correo para autenticación segura
 app:
   mail:
-    provider: ${MAIL_PROVIDER:smtp} # Activo: smtp (Gmail con credenciales del usuario)
+    provider: ${MAIL_PROVIDER:auto} # auto: prueba HTTP APIs (Resend/Brevo) primero para evadir bloqueo de puertos en Render, luego SMTP
     from: ${MAIL_FROM:CiudadActiva <juanpablobejarano0@gmail.com>}
     resend-api-key: ${RESEND_API_KEY:}
+    brevo-api-key: ${BREVO_API_KEY:}
   jwt:
     secret: ${JWT_SECRET:CiudadActivaSecretKey2026SecureKeyWithMoreThan256BitsLongForHMACSHA256Algorithm}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000} # 24 horas
@@ -87,6 +88,9 @@ management:
   endpoint:
     health:
       show-details: always
+  health:
+    mail:
+      enabled: false
 
 # Configuración Swagger OpenAPI
 springdoc:
