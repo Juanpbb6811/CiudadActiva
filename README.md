@@ -4,36 +4,66 @@ Sistema integral para el reporte, validación, asignación operativa y seguimien
 
 ---
 
-## 📲 Descargar App Android (Release v0.1.9)
+## 📲 Descargar App Android (Release v0.2.0)
 
 Ya puedes instalar y probar la versión oficial y firmada de CiudadActiva directamente en tu dispositivo Android o emulador:
 
-[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.1.9_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.9.apk)
+[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.2.0_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.2.0.apk)
 [![Servidor Cloud](https://img.shields.io/badge/Descarga_Directa-Cloud_Render-blueviolet?style=for-the-badge&logo=render&logoColor=white)](https://ciudadactiva-4ah7.onrender.com/descargar)
-[![GitHub Release](https://img.shields.io/badge/Release_Tag-v0.1.9-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.1.9)
+[![GitHub Release](https://img.shields.io/badge/Release_Tag-v0.2.0-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.2.0)
 
 ### 📥 Enlaces de descarga directa:
-* 🌐 **[Servidor Oficial en la Nube (Render): Descargar CiudadActiva-v0.1.9.apk (12.3 MB)](https://ciudadactiva-4ah7.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
-* 🐙 **[GitHub Directo: Descargar CiudadActiva-v0.1.9.apk (12.3 MB)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.9.apk)**
+* 🌐 **[Servidor Oficial en la Nube (Render): Descargar CiudadActiva-v0.2.0.apk (12.3 MB)](https://ciudadactiva-4ah7.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
+* 🐙 **[GitHub Directo: Descargar CiudadActiva-v0.2.0.apk (12.3 MB)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.2.0.apk)**
 
 ### 🛠️ Instrucciones de Instalación en Android:
-1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.1.9.apk`.
+1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.2.0.apk`.
 2. Al finalizar la descarga, presiona **Abrir** (o ve a tu app de **Archivos / Descargas** y tócalo).
 3. Si el sistema muestra el aviso de seguridad de Android / Xiaomi, activa la opción **Confiar en esta fuente / Instalar aplicaciones desconocidas**.
 4. Pulsa **Instalar** y ¡listo!
 
-### ✨ Novedades de la versión v0.1.9:
+### ✨ Novedades de la versión v0.2.0:
+- 📧 **Envío Real de Correos Transaccionales (Resend API & SMTP)**:
+  - Integración de `EmailService` en Spring Boot 3.4 con plantilla HTML institucional de alta fidelidad para códigos OTP.
+  - Soporte nativo para **Resend API** (3.000 emails/mes gratis sobre HTTPS puerto 443, inmune a bloqueos de firewalls) y para **SMTP** (Gmail App Passwords / Brevo / Outlook).
+- 🔒 **Eliminación Total de Fugas y Autocompletado de Códigos OTP en la App**:
+  - Se eliminó el chip de autocompletado y la filtración del código en las respuestas del servidor.
+  - El usuario debe revisar su bandeja de correo electrónico real (o carpeta de spam) e ingresar manualmente los 6 dígitos recibidos.
+  - Temporizador de enfriamiento de 60 segundos para reenvío seguro de códigos OTP.
 - 🏙️ **Integración de Ciudad y Departamento en la API y Base de Datos**:
   - Incorporación formal de las columnas `ciudad` y `departamento` en la entidad `Reporte` y en los contratos DTO del backend (`ReporteCreateRequest`, `ReporteResponse`).
-  - Migración DDL automática y retroactiva en PostgreSQL / Supabase para reportes existentes.
 - 📍 **Detección Automática y Dinámica de Barrio / Sector según la Posición en el Mapa**:
   - Georreferenciación inversa multietapa (Android Geocoder nativo, OpenStreetMap Nominatim y motor heurístico de coordenadas colombianas 100% offline).
-  - Al tocar cualquier punto del mapa o pulsar el botón de GPS, el barrio, la ciudad y el departamento se actualizan y reflejan en tiempo real.
 - 🚫 **Eliminación de Direcciones Genéricas Forzadas**:
-  - El formulario ya no pre-asigna direcciones fijas o genéricas ni obliga a inventar nomenclaturas artificiales.
-  - La ubicación principal se apoya en los datos geográficos legítimos (Barrio, Ciudad, Departamento), permitiendo ingresar detalles adicionales o referencias locales de forma opcional.
-- 🏷️ **Visualización de Ubicación Legible en Todas las Vistas**:
-  - Todas las tarjetas de reporte (Home, Feed Comunitario, Mis Reportes, Timeline de Seguimiento, Bandeja del Gestor, Órdenes del Operador y Consola del Administrador) muestran ahora la ubicación georreferenciada clara (`[Barrio], [Ciudad] • [Departamento]`).
+  - El formulario no pre-asigna direcciones fijas o genéricas ni obliga a inventar nomenclaturas artificiales.
+
+---
+
+## ⚙️ Configuración del Envío de Correos (Activación en 1 minuto)
+
+Para que los correos con el código OTP lleguen a la bandeja real de entrada de los usuarios registrados, configura cualquiera de estas dos opciones gratuitas en tu panel de **Render (Environment Tab)** o en tu archivo `application.yml`:
+
+### Opción A: Resend API (Recomendada - Sin bloqueos de puertos en la nube)
+1. Crea una cuenta gratuita en [resend.com](https://resend.com).
+2. Ve a **API Keys** y genera una clave gratuita (`re_...`).
+3. Agrega las siguientes variables de entorno:
+```env
+MAIL_PROVIDER=resend
+RESEND_API_KEY=re_tu_clave_api_aqui
+MAIL_FROM=CiudadActiva <onboarding@resend.dev>
+```
+
+### Opción B: Gmail SMTP (Con Contraseña de Aplicación de Google)
+1. Ve a [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) con tu cuenta de Google (debe tener verificación en dos pasos activa).
+2. Escribe de nombre `CiudadActiva` y genera la clave de 16 caracteres.
+3. Agrega las siguientes variables de entorno:
+```env
+MAIL_PROVIDER=smtp
+SPRING_MAIL_HOST=smtp.gmail.com
+SPRING_MAIL_PORT=587
+SPRING_MAIL_USERNAME=tu_correo@gmail.com
+SPRING_MAIL_PASSWORD=tu_clave_de_16_caracteres_sin_espacios
+```
     - **ATENDIDO**: Violeta / Púrpura
     - **CERRADO**: Verde oliva / Lima
     - **RECHAZADO**: Rojo carmesí

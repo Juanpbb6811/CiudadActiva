@@ -24,18 +24,21 @@ public class AuthService {
     private final RolRepository rolRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final EmailService emailService;
     private final SecureRandom secureRandom = new SecureRandom();
 
     public AuthService(
             UsuarioRepository usuarioRepository,
             RolRepository rolRepository,
             PasswordEncoder passwordEncoder,
-            JwtTokenProvider jwtTokenProvider
+            JwtTokenProvider jwtTokenProvider,
+            EmailService emailService
     ) {
         this.usuarioRepository = usuarioRepository;
         this.rolRepository = rolRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.emailService = emailService;
     }
 
     @Transactional
@@ -66,9 +69,12 @@ public class AuthService {
         Usuario guardado = usuarioRepository.save(usuario);
         String token = jwtTokenProvider.generarToken(guardado);
 
+        // Envío de correo real con el código OTP
+        emailService.enviarCodigoVerificacion(guardado.getEmail(), guardado.getNombre(), codigoOtp);
+
         AuthResponse response = new AuthResponse(token, new UsuarioResponse(guardado));
         response.setRequiereVerificacion(true);
-        response.setCodigoGeneradoDemo(codigoOtp);
+        response.setCodigoGeneradoDemo(null);
         return response;
     }
 
@@ -138,7 +144,9 @@ public class AuthService {
         usuario.setCodigoRecuperacionExpira(LocalDateTime.now().plusMinutes(15));
         usuarioRepository.save(usuario);
 
-        return "Código de recuperación generado con éxito: " + codigoOtp;
+        emailService.enviarCodigoRecuperacion(usuario.getEmail(), usuario.getNombre(), codigoOtp);
+
+        return "Se ha enviado un código de recuperación de 6 dígitos a tu correo electrónico.";
     }
 
     @Transactional
@@ -193,12 +201,14 @@ public class AuthService {
             usuario.setCodigoRecuperacion(codigoOtp);
             usuario.setCodigoRecuperacionExpira(LocalDateTime.now().plusMinutes(15));
             usuarioRepository.save(usuario);
-            return "Nuevo código de recuperación generado: " + codigoOtp;
+            emailService.enviarCodigoRecuperacion(usuario.getEmail(), usuario.getNombre(), codigoOtp);
+            return "Se ha reenviado un nuevo código de recuperación a tu correo electrónico.";
         } else {
             usuario.setCodigoVerificacion(codigoOtp);
             usuario.setCodigoVerificacionExpira(LocalDateTime.now().plusMinutes(15));
             usuarioRepository.save(usuario);
-            return "Nuevo código de verificación generado: " + codigoOtp;
+            emailService.enviarCodigoVerificacion(usuario.getEmail(), usuario.getNombre(), codigoOtp);
+            return "Se ha reenviado un nuevo código de verificación a tu correo electrónico.";
         }
     }
 }

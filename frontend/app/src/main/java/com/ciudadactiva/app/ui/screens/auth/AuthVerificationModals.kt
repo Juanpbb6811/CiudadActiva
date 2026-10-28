@@ -47,7 +47,7 @@ fun ModalVerificarCuenta(
     onVerificadoExitoso: () -> Unit,
     viewModel: AuthViewModel
 ) {
-    var otp by remember { mutableStateOf(demoCode ?: "") }
+    var otp by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var exitoMessage by remember { mutableStateOf<String?>(null) }
@@ -137,31 +137,26 @@ fun ModalVerificarCuenta(
                     isError = errorMessage != null
                 )
 
-                // Sugerencia de código demo para pruebas rápidas
-                if (!demoCode.isNullOrBlank()) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Surface(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(10.dp))
-                            .clickable {
-                                otp = demoCode
-                                errorMessage = null
-                            },
-                        color = Color(0xFFE8F5E9)
+                // Mensaje informativo de verificación
+                Spacer(modifier = Modifier.height(14.dp))
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp)),
+                    color = Color(0xFFF1F8F6)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(Icons.Default.VpnKey, contentDescription = null, tint = Color(0xFF2E7D32), modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = "Código generado: $demoCode (Toca para autocompletar)",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF2E7D32)
-                            )
-                        }
+                        Icon(Icons.Default.MarkEmailRead, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Revisa tu bandeja de entrada o spam en tu correo. El código de 6 dígitos vence en 15 minutos.",
+                            fontSize = 11.sp,
+                            color = Color(0xFF37474F),
+                            lineHeight = 15.sp
+                        )
                     }
                 }
 
@@ -276,7 +271,6 @@ fun ModalRecuperarPassword(
     var confirmarPassword by remember { mutableStateOf("") }
     var passVisible by remember { mutableStateOf(false) }
 
-    var codigoDemoRecibido by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var infoMessage by remember { mutableStateOf<String?>(null) }
@@ -383,14 +377,9 @@ fun ModalRecuperarPassword(
                             viewModel.solicitarRecuperacionPassword(email) { exito, msg ->
                                 isLoading = false
                                 if (exito) {
-                                    val match = Regex("(\\d{6})").find(msg)?.value
-                                    codigoDemoRecibido = match
-                                    if (match != null) {
-                                        otp = match
-                                    }
                                     paso = 2
-                                    cooldownSeconds = 45
-                                    infoMessage = "Código de recuperación generado correctamente."
+                                    cooldownSeconds = 60
+                                    infoMessage = "Revisa tu correo electrónico para obtener el código de 6 dígitos."
                                 } else {
                                     errorMessage = msg
                                 }
@@ -417,20 +406,24 @@ fun ModalRecuperarPassword(
                         isError = errorMessage != null
                     )
 
-                    if (!codigoDemoRecibido.isNullOrBlank()) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Surface(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable { otp = codigoDemoRecibido!! },
-                            color = Color(0xFFE8F5E9)
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp)),
+                        color = Color(0xFFF1F8F6)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
+                            Icon(Icons.Default.MarkEmailRead, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Código OTP: $codigoDemoRecibido (Toca para autocompletar)",
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                text = "Hemos enviado el código OTP de 6 dígitos a tu bandeja de correo (o carpeta spam). Vence en 15 minutos.",
                                 fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF2E7D32)
+                                color = Color(0xFF37474F),
+                                lineHeight = 14.sp
                             )
                         }
                     }
@@ -526,15 +519,11 @@ fun ModalRecuperarPassword(
                     } else {
                         TextButton(
                             onClick = {
-                                cooldownSeconds = 45
+                                cooldownSeconds = 60
                                 viewModel.reenviarCodigo(email, "RECUPERACION") { exito, msg ->
                                     if (exito) {
-                                        infoMessage = "Nuevo código generado."
-                                        val match = Regex("(\\d{6})").find(msg)?.value
-                                        if (match != null) {
-                                            codigoDemoRecibido = match
-                                            otp = match
-                                        }
+                                        infoMessage = "Nuevo código de 6 dígitos enviado a tu correo."
+                                        otp = ""
                                     } else {
                                         errorMessage = msg
                                     }
