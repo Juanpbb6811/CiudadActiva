@@ -289,7 +289,7 @@ fun OperadorTareasScreen(
                                     Spacer(modifier = Modifier.height(4.dp))
 
                                     Text(
-                                        text = "${rep.direccion ?: "Sector Urbano"} • Reporta: ${rep.ciudadanoNombre ?: "Ciudadano"}",
+                                        text = "${rep.ubicacionLegible} • Reporta: ${rep.ciudadanoNombre ?: "Ciudadano"}",
                                         fontSize = 12.sp,
                                         color = Color(0xFF6C757D)
                                     )
@@ -457,7 +457,11 @@ fun OperadorFichaScreen(
                         Text("ORDEN DE TRABAJO EN TERRENO", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF7A8B88))
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(f.titulo, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
-                        Text(f.direccion ?: "Ubicación en vía", fontSize = 13.sp, color = Color(0xFF5A6665))
+                        Text(
+                            text = "📍 ${f.barrio ?: "Sector"}, ${f.ciudad ?: "Bogotá D.C."} (${f.departamento ?: "Cundinamarca"})${if (!f.direccion.isNullOrBlank()) " • " + f.direccion else ""}",
+                            fontSize = 13.sp,
+                            color = Color(0xFF5A6665)
+                        )
 
                         Spacer(modifier = Modifier.height(16.dp))
 

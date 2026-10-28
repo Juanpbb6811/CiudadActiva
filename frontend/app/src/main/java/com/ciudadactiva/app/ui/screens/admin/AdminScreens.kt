@@ -358,7 +358,7 @@ fun AdminPanelScreen(
                                     }
 
                                     Text(
-                                        text = "${rep.direccion ?: "Sin dirección"} • Ciudadano: ${rep.ciudadanoNombre ?: "Registrado"}",
+                                        text = "${rep.ubicacionLegible} • Ciudadano: ${rep.ciudadanoNombre ?: "Registrado"}",
                                         fontSize = 11.sp,
                                         color = Color(0xFF78909C)
                                     )

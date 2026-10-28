@@ -136,7 +136,7 @@ fun SeguimientoTimelineScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "${rep.categoriaNombre?.uppercase() ?: "GENERAL"} • ${rep.direccion ?: "Sector Urbano"}",
+                                    text = "${rep.categoriaNombre?.uppercase() ?: "GENERAL"} • ${rep.ubicacionLegible}",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF7A8B88)
@@ -183,6 +183,18 @@ fun SeguimientoTimelineScreen(
                                     fontSize = 13.sp,
                                     color = Color(0xFF424242),
                                     lineHeight = 18.sp
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Place, contentDescription = null, tint = BrandCopper, modifier = Modifier.size(14.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "Ubicación: ${rep.barrio ?: "Barrio Registrado"}, ${rep.ciudad ?: "Bogotá D.C."} (${rep.departamento ?: "Cundinamarca"})${if (!rep.direccion.isNullOrBlank()) " • " + rep.direccion else ""}",
+                                    fontSize = 12.sp,
+                                    color = Color(0xFF5A6665),
+                                    fontWeight = FontWeight.Medium
                                 )
                             }
 

@@ -123,6 +123,9 @@ public class ReporteController {
             @RequestParam(value = "latitud", required = false) Double latitud,
             @RequestParam(value = "longitud", required = false) Double longitud,
             @RequestParam(value = "direccion", required = false) String direccion,
+            @RequestParam(value = "ciudad", required = false) String ciudad,
+            @RequestParam(value = "departamento", required = false) String departamento,
+            @RequestParam(value = "barrio", required = false) String barrio,
             @RequestParam(value = "foto", required = false) MultipartFile foto
     ) throws IOException {
         ReporteResponse response = reporteService.crearReporteConFoto(
@@ -133,6 +136,9 @@ public class ReporteController {
                 latitud,
                 longitud,
                 direccion,
+                ciudad,
+                departamento,
+                barrio,
                 foto
         );
         return new ResponseEntity<>(ApiResponse.ok("Reporte con fotografía de cámara registrado exitosamente", response), HttpStatus.CREATED);

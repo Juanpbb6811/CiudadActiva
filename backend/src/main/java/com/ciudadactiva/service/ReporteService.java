@@ -61,6 +61,9 @@ public class ReporteService {
                 request.getLatitud(),
                 request.getLongitud(),
                 request.getDireccion(),
+                request.getCiudad() != null && !request.getCiudad().isBlank() ? request.getCiudad() : "Bogotá D.C.",
+                request.getDepartamento() != null && !request.getDepartamento().isBlank() ? request.getDepartamento() : "Cundinamarca",
+                request.getBarrio() != null && !request.getBarrio().isBlank() ? request.getBarrio() : "Chapinero",
                 request.getImagenUrl(),
                 categoria,
                 ciudadano
@@ -108,6 +111,23 @@ public class ReporteService {
             String direccion,
             MultipartFile foto
     ) throws IOException {
+        return crearReporteConFoto(emailCiudadano, titulo, descripcion, categoriaId, latitud, longitud, direccion, "Bogotá D.C.", "Cundinamarca", "Chapinero", foto);
+    }
+
+    @Transactional
+    public ReporteResponse crearReporteConFoto(
+            String emailCiudadano,
+            String titulo,
+            String descripcion,
+            Long categoriaId,
+            Double latitud,
+            Double longitud,
+            String direccion,
+            String ciudad,
+            String departamento,
+            String barrio,
+            MultipartFile foto
+    ) throws IOException {
         Usuario ciudadano = usuarioRepository.findByEmail(emailCiudadano)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario ciudadano no encontrado: " + emailCiudadano));
 
@@ -120,6 +140,9 @@ public class ReporteService {
                 latitud,
                 longitud,
                 direccion,
+                ciudad != null && !ciudad.isBlank() ? ciudad : "Bogotá D.C.",
+                departamento != null && !departamento.isBlank() ? departamento : "Cundinamarca",
+                barrio != null && !barrio.isBlank() ? barrio : "Chapinero",
                 null,
                 categoria,
                 ciudadano

@@ -27,6 +27,15 @@ public class Reporte {
     @Column(length = 255)
     private String direccion;
 
+    @Column(length = 100)
+    private String ciudad;
+
+    @Column(length = 100)
+    private String departamento;
+
+    @Column(length = 100)
+    private String barrio;
+
     @Column(name = "imagen_url", columnDefinition = "TEXT")
     private String imagenUrl;
 
@@ -77,11 +86,18 @@ public class Reporte {
     }
 
     public Reporte(String titulo, String descripcion, Double latitud, Double longitud, String direccion, String imagenUrl, Categoria categoria, Usuario ciudadano) {
+        this(titulo, descripcion, latitud, longitud, direccion, "Bogotá D.C.", "Cundinamarca", "Chapinero", imagenUrl, categoria, ciudadano);
+    }
+
+    public Reporte(String titulo, String descripcion, Double latitud, Double longitud, String direccion, String ciudad, String departamento, String barrio, String imagenUrl, Categoria categoria, Usuario ciudadano) {
         this.titulo = titulo;
         this.descripcion = descripcion;
         this.latitud = latitud;
         this.longitud = longitud;
         this.direccion = direccion;
+        this.ciudad = ciudad;
+        this.departamento = departamento;
+        this.barrio = barrio;
         this.imagenUrl = imagenUrl;
         this.categoria = categoria;
         this.ciudadano = ciudadano;
@@ -279,5 +295,29 @@ public class Reporte {
 
     public void setFotoSolucionTipo(String fotoSolucionTipo) {
         this.fotoSolucionTipo = fotoSolucionTipo;
+    }
+
+    public String getCiudad() {
+        return ciudad;
+    }
+
+    public void setCiudad(String ciudad) {
+        this.ciudad = ciudad;
+    }
+
+    public String getDepartamento() {
+        return departamento;
+    }
+
+    public void setDepartamento(String departamento) {
+        this.departamento = departamento;
+    }
+
+    public String getBarrio() {
+        return barrio;
+    }
+
+    public void setBarrio(String barrio) {
+        this.barrio = barrio;
     }
 }

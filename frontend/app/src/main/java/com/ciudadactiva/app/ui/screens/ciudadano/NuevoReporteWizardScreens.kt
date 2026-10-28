@@ -222,10 +222,18 @@ fun NuevoReportePaso2Screen(
 ) {
     val context = LocalContext.current
     val direccion by viewModel.nuevoReporteDireccion.collectAsState()
+    val ciudad by viewModel.nuevoReporteCiudad.collectAsState()
+    val departamento by viewModel.nuevoReporteDepartamento.collectAsState()
+    val barrio by viewModel.nuevoReporteBarrio.collectAsState()
+    val isGeocoding by viewModel.isGeocoding.collectAsState()
     val lat by viewModel.nuevoReporteLatitud.collectAsState()
     val lng by viewModel.nuevoReporteLongitud.collectAsState()
 
     var userGpsLocation by remember { mutableStateOf<Pair<Double, Double>?>(null) }
+
+    LaunchedEffect(Unit) {
+        viewModel.actualizarUbicacionDesdeCoordenadas(context, lat, lng)
+    }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -237,8 +245,7 @@ fun NuevoReportePaso2Screen(
                 context = context,
                 onLocationReceived = { gLat, gLng ->
                     userGpsLocation = Pair(gLat, gLng)
-                    viewModel.nuevoReporteLatitud.value = gLat
-                    viewModel.nuevoReporteLongitud.value = gLng
+                    viewModel.actualizarUbicacionDesdeCoordenadas(context, gLat, gLng)
                     Toast.makeText(context, "📍 Ubicación GPS establecida", Toast.LENGTH_SHORT).show()
                 },
                 onError = { err ->
@@ -267,7 +274,7 @@ fun NuevoReportePaso2Screen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(300.dp)
+                    .height(290.dp)
                     .shadow(4.dp, RoundedCornerShape(24.dp)),
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFEDE8DE))
@@ -283,8 +290,7 @@ fun NuevoReportePaso2Screen(
                         selectedLat = lat,
                         selectedLng = lng,
                         onLocationSelected = { pickedLat, pickedLng ->
-                            viewModel.nuevoReporteLatitud.value = pickedLat
-                            viewModel.nuevoReporteLongitud.value = pickedLng
+                            viewModel.actualizarUbicacionDesdeCoordenadas(context, pickedLat, pickedLng)
                         }
                     )
 
@@ -317,8 +323,7 @@ fun NuevoReportePaso2Screen(
                             context = context,
                             onLocationReceived = { gLat, gLng ->
                                 userGpsLocation = Pair(gLat, gLng)
-                                viewModel.nuevoReporteLatitud.value = gLat
-                                viewModel.nuevoReporteLongitud.value = gLng
+                                viewModel.actualizarUbicacionDesdeCoordenadas(context, gLat, gLng)
                                 Toast.makeText(context, "📍 Ubicación GPS establecida", Toast.LENGTH_SHORT).show()
                             },
                             onError = { err ->
@@ -358,16 +363,72 @@ fun NuevoReportePaso2Screen(
                     modifier = Modifier.padding(18.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text(
-                        text = "COORDENADAS DE LA INCIDENCIA",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF7A8B88)
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "UBICACIÓN GEORREFERENCIADA",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF7A8B88)
+                        )
+                        if (isGeocoding) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                CircularProgressIndicator(modifier = Modifier.size(12.dp), strokeWidth = 1.5.dp, color = BrandTealDark)
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Detectando...", fontSize = 10.sp, color = BrandTealDark)
+                            }
+                        }
+                    }
 
+                    // Ciudad y Departamento
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         OutlinedTextField(
-                            value = String.format("%.6f", lat),
+                            value = ciudad,
+                            onValueChange = { viewModel.nuevoReporteCiudad.value = it },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(14.dp),
+                            label = { Text("Ciudad *") },
+                            leadingIcon = { Icon(Icons.Default.LocationCity, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(18.dp)) }
+                        )
+                        OutlinedTextField(
+                            value = departamento,
+                            onValueChange = { viewModel.nuevoReporteDepartamento.value = it },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(14.dp),
+                            label = { Text("Departamento *") },
+                            leadingIcon = { Icon(Icons.Default.AccountBalance, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(18.dp)) }
+                        )
+                    }
+
+                    // Barrio detectado de acuerdo a la posición en el mapa
+                    OutlinedTextField(
+                        value = barrio,
+                        onValueChange = { viewModel.nuevoReporteBarrio.value = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        label = { Text("Barrio o Sector (Según mapa) *") },
+                        placeholder = { Text("Detectado según la posición del pin") },
+                        leadingIcon = { Icon(Icons.Default.Place, contentDescription = null, tint = BrandCopper, modifier = Modifier.size(18.dp)) }
+                    )
+
+                    // Detalle de dirección opcional (sin texto genérico obligatorio)
+                    OutlinedTextField(
+                        value = direccion,
+                        onValueChange = { viewModel.nuevoReporteDireccion.value = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        label = { Text("Detalle de Vía / Referencia (Opcional)") },
+                        placeholder = { Text("Ej: Frente al parque, diagonal a la panadería") },
+                        leadingIcon = { Icon(Icons.Default.Home, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(18.dp)) }
+                    )
+
+                    // Coordenadas GPS
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        OutlinedTextField(
+                            value = String.format("%.5f", lat),
                             onValueChange = {},
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(14.dp),
@@ -375,7 +436,7 @@ fun NuevoReportePaso2Screen(
                             label = { Text("Latitud") }
                         )
                         OutlinedTextField(
-                            value = String.format("%.6f", lng),
+                            value = String.format("%.5f", lng),
                             onValueChange = {},
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(14.dp),
@@ -384,20 +445,11 @@ fun NuevoReportePaso2Screen(
                         )
                     }
 
-                    OutlinedTextField(
-                        value = direccion,
-                        onValueChange = { viewModel.nuevoReporteDireccion.value = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
-                        label = { Text("Dirección o Referencia *") },
-                        placeholder = { Text("Ej: Calle 13 # 8-45, frente al parque") }
-                    )
-
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     GradientButton(
                         text = "Confirmar Ubicación (Paso 3) →",
-                        enabled = direccion.isNotBlank(),
+                        enabled = ciudad.isNotBlank() && departamento.isNotBlank() && barrio.isNotBlank(),
                         onClick = onNext
                     )
                 }
@@ -696,6 +748,37 @@ fun NuevoReporteExitoScreen(
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF8D6E63)
                     )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp)),
+                color = Color(0xFFF1F8F6)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.Place, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column {
+                        Text(
+                            text = "${reporte?.barrio ?: "Barrio Registrado"}, ${reporte?.ciudad ?: "Bogotá D.C."}",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = BrandTealDark
+                        )
+                        Text(
+                            text = "Departamento: ${reporte?.departamento ?: "Cundinamarca"}" +
+                                    if (!reporte?.direccion.isNullOrBlank()) " • ${reporte?.direccion}" else "",
+                            fontSize = 11.sp,
+                            color = Color(0xFF5A6665)
+                        )
+                    }
                 }
             }
 

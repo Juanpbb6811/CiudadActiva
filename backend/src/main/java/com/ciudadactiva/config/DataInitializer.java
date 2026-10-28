@@ -52,6 +52,10 @@ public class DataInitializer implements CommandLineRunner {
         try (Connection conn = dataSource.getConnection(); Statement stmt = conn.createStatement()) {
             stmt.execute("ALTER TABLE reportes ADD COLUMN IF NOT EXISTS codigo_seguimiento VARCHAR(30)");
             stmt.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_reportes_codigo_seguimiento ON reportes(codigo_seguimiento)");
+            stmt.execute("ALTER TABLE reportes ADD COLUMN IF NOT EXISTS ciudad VARCHAR(100)");
+            stmt.execute("ALTER TABLE reportes ADD COLUMN IF NOT EXISTS departamento VARCHAR(100)");
+            stmt.execute("ALTER TABLE reportes ADD COLUMN IF NOT EXISTS barrio VARCHAR(100)");
+            stmt.execute("UPDATE reportes SET ciudad = 'Bogotá D.C.', departamento = 'Cundinamarca', barrio = 'Chapinero' WHERE ciudad IS NULL");
             stmt.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS verificado BOOLEAN DEFAULT FALSE");
             stmt.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS codigo_verificacion VARCHAR(10)");
             stmt.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS codigo_verificacion_expira TIMESTAMP WITHOUT TIME ZONE");
@@ -96,6 +100,9 @@ public class DataInitializer implements CommandLineRunner {
                     4.60971,
                     -74.08175,
                     "Calle 53 con Carrera 13",
+                    "Bogotá D.C.",
+                    "Cundinamarca",
+                    "Chapinero",
                     "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7",
                     catVias,
                     ciudadano

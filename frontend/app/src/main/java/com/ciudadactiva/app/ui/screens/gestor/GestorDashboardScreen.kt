@@ -146,7 +146,7 @@ fun GestorDashboardScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "${reporteCritico.direccion ?: "Sector Urbano"} • Requiere validación oficial",
+                            text = "${reporteCritico.ubicacionLegible} • Requiere validación oficial",
                             fontSize = 12.sp,
                             color = Color(0xFF6C757D)
                         )

@@ -1,10 +1,12 @@
 package com.ciudadactiva.app.ui.viewmodel
 
+import android.content.Context
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ciudadactiva.app.data.api.ApiClient
 import com.ciudadactiva.app.data.model.*
+import com.ciudadactiva.app.ui.components.LocationHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -34,6 +36,10 @@ class CiudadanoViewModel : ViewModel() {
     val nuevoReporteUrgencia = MutableStateFlow("Media") // Media, Alta, Muy Urgente
 
     val nuevoReporteDireccion = MutableStateFlow("")
+    val nuevoReporteCiudad = MutableStateFlow("Bogotá D.C.")
+    val nuevoReporteDepartamento = MutableStateFlow("Cundinamarca")
+    val nuevoReporteBarrio = MutableStateFlow("Chapinero")
+    val isGeocoding = MutableStateFlow(false)
     val nuevoReporteLatitud = MutableStateFlow(4.609712)
     val nuevoReporteLongitud = MutableStateFlow(-74.081750)
 
@@ -99,6 +105,23 @@ class CiudadanoViewModel : ViewModel() {
         fotoNombreArchivo.value = null
     }
 
+    fun actualizarUbicacionDesdeCoordenadas(context: Context, lat: Double, lng: Double) {
+        nuevoReporteLatitud.value = lat
+        nuevoReporteLongitud.value = lng
+        viewModelScope.launch {
+            isGeocoding.value = true
+            try {
+                val info = LocationHelper.reverseGeocode(context, lat, lng)
+                nuevoReporteBarrio.value = info.barrio
+                nuevoReporteCiudad.value = info.ciudad
+                nuevoReporteDepartamento.value = info.departamento
+            } catch (_: Exception) {
+            } finally {
+                isGeocoding.value = false
+            }
+        }
+    }
+
     fun enviarReporte(onSuccess: (ReporteResponse) -> Unit) {
         val cat = nuevoReporteCategoria.value ?: return
         viewModelScope.launch {
@@ -120,9 +143,12 @@ class CiudadanoViewModel : ViewModel() {
                     val reqCatId = cat.id.toString().toRequestBody(MultipartBody.FORM)
                     val reqLat = nuevoReporteLatitud.value.toString().toRequestBody(MultipartBody.FORM)
                     val reqLng = nuevoReporteLongitud.value.toString().toRequestBody(MultipartBody.FORM)
-                    val reqDir = nuevoReporteDireccion.value.toRequestBody(MultipartBody.FORM)
+                    val reqDir = nuevoReporteDireccion.value.takeIf { it.isNotBlank() }?.toRequestBody(MultipartBody.FORM)
+                    val reqCiudad = nuevoReporteCiudad.value.toRequestBody(MultipartBody.FORM)
+                    val reqDepto = nuevoReporteDepartamento.value.toRequestBody(MultipartBody.FORM)
+                    val reqBarrio = nuevoReporteBarrio.value.toRequestBody(MultipartBody.FORM)
 
-                    api.crearReporteConFoto(reqTitulo, reqDesc, reqCatId, reqLat, reqLng, reqDir, partFoto)
+                    api.crearReporteConFoto(reqTitulo, reqDesc, reqCatId, reqLat, reqLng, reqDir, reqCiudad, reqDepto, reqBarrio, partFoto)
                 } else {
                     // Envío estándar JSON
                     val body = ReporteCreateRequest(
@@ -131,7 +157,10 @@ class CiudadanoViewModel : ViewModel() {
                         categoriaId = cat.id,
                         latitud = nuevoReporteLatitud.value,
                         longitud = nuevoReporteLongitud.value,
-                        direccion = nuevoReporteDireccion.value
+                        direccion = nuevoReporteDireccion.value.takeIf { it.isNotBlank() },
+                        ciudad = nuevoReporteCiudad.value,
+                        departamento = nuevoReporteDepartamento.value,
+                        barrio = nuevoReporteBarrio.value
                     )
                     api.crearReporte(body)
                 }
@@ -143,6 +172,9 @@ class CiudadanoViewModel : ViewModel() {
                     nuevoReporteTitulo.value = ""
                     nuevoReporteDescripcion.value = ""
                     nuevoReporteDireccion.value = ""
+                    nuevoReporteBarrio.value = "Chapinero"
+                    nuevoReporteCiudad.value = "Bogotá D.C."
+                    nuevoReporteDepartamento.value = "Cundinamarca"
                     fotoTomadaBitmap.value = null
                     cargarDatosHome()
                     onSuccess(guardado)

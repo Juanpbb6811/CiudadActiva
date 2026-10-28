@@ -211,7 +211,7 @@ fun GestorBandejaValidacionScreen(
                             Spacer(modifier = Modifier.height(4.dp))
 
                             Text(
-                                text = "${rep.direccion ?: "Sector Urbano"} • Reporta: ${rep.ciudadanoNombre ?: "Ciudadano"} • ${rep.creadoEn?.take(10) ?: ""}",
+                                text = "${rep.ubicacionLegible} • Reporta: ${rep.ciudadanoNombre ?: "Ciudadano"} • ${rep.creadoEn?.take(10) ?: ""}",
                                 fontSize = 12.sp,
                                 color = Color(0xFF6C757D)
                             )

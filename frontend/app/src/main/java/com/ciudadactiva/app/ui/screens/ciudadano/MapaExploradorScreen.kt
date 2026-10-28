@@ -109,6 +109,9 @@ fun MapaExploradorScreen(
                 rep.titulo.contains(searchQuery, ignoreCase = true) ||
                 (rep.descripcion ?: "").contains(searchQuery, ignoreCase = true) ||
                 (rep.direccion ?: "").contains(searchQuery, ignoreCase = true) ||
+                (rep.barrio ?: "").contains(searchQuery, ignoreCase = true) ||
+                (rep.ciudad ?: "").contains(searchQuery, ignoreCase = true) ||
+                (rep.departamento ?: "").contains(searchQuery, ignoreCase = true) ||
                 (rep.categoriaNombre ?: "").contains(searchQuery, ignoreCase = true)
 
             val matchCat = selectedCategoriaId == null || rep.categoriaId == selectedCategoriaId
@@ -319,7 +322,7 @@ fun MapaExploradorScreen(
                     )
 
                     Text(
-                        text = "📍 ${rep.direccion ?: "Sector urbano registrado"}",
+                        text = "📍 ${rep.ubicacionLegible}",
                         fontSize = 12.sp,
                         color = Color(0xFF6C757D)
                     )

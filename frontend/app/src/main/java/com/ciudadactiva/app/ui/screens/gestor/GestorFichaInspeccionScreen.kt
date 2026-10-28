@@ -119,7 +119,7 @@ fun GestorFichaInspeccionScreen(
                             color = Color(0xFF5A6665)
                         )
                         Text(
-                            text = "Dirección: ${rep.direccion ?: "Sector Urbano Central"}",
+                            text = "Ubicación: ${rep.barrio ?: "Barrio Registrado"}, ${rep.ciudad ?: "Bogotá D.C."} (${rep.departamento ?: "Cundinamarca"})${if (!rep.direccion.isNullOrBlank()) " • " + rep.direccion else ""}",
                             fontSize = 12.sp,
                             color = Color(0xFF5A6665)
                         )

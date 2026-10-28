@@ -45,7 +45,7 @@ fun OpenStreetMapComposable(
                     put("titulo", (rep.titulo ?: "Incidencia").replace("\"", "'").replace("\n", " "))
                     put("descripcion", (rep.descripcion ?: "").replace("\"", "'").replace("\n", " "))
                     put("categoria", (rep.categoriaNombre ?: "General").replace("\"", "'"))
-                    put("direccion", (rep.direccion ?: "Sector urbano").replace("\"", "'"))
+                    put("direccion", rep.ubicacionLegible.replace("\"", "'"))
                     put("latitud", rep.latitud)
                     put("longitud", rep.longitud)
                     put("prioridad", rep.prioridad ?: "MEDIA")

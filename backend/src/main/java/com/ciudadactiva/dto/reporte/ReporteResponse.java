@@ -18,6 +18,9 @@ public class ReporteResponse {
     private Long ciudadanoId;
     private String ciudadanoNombre;
     private String direccion;
+    private String ciudad;
+    private String departamento;
+    private String barrio;
     private Double latitud;
     private Double longitud;
     private String imagenUrl;
@@ -57,6 +60,9 @@ public class ReporteResponse {
                 this.ciudadanoNombre = reporte.getCiudadano().getNombre();
             }
             this.direccion = reporte.getDireccion();
+            this.ciudad = reporte.getCiudad();
+            this.departamento = reporte.getDepartamento();
+            this.barrio = reporte.getBarrio();
             this.latitud = reporte.getLatitud();
             this.longitud = reporte.getLongitud();
             this.imagenUrl = reporte.getImagenUrl();
@@ -304,5 +310,42 @@ public class ReporteResponse {
 
     public void setSemaforoDescripcion(String semaforoDescripcion) {
         this.semaforoDescripcion = semaforoDescripcion;
+    }
+
+    public String getCiudad() {
+        return ciudad;
+    }
+
+    public void setCiudad(String ciudad) {
+        this.ciudad = ciudad;
+    }
+
+    public String getDepartamento() {
+        return departamento;
+    }
+
+    public void setDepartamento(String departamento) {
+        this.departamento = departamento;
+    }
+
+    public String getBarrio() {
+        return barrio;
+    }
+
+    public void setBarrio(String barrio) {
+        this.barrio = barrio;
+    }
+
+    public String getUbicacionLegible() {
+        if (barrio != null && !barrio.isBlank() && ciudad != null && !ciudad.isBlank()) {
+            return barrio + ", " + ciudad;
+        }
+        if (ciudad != null && !ciudad.isBlank() && departamento != null && !departamento.isBlank()) {
+            return ciudad + ", " + departamento;
+        }
+        if (barrio != null && !barrio.isBlank()) return barrio;
+        if (ciudad != null && !ciudad.isBlank()) return ciudad;
+        if (direccion != null && !direccion.isBlank()) return direccion;
+        return "Ubicación Georreferenciada";
     }
 }

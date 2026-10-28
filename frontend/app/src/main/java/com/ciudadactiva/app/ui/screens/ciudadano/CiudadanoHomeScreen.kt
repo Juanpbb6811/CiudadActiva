@@ -602,7 +602,7 @@ fun ReporteComunitarioCard(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = reporte.direccion ?: "Sector Urbano",
+                    text = reporte.ubicacionLegible,
                     fontSize = 11.sp,
                     color = Color(0xFF7A8B88),
                     maxLines = 1,

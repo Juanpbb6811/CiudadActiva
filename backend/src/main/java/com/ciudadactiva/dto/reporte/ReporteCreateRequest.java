@@ -23,18 +23,31 @@ public class ReporteCreateRequest {
 
     private String direccion;
 
+    private String ciudad;
+
+    private String departamento;
+
+    private String barrio;
+
     private String imagenUrl;
 
     public ReporteCreateRequest() {
     }
 
     public ReporteCreateRequest(String titulo, String descripcion, Long categoriaId, Double latitud, Double longitud, String direccion, String imagenUrl) {
+        this(titulo, descripcion, categoriaId, latitud, longitud, direccion, "Bogotá D.C.", "Cundinamarca", "Chapinero", imagenUrl);
+    }
+
+    public ReporteCreateRequest(String titulo, String descripcion, Long categoriaId, Double latitud, Double longitud, String direccion, String ciudad, String departamento, String barrio, String imagenUrl) {
         this.titulo = titulo;
         this.descripcion = descripcion;
         this.categoriaId = categoriaId;
         this.latitud = latitud;
         this.longitud = longitud;
         this.direccion = direccion;
+        this.ciudad = ciudad;
+        this.departamento = departamento;
+        this.barrio = barrio;
         this.imagenUrl = imagenUrl;
     }
 
@@ -92,5 +105,29 @@ public class ReporteCreateRequest {
 
     public void setImagenUrl(String imagenUrl) {
         this.imagenUrl = imagenUrl;
+    }
+
+    public String getCiudad() {
+        return ciudad;
+    }
+
+    public void setCiudad(String ciudad) {
+        this.ciudad = ciudad;
+    }
+
+    public String getDepartamento() {
+        return departamento;
+    }
+
+    public void setDepartamento(String departamento) {
+        this.departamento = departamento;
+    }
+
+    public String getBarrio() {
+        return barrio;
+    }
+
+    public void setBarrio(String barrio) {
+        this.barrio = barrio;
     }
 }

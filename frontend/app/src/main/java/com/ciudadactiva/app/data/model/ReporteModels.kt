@@ -11,6 +11,9 @@ data class ReporteResponse(
     val ciudadanoId: Long?,
     val ciudadanoNombre: String?,
     val direccion: String?,
+    val ciudad: String? = null,
+    val departamento: String? = null,
+    val barrio: String? = null,
     val latitud: Double?,
     val longitud: Double?,
     val imagenUrl: String?,
@@ -30,7 +33,17 @@ data class ReporteResponse(
     val creadoEn: String?,
     val actualizadoEn: String?,
     val fechaCierre: String?
-)
+) {
+    val ubicacionLegible: String
+        get() = when {
+            !barrio.isNullOrBlank() && !ciudad.isNullOrBlank() -> "$barrio, $ciudad"
+            !ciudad.isNullOrBlank() && !departamento.isNullOrBlank() -> "$ciudad, $departamento"
+            !barrio.isNullOrBlank() -> barrio
+            !ciudad.isNullOrBlank() -> ciudad
+            !direccion.isNullOrBlank() -> direccion
+            else -> "Ubicación Georreferenciada"
+        }
+}
 
 data class ReporteCreateRequest(
     val titulo: String,
@@ -39,6 +52,9 @@ data class ReporteCreateRequest(
     val latitud: Double? = 4.60971,
     val longitud: Double? = -74.08175,
     val direccion: String? = null,
+    val ciudad: String? = null,
+    val departamento: String? = null,
+    val barrio: String? = null,
     val imagenUrl: String? = null
 )
 
@@ -53,6 +69,9 @@ data class ReporteDetalleResponse(
     val ciudadanoId: Long?,
     val ciudadanoNombre: String?,
     val direccion: String?,
+    val ciudad: String? = null,
+    val departamento: String? = null,
+    val barrio: String? = null,
     val latitud: Double?,
     val longitud: Double?,
     val imagenUrl: String?,
@@ -73,7 +92,17 @@ data class ReporteDetalleResponse(
     val asignacionActual: AsignacionModel? = null,
     val lineaDeTiempo: List<SeguimientoModel> = emptyList(),
     val comentarios: List<ComentarioModel> = emptyList()
-)
+) {
+    val ubicacionLegible: String
+        get() = when {
+            !barrio.isNullOrBlank() && !ciudad.isNullOrBlank() -> "$barrio, $ciudad"
+            !ciudad.isNullOrBlank() && !departamento.isNullOrBlank() -> "$ciudad, $departamento"
+            !barrio.isNullOrBlank() -> barrio
+            !ciudad.isNullOrBlank() -> ciudad
+            !direccion.isNullOrBlank() -> direccion
+            else -> "Ubicación Georreferenciada"
+        }
+}
 
 data class ValidarReporteRequest(
     val admitido: Boolean,

@@ -85,6 +85,9 @@ interface CiudadActivaApiService {
         @Part("latitud") latitud: RequestBody?,
         @Part("longitud") longitud: RequestBody?,
         @Part("direccion") direccion: RequestBody?,
+        @Part("ciudad") ciudad: RequestBody? = null,
+        @Part("departamento") departamento: RequestBody? = null,
+        @Part("barrio") barrio: RequestBody? = null,
         @Part foto: MultipartBody.Part?
     ): Response<ApiResponse<ReporteResponse>>
 
