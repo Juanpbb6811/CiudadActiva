@@ -51,7 +51,10 @@ class AuthViewModel : ViewModel() {
                         id = auth.userId,
                         email = auth.userEmail,
                         nombre = auth.userNombre,
-                        rol = userRol
+                        rol = userRol,
+                        fotoUrl = auth.userFotoUrl,
+                        telefono = auth.userTelefono,
+                        direccion = auth.userDireccion
                     )
                     _uiState.value = AuthUiState.Success(userRol)
                 } else {
@@ -77,7 +80,10 @@ class AuthViewModel : ViewModel() {
                         id = auth.userId,
                         email = auth.userEmail,
                         nombre = auth.userNombre,
-                        rol = userRol
+                        rol = userRol,
+                        fotoUrl = auth.userFotoUrl,
+                        telefono = auth.userTelefono,
+                        direccion = auth.userDireccion
                     )
                     _uiState.value = AuthUiState.Success(userRol)
                 } else {
@@ -108,7 +114,16 @@ class AuthViewModel : ViewModel() {
                 val loginResponse = api.login(LoginRequest(googleEmail.trim().lowercase(), "GoogleAuth_2026!"))
                 if (loginResponse.isSuccessful && loginResponse.body()?.data != null) {
                     val auth = loginResponse.body()!!.data!!
-                    session.saveAuth(auth.token, auth.userId, auth.userEmail, auth.userNombre, auth.userRol)
+                    session.saveAuth(
+                        token = auth.token,
+                        id = auth.userId,
+                        email = auth.userEmail,
+                        nombre = auth.userNombre,
+                        rol = auth.userRol,
+                        fotoUrl = auth.userFotoUrl,
+                        telefono = auth.userTelefono,
+                        direccion = auth.userDireccion
+                    )
                     _uiState.value = AuthUiState.Success(auth.userRol)
                     return@launch
                 }
@@ -125,7 +140,16 @@ class AuthViewModel : ViewModel() {
                 )
                 if (regResponse.isSuccessful && regResponse.body()?.data != null) {
                     val auth = regResponse.body()!!.data!!
-                    session.saveAuth(auth.token, auth.userId, auth.userEmail, auth.userNombre, auth.userRol)
+                    session.saveAuth(
+                        token = auth.token,
+                        id = auth.userId,
+                        email = auth.userEmail,
+                        nombre = auth.userNombre,
+                        rol = auth.userRol,
+                        fotoUrl = auth.userFotoUrl,
+                        telefono = auth.userTelefono,
+                        direccion = auth.userDireccion
+                    )
                     _uiState.value = AuthUiState.Success(auth.userRol)
                 } else {
                     val err = regResponse.errorBody()?.string() ?: ""

@@ -175,7 +175,7 @@ fun GestorFichaInspeccionScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "PRIORIDAD OFICIAL (EXCLUSIVA GESTOR - REGLA 2):",
+                            text = "PRIORIDAD OFICIAL ASIGNADA:",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF7A8B88)
@@ -308,7 +308,7 @@ fun GestorFichaInspeccionScreen(
             text = {
                 Column {
                     Text(
-                        text = "Motivo Técnico de Rechazo (Obligatorio - Regla 1):",
+                        text = "Motivo Técnico del Rechazo (Obligatorio):",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = TextDark

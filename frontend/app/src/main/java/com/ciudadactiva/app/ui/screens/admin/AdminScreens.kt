@@ -134,7 +134,7 @@ fun AdminPanelScreen(
                         Triple("EN_PROCESO", "En Proceso / Terreno", Color(0xFF1565C0) to Color(0xFFE3F2FD)),
                         Triple("ATENDIDO", "Atendido por Cuadrilla", Color(0xFF4527A0) to Color(0xFFEDE7F6)),
                         Triple("CERRADO", "Cerrado con Solución", Color(0xFF1B5E20) to Color(0xFFC8E6C9)),
-                        Triple("RECHAZADO", "Rechazado (Regla 1)", Color(0xFFC62828) to Color(0xFFFFEBEE))
+                        Triple("RECHAZADO", "Rechazado con Justificación", Color(0xFFC62828) to Color(0xFFFFEBEE))
                     )
 
                     estadosPipeline.forEach { (estKey, estLabel, colorsPair) ->
@@ -756,11 +756,11 @@ fun AdminAuditoriaScreen(
     Column(
         modifier = Modifier.fillMaxSize().background(BackgroundLight).statusBarsPadding().padding(bottom = 80.dp)
     ) {
-        CiudadActivaTopBar(title = "Auditoría RUP", roleTag = "RNF04", onBackClick = onBackClick)
+        CiudadActivaTopBar(title = "Auditoría del Sistema", roleTag = "SEGURIDAD", onBackClick = onBackClick)
 
         Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
             Text(
-                text = "MATRIZ DE TRAZABILIDAD INMUTABLE (RNF04)",
+                text = "REGISTRO INMUTABLE DE AUDITORÍA",
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF7A8B88)

@@ -94,7 +94,7 @@ fun SplashScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "Iniciando módulos RUP...",
+                text = "Iniciando plataforma...",
                 fontSize = 12.sp,
                 color = Color(0xFF8B9695)
             )

@@ -23,32 +23,65 @@ class SessionManager(context: Context) {
         const val DEFAULT_BASE_URL = "https://ciudadactiva-4ah7.onrender.com/"
     }
 
-    fun saveAuth(token: String, id: Long, email: String?, nombre: String?, rol: String?, fotoUrl: String? = null) {
-        prefs.edit()
+    fun saveAuth(
+        token: String,
+        id: Long,
+        email: String?,
+        nombre: String?,
+        rol: String?,
+        fotoUrl: String? = null,
+        telefono: String? = null,
+        direccion: String? = null
+    ) {
+        val editor = prefs.edit()
             .putString(KEY_TOKEN, token)
             .putLong(KEY_USER_ID, id)
             .putString(KEY_EMAIL, email ?: "")
             .putString(KEY_NOMBRE, nombre ?: "")
             .putString(KEY_ROL, rol ?: "")
             .putString(KEY_FOTO_URL, fotoUrl ?: "")
-            .apply()
+
+        if (telefono != null) {
+            editor.putString(KEY_TELEFONO, telefono)
+        } else {
+            editor.remove(KEY_TELEFONO)
+        }
+
+        if (direccion != null) {
+            editor.putString(KEY_DIRECCION, direccion)
+        } else {
+            editor.remove(KEY_DIRECCION)
+        }
+
+        editor.apply()
     }
 
     fun updateProfile(nombre: String, email: String, telefono: String?, direccion: String?, fotoUrl: String? = null) {
-        prefs.edit()
+        val editor = prefs.edit()
             .putString(KEY_NOMBRE, nombre)
             .putString(KEY_EMAIL, email)
-            .putString(KEY_TELEFONO, telefono ?: "")
-            .putString(KEY_DIRECCION, direccion ?: "")
             .putString(KEY_FOTO_URL, fotoUrl ?: "")
-            .apply()
+
+        if (telefono != null) {
+            editor.putString(KEY_TELEFONO, telefono)
+        } else {
+            editor.remove(KEY_TELEFONO)
+        }
+
+        if (direccion != null) {
+            editor.putString(KEY_DIRECCION, direccion)
+        } else {
+            editor.remove(KEY_DIRECCION)
+        }
+
+        editor.apply()
     }
 
-    fun getFotoUrl(): String? = prefs.getString(KEY_FOTO_URL, null)
+    fun getFotoUrl(): String? = prefs.getString(KEY_FOTO_URL, null)?.takeIf { it.isNotBlank() }
 
-    fun getTelefono(): String? = prefs.getString(KEY_TELEFONO, "3001234567")
+    fun getTelefono(): String? = prefs.getString(KEY_TELEFONO, null)?.takeIf { it.isNotBlank() }
 
-    fun getDireccion(): String? = prefs.getString(KEY_DIRECCION, "Calle 13 # 8-45")
+    fun getDireccion(): String? = prefs.getString(KEY_DIRECCION, null)?.takeIf { it.isNotBlank() }
 
     fun getToken(): String? = prefs.getString(KEY_TOKEN, null)
 
@@ -83,6 +116,9 @@ class SessionManager(context: Context) {
             .remove(KEY_EMAIL)
             .remove(KEY_NOMBRE)
             .remove(KEY_ROL)
+            .remove(KEY_TELEFONO)
+            .remove(KEY_DIRECCION)
+            .remove(KEY_FOTO_URL)
             .apply()
     }
 }

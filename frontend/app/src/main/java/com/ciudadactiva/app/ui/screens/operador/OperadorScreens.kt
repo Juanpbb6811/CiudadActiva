@@ -594,7 +594,7 @@ fun OperadorAvanceScreen(
             .verticalScroll(rememberScrollState())
             .padding(bottom = 40.dp)
     ) {
-        CiudadActivaTopBar(title = "Registrar Avance", roleTag = "RF06", onBackClick = onBackClick)
+        CiudadActivaTopBar(title = "Registrar Avance", roleTag = "OPERATIVO", onBackClick = onBackClick)
 
         Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Card(
@@ -772,7 +772,7 @@ fun OperadorCierreScreen(
                 Text("Acción Bloqueada", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFFC62828))
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "\"Un reporte NO PUEDE cerrarse si no registra previamente al menos una acción de atención por parte del operador asignado.\"",
+                    text = "Para proceder con el cierre de un reporte, es necesario registrar previamente al menos un avance de labores en terreno.",
                     fontSize = 13.sp,
                     color = Color(0xFF424242),
                     textAlign = TextAlign.Center,
@@ -787,9 +787,9 @@ fun OperadorCierreScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("VALIDACIÓN EN SERVIDOR (BusinessRuleException):", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF7A8B88))
+                        Text("REQUISITO DE ATENCIÓN EN TERRENO:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF7A8B88))
                         Spacer(modifier = Modifier.height(6.dp))
-                        Text("✕ Avances del operador en Seguimiento: 0 registros", fontSize = 12.sp, color = Color(0xFFD32F2F))
+                        Text("✕ Avances del operador en seguimiento: 0 registros", fontSize = 12.sp, color = Color(0xFFD32F2F))
                         Text("Debes registrar primero tus avances de trabajo en terreno.", fontSize = 12.sp, color = Color(0xFF5A6665))
                     }
                 }

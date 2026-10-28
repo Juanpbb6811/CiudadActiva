@@ -34,6 +34,15 @@ data class AuthResponse(
 
     val userRol: String
         get() = usuario?.rol ?: rol ?: "ROLE_CIUDADANO"
+
+    val userTelefono: String?
+        get() = usuario?.telefono
+
+    val userDireccion: String?
+        get() = usuario?.direccion
+
+    val userFotoUrl: String?
+        get() = usuario?.fotoUrl
 }
 
 data class UsuarioModel(

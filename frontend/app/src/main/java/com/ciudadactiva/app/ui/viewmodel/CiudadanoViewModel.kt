@@ -33,7 +33,7 @@ class CiudadanoViewModel : ViewModel() {
     val nuevoReporteDescripcion = MutableStateFlow("")
     val nuevoReporteUrgencia = MutableStateFlow("Media") // Media, Alta, Muy Urgente
 
-    val nuevoReporteDireccion = MutableStateFlow("Calle 13 # 8-45, Centro")
+    val nuevoReporteDireccion = MutableStateFlow("")
     val nuevoReporteLatitud = MutableStateFlow(4.609712)
     val nuevoReporteLongitud = MutableStateFlow(-74.081750)
 
@@ -142,6 +142,7 @@ class CiudadanoViewModel : ViewModel() {
                     // Limpiar formulario
                     nuevoReporteTitulo.value = ""
                     nuevoReporteDescripcion.value = ""
+                    nuevoReporteDireccion.value = ""
                     fotoTomadaBitmap.value = null
                     cargarDatosHome()
                     onSuccess(guardado)

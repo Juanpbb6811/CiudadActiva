@@ -4,35 +4,33 @@ Sistema integral para el reporte, validación, asignación operativa y seguimien
 
 ---
 
-## 📲 Descargar App Android (Release v0.1.6)
+## 📲 Descargar App Android (Release v0.1.7)
 
 Ya puedes instalar y probar la versión oficial y firmada de CiudadActiva directamente en tu dispositivo Android o emulador:
 
-[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.1.6_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.6.apk)
+[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.1.7_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.7.apk)
 [![Servidor Cloud](https://img.shields.io/badge/Descarga_Directa-Cloud_Render-blueviolet?style=for-the-badge&logo=render&logoColor=white)](https://ciudadactiva-4ah7.onrender.com/descargar)
-[![GitHub Release](https://img.shields.io/badge/Release_Tag-v0.1.6-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.1.6)
+[![GitHub Release](https://img.shields.io/badge/Release_Tag-v0.1.7-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.1.7)
 
 ### 📥 Enlaces de descarga directa:
-* 🌐 **[Servidor Oficial en la Nube (Render): Descargar CiudadActiva-v0.1.6.apk (12.2 MB)](https://ciudadactiva-4ah7.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
-* 🐙 **[GitHub Directo: Descargar CiudadActiva-v0.1.6.apk (12.2 MB)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.6.apk)**
+* 🌐 **[Servidor Oficial en la Nube (Render): Descargar CiudadActiva-v0.1.7.apk (12.2 MB)](https://ciudadactiva-4ah7.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
+* 🐙 **[GitHub Directo: Descargar CiudadActiva-v0.1.7.apk (12.2 MB)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.7.apk)**
 
 ### 🛠️ Instrucciones de Instalación en Android:
-1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.1.6.apk`.
+1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.1.7.apk`.
 2. Al finalizar la descarga, presiona **Abrir** (o ve a tu app de **Archivos / Descargas** y tócalo).
 3. Si el sistema muestra el aviso de seguridad de Android / Xiaomi, activa la opción **Confiar en esta fuente / Instalar aplicaciones desconocidas**.
 4. Pulsa **Instalar** y ¡listo!
 
-### ✨ Novedades de la versión v0.1.6:
-- 🎨 **Corrección de Contraste y Visibilidad en Botones**:
-  - Texto e íconos en blanco explícito (`Color.White`) de alto contraste en botones sobre fondo oscuro ("Validar y Asignar →", "Confirmar Asignación", "Avance / Foto", "Cerrar", "Modificar Estado", "Guardar Estado").
-- 💾 **Nuevo Botón "Guardar Estado"**:
-  - Botón unificado y destacado con ícono de disco en todos los modales de actualización de estado para Gestores, Operadores y Administradores.
-- 🌈 **Paleta Semántica por Estado de Reporte**:
-  - Cada estado cuenta con un color distintivo que refleja su fase en el ciclo de vida:
-    - **PENDIENTE**: Ámbar / Naranja
-    - **EN REVISION**: Cian / Azul cielo (formateado sin guion bajo)
-    - **ADMITIDO**: Verde esmeralda
-    - **EN PROCESO**: Azul real
+### ✨ Novedades de la versión v0.1.7:
+- 🧹 **Depuración y Profesionalización de Textos de Interfaz**:
+  - Eliminación de todas las referencias técnicas directas a requerimientos de ingeniería de software (`RF02`, `RF06`, `RF07`, `RNF01`, `RNF04`, `Regla 1`, `Regla 2`, `BusinessRuleException`, `módulos RUP`) en mensajes de confirmación, cabeceras, botones y cuadros de diálogo.
+  - Textos orientados al usuario final con terminología institucional clara y comprensible.
+- 👤 **Corrección de Datos Preasignados en Cuentas Nuevas**:
+  - Solución al problema donde nuevos registros heredaban números de teléfono y direcciones preconfiguradas o de sesiones anteriores.
+  - Aislamiento completo de sesión en `SessionManager` (`clearSession` y `saveAuth` limpian campos opcionales si no se suministran).
+  - Campos de teléfono y dirección en el formulario de perfil ahora inician limpios con placeholder explicativo `Sin registrar (Opcional)` para nuevos ciudadanos.
+  - Campo de dirección en el Wizard de reporte inicia vacío para permitir ingreso libre o georreferenciación.
     - **ATENDIDO**: Violeta / Púrpura
     - **CERRADO**: Verde oliva / Lima
     - **RECHAZADO**: Rojo carmesí

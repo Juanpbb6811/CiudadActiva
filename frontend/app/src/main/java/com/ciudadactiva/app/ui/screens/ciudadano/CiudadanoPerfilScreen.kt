@@ -55,10 +55,10 @@ fun CiudadanoPerfilScreen(
     var isEditing by remember { mutableStateOf(false) }
 
     // Valores en edición
-    var nombre by remember { mutableStateOf(session.getNombre() ?: "Ana Ciudadana") }
-    var email by remember { mutableStateOf(session.getEmail() ?: "ciudadano@ciudadactiva.gov.co") }
-    var telefono by remember { mutableStateOf(session.getTelefono() ?: "3034445566") }
-    var direccion by remember { mutableStateOf(session.getDireccion() ?: "Cra 7 # 45-20") }
+    var nombre by remember { mutableStateOf(session.getNombre() ?: "") }
+    var email by remember { mutableStateOf(session.getEmail() ?: "") }
+    var telefono by remember { mutableStateOf(session.getTelefono() ?: "") }
+    var direccion by remember { mutableStateOf(session.getDireccion() ?: "") }
     var fotoUrl by remember { mutableStateOf(session.getFotoUrl()) }
     var avatarBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
@@ -93,11 +93,11 @@ fun CiudadanoPerfilScreen(
             val response = ApiClient.getService().obtenerMiPerfil()
             if (response.isSuccessful && response.body()?.data != null) {
                 val u = response.body()!!.data!!
-                nombre = u.nombre
-                email = u.email
-                u.telefono?.let { telefono = it }
-                u.direccion?.let { direccion = it }
-                u.fotoUrl?.let { fotoUrl = it }
+                nombre = u.nombre ?: ""
+                email = u.email ?: ""
+                telefono = u.telefono ?: ""
+                direccion = u.direccion ?: ""
+                fotoUrl = u.fotoUrl
 
                 backupNombre = nombre
                 backupEmail = email
@@ -105,7 +105,7 @@ fun CiudadanoPerfilScreen(
                 backupDireccion = direccion
                 backupFotoUrl = fotoUrl
 
-                session.updateProfile(u.nombre, u.email, u.telefono, u.direccion, u.fotoUrl)
+                session.updateProfile(u.nombre ?: "", u.email ?: "", u.telefono, u.direccion, u.fotoUrl)
             }
         } catch (_: Exception) {
             // Ignorar y usar valores locales
@@ -348,6 +348,7 @@ fun CiudadanoPerfilScreen(
                                 }
                             },
                             readOnly = !isEditing,
+                            placeholder = { Text("Sin registrar (Opcional)", color = Color.Gray, fontSize = 14.sp) },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(14.dp),
                             singleLine = true,
@@ -375,6 +376,7 @@ fun CiudadanoPerfilScreen(
                                 }
                             },
                             readOnly = !isEditing,
+                            placeholder = { Text("Sin registrar (Opcional)", color = Color.Gray, fontSize = 14.sp) },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(14.dp),
                             singleLine = true,
@@ -579,7 +581,7 @@ fun CiudadanoPerfilScreen(
                                     color = BrandTealDark
                                 )
                                 Text(
-                                    text = "Alterna entre los 4 actores del sistema RUP",
+                                    text = "Alterna entre los 4 perfiles del sistema",
                                     fontSize = 11.sp,
                                     color = Color(0xFF6C757D)
                                 )
@@ -626,7 +628,10 @@ fun CiudadanoPerfilScreen(
                                                             id = auth.userId,
                                                             email = auth.userEmail,
                                                             nombre = auth.userNombre,
-                                                            rol = auth.userRol
+                                                            rol = auth.userRol,
+                                                            fotoUrl = auth.userFotoUrl,
+                                                            telefono = auth.userTelefono,
+                                                            direccion = auth.userDireccion
                                                         )
                                                         onCambiarActor(auth.userRol)
                                                     } else {

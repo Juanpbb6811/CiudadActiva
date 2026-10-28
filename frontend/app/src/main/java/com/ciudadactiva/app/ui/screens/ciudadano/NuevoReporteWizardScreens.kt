@@ -70,7 +70,7 @@ fun NuevoReportePaso1Screen(
 
         Column(modifier = Modifier.padding(20.dp)) {
             Text(
-                text = "SELECCIONA LA CATEGORÍA (RF02)",
+                text = "SELECCIONA LA CATEGORÍA DE LA INCIDENCIA",
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF7A8B88)
@@ -594,7 +594,7 @@ fun NuevoReportePaso3Screen(
             ) {
                 Column {
                     Text(
-                        text = "Protección de Datos y Privacidad (RNF01)",
+                        text = "Protección de Datos y Privacidad",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF2E7D32)
@@ -703,7 +703,7 @@ fun NuevoReporteExitoScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Tu reporte ha sido registrado en la matriz inmutable de trazabilidad (RNF04). El sistema calculó su urgencia según los reportes del sector y un gestor validará su pertinencia técnica.",
+                text = "Tu reporte ha sido registrado con éxito. Se calculó su prioridad inicial según las incidencias del sector y un gestor municipal validará su pertinencia técnica.",
                 fontSize = 13.sp,
                 color = Color(0xFF5A6665),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -713,7 +713,7 @@ fun NuevoReporteExitoScreen(
             Spacer(modifier = Modifier.height(30.dp))
 
             GradientButton(
-                text = "Ver Línea de Tiempo (RF07)",
+                text = "Ver Seguimiento del Reporte",
                 onClick = {
                     reporte?.id?.let { onVerSeguimiento(it) } ?: onVolverInicio()
                 }
