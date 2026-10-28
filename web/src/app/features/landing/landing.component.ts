@@ -18,7 +18,7 @@ import { CommonModule } from '@angular/common';
       <header class="landing-header">
         <div class="header-inner">
           <div class="brand" routerLink="/">
-            <div class="logo-box">C</div>
+            <img src="/app-icon.svg" alt="CiudadActiva Logo" class="brand-logo-img" />
             <div class="brand-text">
               <span class="brand-title">ciudad<b>activa</b></span>
               <span class="brand-sub">Comunidad Urbana</span>
@@ -118,7 +118,7 @@ import { CommonModule } from '@angular/common';
             <div class="phone-screen">
               <div class="mockup-top">
                 <div class="mockup-brand">
-                  <span class="m-c">C</span>
+                  <img src="/app-icon.svg" alt="CiudadActiva" class="mockup-logo-img" />
                   <b>ciudad<span>activa</span></b>
                 </div>
                 <div class="mockup-badge">v0.2.2</div>
@@ -377,7 +377,7 @@ import { CommonModule } from '@angular/common';
             <div class="download-qr-box">
               <div class="qr-frame">
                 <div class="qr-header">
-                  <div class="logo-box-sm">C</div>
+                  <img src="/app-icon.svg" alt="CiudadActiva" class="brand-logo-sm-img" />
                   <span>Escanea o Descarga</span>
                 </div>
                 <!-- Visual QR placeholder -->
@@ -399,7 +399,7 @@ import { CommonModule } from '@angular/common';
           <div class="footer-top row between wrap gap">
             <div class="footer-brand">
               <div class="brand">
-                <div class="logo-box">C</div>
+                <img src="/app-icon.svg" alt="CiudadActiva Logo" class="brand-logo-img" />
                 <div class="brand-text">
                   <span class="brand-title">ciudad<b>activa</b></span>
                   <span class="brand-sub">Sistema de Incidencias Urbanas</span>
@@ -474,6 +474,25 @@ import { CommonModule } from '@angular/common';
       gap: 10px;
       cursor: pointer;
       text-decoration: none;
+    }
+    .brand-logo-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 10px rgba(17, 50, 51, 0.2));
+    }
+    .brand-logo-sm-img {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      object-fit: contain;
+    }
+    .mockup-logo-img {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      object-fit: contain;
     }
     .logo-box {
       width: 38px;

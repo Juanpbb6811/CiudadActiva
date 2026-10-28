@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e4c4e" />
+      <stop offset="100%" stop-color="#113233" />
+    </linearGradient>
+    <filter id="iconShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+    <filter id="innerShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#113233" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <!-- Contenedor squircle de Android con sombra -->
+  <rect x="12" y="12" width="168" height="168" rx="42" ry="42" fill="url(#bgGrad)" filter="url(#iconShadow)" stroke="#335c59" stroke-width="2" />
+
+  <!-- Círculo interior blanco perla -->
+  <circle cx="96" cy="96" r="54" fill="#F0F4F4" filter="url(#innerShadow)" />
+
+  <!-- Conectores del grafo urbano -->
+  <line x1="96" y1="96" x2="74" y2="74" stroke="#74A596" stroke-width="8" stroke-linecap="round" />
+  <line x1="96" y1="96" x2="118" y2="118" stroke="#113233" stroke-width="8" stroke-linecap="round" />
+  <line x1="96" y1="96" x2="118" y2="76" stroke="#D4A373" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 7" />
+
+  <!-- Nodos de red -->
+  <circle cx="96" cy="96" r="13" fill="#113233" />
+  <circle cx="74" cy="74" r="11" fill="#74A596" />
+  <circle cx="118" cy="118" r="11" fill="#113233" />
+  <circle cx="118" cy="76" r="8" fill="#D4A373" />
+</svg>

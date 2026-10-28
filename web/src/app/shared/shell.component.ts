@@ -20,7 +20,7 @@ interface NavItem { path: string; label: string; icon: string; }
   template: `
     <div class="shell" [class.nav-none]="navMode() === 'none'" [class.nav-detail]="navMode() === 'detail'">
       <aside class="sidebar">
-        <div class="brand"><span class="logo">C</span><span>ciudad<b>activa</b></span></div>
+        <div class="brand"><img src="/app-icon.svg" alt="CiudadActiva Logo" class="logo" /><span>ciudad<b>activa</b></span></div>
         <nav>
           @for (i of items(); track i.path) {
             <a [routerLink]="i.path" routerLinkActive="active"><app-icon [name]="i.icon" [size]="20" />{{ i.label }}</a>

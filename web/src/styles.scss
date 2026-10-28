@@ -144,7 +144,8 @@ textarea { resize: vertical; }
   .shell.nav-none { grid-template-columns: 1fr; } .shell.nav-none .sidebar { display: none; }
   .sidebar { display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; background: var(--teal-dark); color: #fff; padding: 20px 14px; gap: 18px; }
   .brand { display: flex; align-items: center; gap: 10px; font-size: 18px; padding: 4px 8px; } .brand b { color: var(--copper-light); }
-  .logo { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, var(--teal-light), var(--copper)); display: grid; place-items: center; font-weight: 700; }
+  .logo { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-weight: 700; object-fit: contain; }
+  img.logo { background: transparent; }
   .sidebar nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
   .sidebar nav a { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 12px; color: #cfe3dc; font-weight: 500; }
   .sidebar nav a:hover { background: rgba(255, 255, 255, .08); } .sidebar nav a.active { background: rgba(255, 255, 255, .15); color: #fff; font-weight: 700; }
@@ -159,6 +160,6 @@ textarea { resize: vertical; }
 /* ---------- Auth ---------- */
 .auth-bg { min-height: 100vh; display: grid; place-items: center; padding: 20px; background: radial-gradient(circle at 20% 0%, #1e4c4e 0%, #113233 60%); }
 .auth-card { width: 100%; max-width: 440px; background: #fff; border-radius: 24px; padding: 28px 24px; box-shadow: 0 24px 60px rgba(0, 0, 0, .35); }
-.auth-logo { text-align: center; margin-bottom: 18px; } .auth-logo .logo-big { width: 62px; height: 62px; margin: 0 auto 8px; border-radius: 18px; background: linear-gradient(135deg, var(--teal-light), var(--copper)); display: grid; place-items: center; color: #fff; font-size: 30px; font-weight: 700; }
+.auth-logo { text-align: center; margin-bottom: 18px; } .auth-logo .logo-big { width: 64px; height: 64px; margin: 0 auto 8px; border-radius: 18px; display: grid; place-items: center; color: #fff; font-size: 30px; font-weight: 700; object-fit: contain; } .auth-logo img.logo-big { background: transparent; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.15)); }
 .auth-logo h1 { font-size: 26px; font-weight: 600; } .auth-logo h1 b { color: var(--copper); } .auth-logo p { color: var(--muted); font-size: 13px; }
 .divider { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12px; margin: 14px 0; } .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
