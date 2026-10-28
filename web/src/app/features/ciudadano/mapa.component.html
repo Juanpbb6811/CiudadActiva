@@ -1,0 +1,28 @@
+<app-top-bar title="Mapa de Incidencias" [subtitle]="filtrados().length + ' reportes con ubicación'" />
+<div class="page">
+  <div class="input-icon mb">
+    <app-icon name="search" [size]="18" />
+    <input type="search" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" placeholder="Buscar por dirección o tipo..." />
+  </div>
+  <div class="pills mb">
+    <button type="button" class="pill" [class.active]="catSel() === null" (click)="catSel.set(null)">Todos ({{ reportes().length }})</button>
+    @for (c of categorias(); track c.id) {
+      <button type="button" class="pill" [class.active]="catSel() === c.id" (click)="catSel.set(c.id)">{{ c.nombre }} ({{ conteo(c.id) }})</button>
+    }
+  </div>
+  @if (error()) { <app-error-view [message]="error()" [retry]="false" /> }
+
+  <app-map-view [markers]="markers()" height="min(60vh, 520px)" (markerClick)="onMarker($event)" />
+
+  @if (seleccionado(); as r) {
+    <div class="card mt">
+      <div class="row between"><small class="kicker">INCIDENCIA #{{ r.id }} • {{ (r.categoriaNombre ?? '').toUpperCase() }}</small><app-status-chip [estado]="r.estado" /></div>
+      <h3 class="mt-sm">{{ r.titulo }}</h3>
+      <p class="muted small">📍 {{ r.direccion ?? 'Sin dirección' }}</p>
+      <p class="small mt-sm">📊 {{ r.reportesCercanos ?? 1 }} reportes acumulados en esta misma zona. {{ r.semaforoDescripcion }}</p>
+      <button class="btn primary btn-sm mt" type="button" (click)="detalle(r.id)">Ver Trazabilidad y Comentarios 💬 →</button>
+    </div>
+  } @else {
+    <p class="muted small center mt">Toca un marcador para ver el detalle del reporte.</p>
+  }
+</div>

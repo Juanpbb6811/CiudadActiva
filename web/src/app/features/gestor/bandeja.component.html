@@ -1,0 +1,27 @@
+<app-top-bar title="Bandeja de Validación" subtitle="Reportes ciudadanos" />
+<div class="page">
+  <div class="pills mb">
+    @for (f of filtros; track f) { <button type="button" class="pill" [class.active]="filtro() === f" (click)="setFiltro(f)">{{ lbl(f) }}</button> }
+  </div>
+  @if (error()) { <app-error-view [message]="error()" (retried)="cargar()" /> }
+  @if (cargando()) { <app-loading [n]="3" /> } @else if (lista().length === 0) {
+    <app-empty emoji="📭" title="No hay incidencias en esta bandeja" [text]="'No se encontraron reportes con el estado ' + lbl(filtro()).toLowerCase() + '.'">
+      @if (filtro() !== 'TODOS') { <button class="btn ghost mt" type="button" (click)="setFiltro('TODOS')">Ver Todos los Reportes</button> }
+    </app-empty>
+  } @else {
+    <div class="grid grid-auto">
+      @for (r of lista(); track r.id) {
+        <app-reporte-card [r]="r" [mostrarAutor]="true">
+          <div class="row gap-sm mt-sm wrap">
+            <button class="btn ghost btn-sm" type="button" (click)="editar.set(r)">Cambiar Estado</button>
+            <button class="btn primary btn-sm" type="button" (click)="inspeccionar(r.id)">Inspeccionar →</button>
+          </div>
+        </app-reporte-card>
+      }
+    </div>
+  }
+</div>
+@if (editar(); as r) {
+  <app-estado-modal [titulo]="'Actualizar Estado de Reporte #' + r.id" [actual]="r.estado" [guardando]="guardando()" etiquetaObs="Observaciones / Justificación:"
+    (guardar)="guardarEstado($event)" (cancelar)="editar.set(null)" />
+}

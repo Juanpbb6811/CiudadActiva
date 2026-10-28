@@ -1,0 +1,67 @@
+<div class="auth-bg">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-big">C</div>
+      <h1>ciudad<b>activa</b></h1>
+      <p>Gestión y Seguimiento Comunitario</p>
+    </div>
+
+    @if (expirada) { <div class="alert warn">Tu sesión expiró. Ingresa nuevamente.</div> }
+
+    <form [formGroup]="form" (ngSubmit)="ingresar()" novalidate>
+      <label class="field">
+        <span>Correo Electrónico</span>
+        <div class="input-icon">
+          <app-icon name="mail" [size]="18" />
+          <input type="email" formControlName="email" placeholder="tu_correo@ejemplo.com" autocomplete="username" />
+        </div>
+        @if (form.controls.email.touched && form.controls.email.invalid) { <small class="field-error">Formato de correo no válido</small> }
+      </label>
+
+      <label class="field">
+        <span>Contraseña</span>
+        <div class="input-icon">
+          <app-icon name="lock" [size]="18" />
+          <input [type]="verPass() ? 'text' : 'password'" formControlName="password" placeholder="••••••••" autocomplete="current-password" />
+          <button type="button" class="eye" (click)="verPass.set(!verPass())" [attr.aria-label]="verPass() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+            <app-icon [name]="verPass() ? 'eye-off' : 'eye'" [size]="18" />
+          </button>
+        </div>
+        @if (form.controls.password.touched && form.controls.password.invalid) { <small class="field-error">Mínimo 6 caracteres</small> }
+      </label>
+
+      <div class="row between">
+        <label class="check"><input type="checkbox" formControlName="remember" /> Recordar sesión</label>
+      </div>
+
+      @if (error()) { <div class="alert error"><app-icon name="alert" [size]="18" /><span>{{ error() }}</span></div> }
+
+      <button class="btn primary block mt" type="submit" [disabled]="cargando()">
+        {{ cargando() ? 'Ingresando…' : 'Ingresar a la Plataforma' }}
+      </button>
+    </form>
+
+    <div class="divider">¿No tienes una cuenta aún?</div>
+    <a routerLink="/register" class="btn ghost block">Crear cuenta de Ciudadano</a>
+
+    <p class="center mt-lg xs muted">
+      Servidor: {{ cfg.baseUrl() }} · <button type="button" class="link xs" (click)="abrirServidor()">Cambiar</button>
+    </p>
+  </div>
+</div>
+
+@if (servidorAbierto()) {
+  <app-modal title="Conexión del Backend" (closed)="servidorAbierto.set(false)">
+    <p class="muted small mb">Selecciona o escribe la URL del servidor:</p>
+    <div class="pills mb">
+      @for (p of presets; track p.url) {
+        <button type="button" class="pill" [class.active]="urlServidor === p.url" (click)="urlServidor = p.url">{{ p.label }}</button>
+      }
+    </div>
+    <label class="field"><span>URL Base</span><input type="text" [(ngModel)]="urlServidor" placeholder="https://..." /></label>
+    <ng-container footer>
+      <button class="btn ghost" type="button" (click)="servidorAbierto.set(false)">Cancelar</button>
+      <button class="btn primary" type="button" (click)="guardarServidor()">Guardar</button>
+    </ng-container>
+  </app-modal>
+}

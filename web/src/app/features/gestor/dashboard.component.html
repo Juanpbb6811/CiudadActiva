@@ -1,0 +1,30 @@
+<app-top-bar title="Centro de Triage" subtitle="Resumen operativo del gestor" />
+<div class="page">
+  @if (error()) { <app-error-view [message]="error()" (retried)="cargar()" /> }
+  @if (cargando()) { <app-loading [n]="3" /> } @else {
+    <div class="grid grid-3">
+      <div class="card kpi"><small>PENDIENTES</small><b style="color:#e65100">{{ pendientes().length }}</b><small>Por Validar</small></div>
+      <div class="card kpi"><small>POR ASIGNAR</small><b style="color:#2e7d32">{{ admitidos() }}</b><small>Admitidos</small></div>
+      <div class="card kpi"><small>EN CAMPO</small><b style="color:#1565c0">{{ asignaciones().length }}</b><small>En Proceso</small></div>
+    </div>
+
+    <h2 class="section-title">Requiere atención inmediata (Triage)</h2>
+    @if (critico(); as c) {
+      <div class="card" style="border-left:5px solid #c62828">
+        <div class="row between wrap gap-sm"><small class="kicker">#{{ c.id }} • {{ (c.categoriaNombre ?? '').toUpperCase() }}</small><app-prioridad-chip [prioridad]="c.prioridad" /></div>
+        <h3 class="mt-sm">{{ c.titulo }}</h3>
+        <p class="muted small">📍 {{ c.direccion ?? 'Sin dirección' }}</p>
+        <button class="btn primary mt" type="button" (click)="inspeccionar(c.id)">Validar y Asignar →</button>
+      </div>
+    } @else {
+      <div class="alert ok">✓ No hay incidencias urgentes pendientes de validación.</div>
+    }
+
+    <h2 class="section-title">Acciones de gestión</h2>
+    <div class="grid grid-3">
+      <a routerLink="/gestor/validacion" class="card clickable row gap"><app-icon name="check-circle" [size]="24" /><div><strong>Bandeja de validación</strong><p class="muted xs">Revisar y admitir reportes</p></div></a>
+      <a routerLink="/gestor/asignaciones" class="card clickable row gap"><app-icon name="users" [size]="24" /><div><strong>Asignaciones</strong><p class="muted xs">Operadores en terreno</p></div></a>
+      <a routerLink="/gestor/estadisticas" class="card clickable row gap"><app-icon name="chart" [size]="24" /><div><strong>Estadísticas</strong><p class="muted xs">Semáforo y desempeño</p></div></a>
+    </div>
+  }
+</div>

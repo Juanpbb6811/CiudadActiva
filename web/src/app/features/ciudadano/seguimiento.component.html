@@ -1,0 +1,81 @@
+<app-top-bar title="Seguimiento" [subtitle]="rep() ? 'Reporte #' + rep()!.id : ''" [back]="true" fallback="/ciudadano/inicio" />
+<div class="page page-narrow">
+  @if (cargando()) { <app-loading [n]="3" /> }
+  @if (error()) { <app-error-view [message]="error()" (retried)="cargar()" /> }
+
+  @if (rep(); as r) {
+    <div class="card flush">
+      @if (r.tieneFoto) { <img class="reporte-img" style="height:220px" [src]="cfg.fotoReporte(r.id)" alt="Foto del reporte" /> }
+      <div class="reporte-body">
+        <div class="row between wrap gap-sm"><small class="kicker">{{ (r.categoriaNombre ?? '').toUpperCase() }}</small><app-status-chip [estado]="r.estado" /></div>
+        <h2 class="mt-sm">{{ r.titulo }}</h2>
+        <p class="mt-sm">{{ r.descripcion }}</p>
+        <p class="muted small mt-sm">📍 {{ r.direccion ?? 'Sin dirección' }}</p>
+        <p class="muted xs">Reportado por: {{ r.ciudadanoNombre ?? 'Anónimo' }} · {{ r.creadoEn | date: 'dd MMM yyyy, HH:mm' }}</p>
+        <div class="row between wrap gap-sm mt">
+          <app-semaforo-badge [hex]="r.semaforoColorHex" [nivel]="r.semaforoNivel" />
+          @if (r.prioridad) { <app-prioridad-chip [prioridad]="r.prioridad" /> }
+        </div>
+        <p class="muted xs mt-sm">{{ r.reportesCercanos ?? 1 }} reportes en la zona · {{ r.semaforoDescripcion }}</p>
+        @if (r.operadorAsignadoNombre) { <p class="small mt-sm">👷 Operador asignado: <strong>{{ r.operadorAsignadoNombre }}</strong></p> }
+      </div>
+    </div>
+
+    @if (r.estado === 'RECHAZADO' && r.justificacionRechazo) {
+      <div class="alert error mt" style="display:block"><strong>Justificación del Gestor</strong><p class="mt-sm">{{ r.justificacionRechazo }}</p></div>
+    }
+    @if (r.tieneFotoSolucion) {
+      <h2 class="section-title">Evidencia de solución</h2>
+      <img class="reporte-img" style="height:auto;border-radius:16px" [src]="cfg.fotoSolucion(r.id)" alt="Evidencia de solución" />
+    }
+    @if (markers().length) { <div class="mt"><app-map-view [markers]="markers()" [lat]="r.latitud!" [lng]="r.longitud!" [zoom]="16" height="200px" /></div> }
+
+    <h2 class="section-title">Historial y trazabilidad</h2>
+    @if (r.lineaDeTiempo.length) {
+      <div class="timeline">
+        @for (s of r.lineaDeTiempo; track s.id) {
+          <div class="tl-item">
+            <span class="tl-dot" [style.background]="st(s.estadoNuevo ?? s.accion).text"></span>
+            <div class="card">
+              <div class="row between wrap gap-sm">
+                <strong class="small">{{ lbl(s.estadoNuevo ?? s.accion) }}</strong>
+                <small class="muted">{{ s.creadoEn | date: 'dd MMM, HH:mm' }}</small>
+              </div>
+              @if (s.estadoAnterior && s.estadoNuevo && s.estadoAnterior !== s.estadoNuevo) { <p class="xs muted">{{ lbl(s.estadoAnterior) }} → {{ lbl(s.estadoNuevo) }}</p> }
+              @if (s.observaciones) { <p class="small mt-sm">{{ s.observaciones }}</p> }
+              <p class="xs muted mt-sm">Por {{ s.usuarioNombre ?? 'Sistema' }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    } @else { <app-empty emoji="🕓" title="Sin movimientos todavía" /> }
+
+    <div class="row between"><h2 class="section-title">Comentarios de la comunidad ({{ comentarios().length }})</h2>
+      <a class="link small" [routerLink]="['/ciudadano/comentarios', r.id]">Ver todos</a></div>
+    @if (comentarios().length === 0) {
+      <app-empty emoji="💬" title="Aún no hay comentarios en este reporte." text="Sé el primero en dejar una nota o actualización a la comunidad." />
+    } @else {
+      @for (c of comentarios().slice(-3); track c.id) {
+        <div class="card mb"><strong class="small">{{ c.usuarioNombre }}</strong><p class="small">{{ c.contenido }}</p></div>
+      }
+    }
+    <div class="row gap mt">
+      <input type="text" class="grow" [(ngModel)]="comentario" (keydown.enter)="enviarComentario()" placeholder="Escribe un comentario sobre este reporte..." />
+      <button class="btn primary" type="button" [disabled]="enviando() || !comentario.trim()" (click)="enviarComentario()" aria-label="Enviar"><app-icon name="send" [size]="16" /></button>
+    </div>
+
+    @if (puedeRetirar()) {
+      <button class="btn danger-ghost block mt-lg" type="button" (click)="confirmarRetiro.set(true)"><app-icon name="trash" [size]="16" /> Retirar este reporte (Pendiente)</button>
+    }
+  }
+</div>
+
+@if (confirmarRetiro()) {
+  <app-modal title="¿Retirar este reporte?" (closed)="confirmarRetiro.set(false)">
+    <p>Este reporte se encuentra en estado PENDIENTE. Al retirarlo, se eliminará permanentemente del sistema.</p>
+    <ng-container footer>
+      <button class="btn ghost" type="button" (click)="confirmarRetiro.set(false)">Cancelar</button>
+      <button class="btn danger" type="button" (click)="retirar()">Sí, retirar reporte</button>
+    </ng-container>
+  </app-modal>
+}

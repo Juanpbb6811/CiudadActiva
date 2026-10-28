@@ -1,0 +1,40 @@
+<div class="auth-bg">
+  <div class="auth-card">
+    <div class="row gap mb">
+      <a routerLink="/login" class="icon-btn" aria-label="Volver"><app-icon name="arrow-left" [size]="20" /></a>
+      <div>
+        <h1>Únete a CiudadActiva</h1>
+        <p class="muted small">Crea tu cuenta personal para reportar incidencias en tu comunidad</p>
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="registrar()" novalidate>
+      <label class="field"><span>Nombre Completo *</span>
+        <input type="text" formControlName="nombre" autocomplete="name" />
+        @if (form.controls.nombre.touched && form.controls.nombre.invalid) { <small class="field-error">Ingresa tu nombre completo</small> }
+      </label>
+      <label class="field"><span>Correo Electrónico *</span>
+        <input type="email" formControlName="email" autocomplete="email" />
+        @if (form.controls.email.touched && form.controls.email.invalid) { <small class="field-error">Ingresa un correo electrónico válido (ej: nombre&#64;gmail.com)</small> }
+      </label>
+      <label class="field"><span>Contraseña (mín 6 caracteres) *</span>
+        <input type="password" formControlName="password" autocomplete="new-password" />
+        @if (form.controls.password.touched && form.controls.password.invalid) { <small class="field-error">La contraseña debe tener al menos 6 caracteres</small> }
+      </label>
+      <label class="field"><span>Repetir Contraseña *</span>
+        <input type="password" formControlName="repetir" autocomplete="new-password" />
+        @if (form.controls.repetir.touched && form.hasError('noCoinciden')) { <small class="field-error">Las contraseñas no coinciden</small> }
+      </label>
+      <label class="field"><span>Teléfono de Contacto (Opcional)</span>
+        <input type="tel" formControlName="telefono" autocomplete="tel" />
+      </label>
+
+      <label class="check"><input type="checkbox" formControlName="acepto" /> Acepto el tratamiento de datos y ubicación para reporte de incidencias</label>
+      @if (form.controls.acepto.touched && form.controls.acepto.invalid) { <small class="field-error">Debes aceptar para continuar</small> }
+
+      @if (error()) { <div class="alert error"><app-icon name="alert" [size]="18" /><span>{{ error() }}</span></div> }
+
+      <button class="btn primary block mt" type="submit" [disabled]="cargando()">{{ cargando() ? 'Registrando…' : 'Completar Registro' }}</button>
+    </form>
+  </div>
+</div>

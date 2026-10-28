@@ -1,0 +1,24 @@
+<app-top-bar title="Nuevo Reporte" subtitle="Paso 2 de 3 · Ubicación" [back]="true" fallback="/ciudadano/nuevo-reporte/1" />
+<div class="page page-narrow">
+  <div class="progress-steps"><i class="on"></i><i class="on"></i><i></i></div>
+  <p class="muted small mb">Toca el mapa o arrastra el marcador</p>
+  <app-map-view [selectable]="true" [lat]="store.latitud()" [lng]="store.longitud()" [zoom]="15" height="300px" (pick)="onPick($event)" />
+
+  <button class="btn ghost block mt" type="button" (click)="usarGps()" [disabled]="buscandoGps()"><app-icon name="gps" [size]="18" /> {{ buscandoGps() ? 'Buscando señal GPS…' : 'Usar mi ubicación GPS actual' }}</button>
+  @if (gpsMsg()) { <div class="alert warn">{{ gpsMsg() }}</div> }
+
+  <h2 class="section-title">Coordenadas de la incidencia</h2>
+  <div class="grid grid-2">
+    <label class="field"><span>Latitud</span><input type="number" step="0.000001" [ngModel]="store.latitud()" (ngModelChange)="store.latitud.set(+$event)" /></label>
+    <label class="field"><span>Longitud</span><input type="number" step="0.000001" [ngModel]="store.longitud()" (ngModelChange)="store.longitud.set(+$event)" /></label>
+  </div>
+  <label class="field"><span>Dirección o Referencia *</span>
+    <input type="text" [ngModel]="store.direccion()" (ngModelChange)="store.direccion.set($event)" placeholder="Ej: Calle 13 # 8-45, frente al parque" />
+    @if (intento() && store.direccion().trim().length < 3) { <small class="field-error">Indica una dirección o punto de referencia</small> }
+  </label>
+
+  <div class="row gap mt">
+    <button class="btn ghost" type="button" (click)="atras()">← Atrás</button>
+    <button class="btn primary grow" type="button" (click)="siguiente()">Confirmar Ubicación (Paso 3) →</button>
+  </div>
+</div>

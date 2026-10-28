@@ -1,0 +1,56 @@
+<app-top-bar title="Panel Administrativo" subtitle="Control municipal de incidencias" />
+<div class="page">
+  @if (error()) { <app-error-view [message]="error()" (retried)="cargar()" /> }
+  @if (cargando() && !stats()) { <app-loading [n]="3" /> }
+  @if (stats(); as s) {
+    <div class="grid grid-3">
+      <div class="card kpi"><small>TOTAL CASOS</small><b>{{ total() }}</b></div>
+      <div class="card kpi"><small>RESUELTOS</small><b style="color:#2e7d32">{{ resueltos() }}%</b></div>
+      <div class="card kpi"><small>TIEMPO PROM.</small><b>{{ s.tiempoPromedioAtencionHoras | number: '1.0-1' }}h</b><small>Atención</small></div>
+    </div>
+
+    <h2 class="section-title">Matriz de estados (pipeline)</h2>
+    <div class="card">
+      @for (e of estados; track e) {
+        <div class="mb"><div class="row between small"><span>{{ lbl(e) }}</span><b>{{ s.reportesPorEstado[e] }} ({{ pct(s.reportesPorEstado[e]) }}%)</b></div>
+          <div class="bar-track"><div class="bar-fill" [style.width.%]="pct(s.reportesPorEstado[e])" [style.background]="est(e).text"></div></div></div>
+      }
+    </div>
+
+    <h2 class="section-title">Matriz de criticidad urbana y riesgo</h2>
+    <p class="small mb">Semáforo territorial: <strong>{{ s.semaforoGlobal?.nivelAlerta?.replace('_', ' ') ?? 'SIN REPORTES' }}</strong></p>
+    <div class="grid grid-auto">
+      @for (c of categorias(); track c[0]) {
+        <div class="card row between"><div><strong class="small">{{ c[0] }}</strong><p class="muted xs">{{ c[1].cantidadReportes }} casos</p></div><app-semaforo-badge [semaforo]="c[1]" /></div>
+      }
+    </div>
+  }
+
+  <h2 class="section-title">Gestión global de reportes</h2>
+  <div class="pills mb">@for (f of filtros; track f) { <button type="button" class="pill" [class.active]="filtro() === f" (click)="setFiltro(f)">{{ lbl(f) }}</button> }</div>
+  @if (!cargando() && reportes().length === 0) { <app-empty emoji="📭" title="No se encontraron reportes con el filtro seleccionado." /> }
+  <div class="grid grid-auto">
+    @for (r of reportes(); track r.id) {
+      <app-reporte-card [r]="r" [mostrarFoto]="false">
+        <div class="row gap-sm wrap mt-sm">
+          <button class="btn ghost btn-sm" type="button" (click)="inspeccionar(r.id)">Ficha</button>
+          <button class="btn ghost btn-sm" type="button" (click)="editar.set(r)">Modificar Estado</button>
+          <button class="btn danger-ghost btn-sm" type="button" (click)="eliminar.set(r)"><app-icon name="trash" [size]="14" /> Eliminar</button>
+        </div>
+      </app-reporte-card>
+    }
+  </div>
+</div>
+@if (editar(); as r) {
+  <app-estado-modal [titulo]="'Modificar Estado Reporte #' + r.id" [actual]="r.estado" [guardando]="guardando()" etiquetaObs="Justificación / Observaciones:"
+    placeholder="Ej: Validación administrativa de conformidad..." (guardar)="guardarEstado($event)" (cancelar)="editar.set(null)" />
+}
+@if (eliminar(); as r) {
+  <app-modal title="¿Eliminar reporte?" (closed)="eliminar.set(null)">
+    <p>Se eliminará permanentemente el reporte <strong>#{{ r.id }} · {{ r.titulo }}</strong> y su trazabilidad asociada.</p>
+    <ng-container footer>
+      <button class="btn ghost" type="button" (click)="eliminar.set(null)">Cancelar</button>
+      <button class="btn danger" type="button" [disabled]="guardando()" (click)="confirmarEliminar()">Eliminar</button>
+    </ng-container>
+  </app-modal>
+}

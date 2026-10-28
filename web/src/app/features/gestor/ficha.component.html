@@ -1,0 +1,110 @@
+<app-top-bar title="Ficha de Inspección" [subtitle]="'Reporte #' + id()" [back]="true" fallback="/gestor/validacion" />
+<div class="page">
+  @if (cargando()) { <app-loading [n]="3" /> }
+  @if (error()) { <app-error-view [message]="error()" (retried)="cargar()" /> }
+
+  @if (rep(); as r) {
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+      <div>
+        <div class="card flush">
+          @if (r.tieneFoto) { <img class="reporte-img" style="height:240px" [src]="cfg.fotoReporte(r.id)" alt="Foto del reporte" /> }
+          @else { <div class="reporte-img" style="height:120px;display:grid;place-items:center;color:var(--muted)">Sin fotografía adjunta</div> }
+          <div class="reporte-body">
+            <div class="row between wrap gap-sm"><small class="kicker">{{ (r.categoriaNombre ?? '').toUpperCase() }}</small><app-status-chip [estado]="r.estado" /></div>
+            <h2 class="mt-sm">{{ r.titulo }}</h2>
+            <p class="mt-sm">{{ r.descripcion }}</p>
+            <p class="muted small mt-sm">Reportado por: {{ r.ciudadanoNombre ?? 'Anónimo' }} · {{ r.creadoEn | date: 'dd MMM yyyy, HH:mm' }}</p>
+            <p class="muted small">Dirección: {{ r.direccion ?? '—' }}</p>
+            <div class="row between wrap gap-sm mt"><app-semaforo-badge [hex]="r.semaforoColorHex" [nivel]="r.semaforoNivel" /><span class="xs muted">{{ r.reportesCercanos ?? 1 }} reportes en la zona</span></div>
+          </div>
+        </div>
+        @if (markers().length) { <div class="mt"><app-map-view [markers]="markers()" [lat]="r.latitud!" [lng]="r.longitud!" [zoom]="16" height="200px" /></div> }
+      </div>
+
+      <div>
+        <div class="card">
+          <h3>Prioridad oficial <small class="muted xs">(exclusiva del gestor · Regla 2)</small></h3>
+          <div class="pills mt-sm" style="flex-wrap:wrap">
+            @for (p of prioridades; track p) {
+              <button type="button" class="pill" [class.active]="prioridad() === p" [style.background]="prioridad() === p ? pst(p).text : pst(p).bg"
+                [style.color]="prioridad() === p ? '#fff' : pst(p).text" [style.border-color]="pst(p).text" (click)="prioridad.set(p)">{{ p }}</button>
+            }
+          </div>
+          @if (!porValidar() && r.prioridad !== prioridad()) {
+            <button class="btn ghost btn-sm mt-sm" type="button" [disabled]="trabajando()" (click)="guardarPrioridad()">Guardar prioridad</button>
+          }
+        </div>
+
+        <div class="card mt">
+          <h3>Estado actual del reporte</h3>
+          <div class="row between mt-sm wrap gap-sm"><app-status-chip [estado]="r.estado" />
+            <button class="btn ghost btn-sm" type="button" (click)="modal.set('ESTADO')">Cambiar Estado del Reporte...</button></div>
+          @if (r.estado === 'RECHAZADO' && r.justificacionRechazo) { <p class="small mt-sm"><strong>Justificación:</strong> {{ r.justificacionRechazo }}</p> }
+        </div>
+
+        <div class="card mt">
+          <h3>Operador en campo</h3>
+          @if (r.asignacionActual; as a) {
+            <p class="mt-sm">👷 <strong>{{ a.operadorNombre }}</strong></p>
+            @if (a.notas) { <p class="muted small">Instrucciones: {{ a.notas }}</p> }
+            <button class="btn danger-ghost btn-sm mt-sm" type="button" [disabled]="trabajando()" (click)="cancelarAsignacion()">Cancelar asignación</button>
+          } @else {
+            <p class="muted small mt-sm">Sin operador asignado.</p>
+            @if (r.estado !== 'PENDIENTE' && r.estado !== 'EN_REVISION' && r.estado !== 'RECHAZADO' && r.estado !== 'CERRADO') {
+              <button class="btn primary btn-sm mt-sm" type="button" (click)="abrirAsignar()">Asignar Operador en Campo</button>
+            }
+          }
+        </div>
+
+        @if (porValidar()) {
+          <div class="row gap mt">
+            <button class="btn danger-ghost grow" type="button" [disabled]="trabajando()" (click)="errorRechazo.set(''); modal.set('RECHAZO')">Rechazar (Just.)</button>
+            <button class="btn primary grow" type="button" [disabled]="trabajando()" (click)="admitir()">Admitir Reporte</button>
+          </div>
+        }
+      </div>
+    </div>
+
+    <h2 class="section-title">Trazabilidad</h2>
+    <div class="timeline">
+      @for (s of r.lineaDeTiempo; track s.id) {
+        <div class="tl-item"><span class="tl-dot" style="background:var(--teal-light)"></span>
+          <div class="card"><div class="row between wrap gap-sm"><strong class="small">{{ lbl(s.estadoNuevo ?? s.accion) }}</strong><small class="muted">{{ s.creadoEn | date: 'dd MMM, HH:mm' }}</small></div>
+            @if (s.observaciones) { <p class="small mt-sm">{{ s.observaciones }}</p> }<p class="xs muted mt-sm">Por {{ s.usuarioNombre ?? 'Sistema' }}</p></div></div>
+      }
+    </div>
+  }
+</div>
+
+@switch (modal()) {
+  @case ('RECHAZO') {
+    <app-modal [title]="'Rechazar Incidencia #' + id()" (closed)="modal.set('NINGUNO')">
+      <label class="field"><span>Motivo técnico de rechazo (obligatorio · Regla 1):</span>
+        <textarea rows="4" [(ngModel)]="justificacion" placeholder="Ej: El predio reportado es de carácter privado..."></textarea></label>
+      @if (errorRechazo()) { <small class="field-error">{{ errorRechazo() }}</small> }
+      <ng-container footer>
+        <button class="btn ghost" type="button" (click)="modal.set('NINGUNO')">Cancelar</button>
+        <button class="btn danger" type="button" [disabled]="trabajando()" (click)="rechazar()">Confirmar Rechazo</button>
+      </ng-container>
+    </app-modal>
+  }
+  @case ('ASIGNAR') {
+    <app-modal title="Asignar Operador en Campo" (closed)="modal.set('NINGUNO')">
+      <p class="kicker mb">SELECCIONAR OPERADOR EN CAMPO:</p>
+      @for (o of operadores(); track o.id) {
+        <button type="button" class="cat-tile mb" style="width:100%" [class.sel]="operadorSel() === o.id" (click)="operadorSel.set(o.id)">
+          <strong>{{ o.nombre }}</strong><small class="muted">{{ o.laboresActivas ?? 0 }} labores activas en campo</small>
+        </button>
+      } @empty { <p class="muted small">No hay operadores disponibles.</p> }
+      <label class="field mt"><span>Instrucciones para la cuadrilla:</span><textarea rows="3" [(ngModel)]="notas" placeholder="Ej: Coordinar con volqueta recolectora..."></textarea></label>
+      <ng-container footer>
+        <button class="btn ghost" type="button" (click)="modal.set('NINGUNO')">Omitir Asignación</button>
+        <button class="btn primary" type="button" [disabled]="trabajando() || operadorSel() === null" (click)="asignar()">Confirmar Asignación</button>
+      </ng-container>
+    </app-modal>
+  }
+  @case ('ESTADO') {
+    <app-estado-modal titulo="Actualizar Estado del Reporte" [actual]="rep()!.estado" [guardando]="trabajando()" etiquetaObs="Observación o Justificación del Cambio:"
+      placeholder="Ej: Aprobado tras validación técnica en terreno..." (guardar)="cambiarEstado($event)" (cancelar)="modal.set('NINGUNO')" />
+  }
+}

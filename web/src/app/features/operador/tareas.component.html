@@ -1,0 +1,53 @@
+<app-top-bar title="Mis Tareas" subtitle="Órdenes de trabajo en terreno" />
+<div class="page">
+  <div class="tabs mb">
+    <button type="button" [class.active]="tab() === 'TODOS'" (click)="tab.set('TODOS')">Reportes en Terreno ({{ visibles().length }})</button>
+    <button type="button" [class.active]="tab() === 'MIS_TAREAS'" (click)="tab.set('MIS_TAREAS')">Mis Asignaciones ({{ tareas().length }})</button>
+  </div>
+  @if (error()) { <app-error-view [message]="error()" (retried)="cargar()" /> }
+
+  @if (tab() === 'MIS_TAREAS') {
+    @if (cargando()) { <app-loading [n]="3" /> } @else if (tareas().length === 0) {
+      <app-empty emoji="🧰" title="No tienes tareas específicas asignadas">
+        <button class="btn ghost mt" type="button" (click)="tab.set('TODOS')">Ver Reportes en Terreno →</button>
+      </app-empty>
+    } @else {
+      <div class="grid grid-auto">
+        @for (t of tareas(); track t.id) {
+          <div class="card">
+            <strong>#{{ t.reporteId }} • {{ t.reporteTitulo }}</strong>
+            @if (t.notas) { <p class="muted small mt-sm">Instrucciones: {{ t.notas }}</p> }
+            <div class="row gap-sm wrap mt">
+              <button class="btn ghost btn-sm" type="button" (click)="ficha(t.reporteId)">Ficha</button>
+              <button class="btn ghost btn-sm" type="button" (click)="avance(t.reporteId)">Registrar Avance</button>
+              <button class="btn primary btn-sm" type="button" (click)="cierre(t.reporteId)">Cerrar con Foto →</button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  } @else {
+    <div class="pills mb">
+      @for (f of filtros; track f) { <button type="button" class="pill" [class.active]="filtro() === f" (click)="setFiltro(f)">{{ lbl(f) }}</button> }
+    </div>
+    @if (cargando()) { <app-loading [n]="3" /> } @else if (visibles().length === 0) {
+      <app-empty emoji="📭" title="No hay reportes con este estado" />
+    } @else {
+      <div class="grid grid-auto">
+        @for (r of visibles(); track r.id) {
+          <app-reporte-card [r]="r" [clickable]="true" (abrir)="ficha($event)">
+            <div class="row gap-sm wrap mt-sm" (click)="$event.stopPropagation()">
+              <button class="btn ghost btn-sm" type="button" (click)="editar.set(r)">Estado</button>
+              <button class="btn ghost btn-sm" type="button" (click)="avance(r.id)"><app-icon name="camera" [size]="14" /> Avance / Foto</button>
+              <button class="btn primary btn-sm" type="button" (click)="cierre(r.id)">Cerrar</button>
+            </div>
+          </app-reporte-card>
+        }
+      </div>
+    }
+  }
+</div>
+@if (editar(); as r) {
+  <app-estado-modal [titulo]="'Actualizar Estado Operativo #' + r.id" [actual]="r.estado === 'ATENDIDO' ? 'ATENDIDO' : 'EN_PROCESO'" [opciones]="opciones" [guardando]="guardando()"
+    etiquetaObs="Detalle de las labores realizadas:" placeholder="Ej: Labores en sitio concluidas..." (guardar)="guardarEstado($event)" (cancelar)="editar.set(null)" />
+}

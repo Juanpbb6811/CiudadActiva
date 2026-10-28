@@ -1,0 +1,68 @@
+<div class="page">
+  <div class="row between mb">
+    <div>
+      <small class="kicker">ciudadactiva</small>
+      <h1>Hola{{ nombre() ? ', ' + nombre() : '' }}, ¿qué quieres<br />reportar hoy?</h1>
+    </div>
+  </div>
+
+  <div class="card hero row between gap">
+    <div>
+      <h2>Reportar ahora</h2>
+      <p class="small" style="opacity:.85">Toma una foto y geolocaliza la incidencia</p>
+      <p class="xs mt-sm" style="opacity:.7">● GPS y Cámara listos</p>
+    </div>
+    <button class="btn copper" type="button" (click)="reportarEn(null)"><app-icon name="camera" [size]="18" /> Reportar</button>
+  </div>
+
+  @if (error()) { <app-error-view [message]="error()" (retried)="cargar()" /> }
+
+  <h2 class="section-title">Categorías y semáforos de riesgo</h2>
+  @if (cargando()) { <app-loading [n]="2" /> } @else {
+    <div class="grid grid-2 cats">
+      @for (c of categorias(); track c.id) {
+        <button type="button" class="cat-tile" (click)="reportarEn(c)">
+          <span class="cat-emoji">{{ emoji(c.icono) }}</span>
+          <strong>{{ c.nombre }}</strong>
+          <span class="row between"><small class="muted">{{ c.totalReportes ?? 0 }} reportes</small><app-semaforo-badge [semaforo]="c.semaforo" [showLabel]="false" /></span>
+        </button>
+      }
+    </div>
+  }
+
+  <h2 class="section-title">Tu reporte activo</h2>
+  @if (activo(); as a) {
+    <div class="card clickable" (click)="ver(a.id)" (keydown.enter)="ver(a.id)" tabindex="0">
+      <div class="row between"><small class="kicker">N.° {{ a.id }}</small><app-status-chip [estado]="a.estado" /></div>
+      <h3 class="mt-sm">{{ a.titulo }}</h3>
+      <p class="muted xs">{{ a.creadoEn | date: 'dd MMM yyyy, HH:mm' }}</p>
+      <div class="stepper">
+        <span class="step" [class.on]="pasoActivo() >= 1"><i>✓</i>Registrado</span>
+        <span class="step" [class.on]="pasoActivo() >= 2"><i>{{ pasoActivo() >= 2 ? '✓' : '' }}</i>En atención</span>
+        <span class="step"><i></i>Cerrado</span>
+      </div>
+    </div>
+  } @else if (!cargando()) {
+    <app-empty emoji="✅" title="No tienes reportes activos" text="Cuando radiques una incidencia podrás seguirla aquí." />
+  }
+
+  <h2 class="section-title">Mapa de incidencias</h2>
+  <a routerLink="/ciudadano/mapa" class="card clickable row between">
+    <div><strong>Abrir mapa interactivo 🗺️</strong><p class="muted small">{{ comunidad().length }} reportes en la ciudad · Explora los reportes con semáforo y coordenadas</p></div>
+    <app-icon name="chevron" />
+  </a>
+
+  <h2 class="section-title">Muro de la comunidad · {{ comunidad().length }} publicaciones</h2>
+  <p class="muted small mb">Explora lo que reportan otros vecinos y deja tus comentarios:</p>
+  @if (muro().length) {
+    <div class="grid grid-auto">
+      @for (r of muro(); track r.id) {
+        <app-reporte-card [r]="r" [mostrarAutor]="true">
+          <button class="btn ghost btn-sm mt-sm" type="button" (click)="ver(r.id)"><app-icon name="message" [size]="14" /> Ver y Comentar</button>
+        </app-reporte-card>
+      }
+    </div>
+  } @else if (!cargando()) {
+    <app-empty emoji="🏘️" title="Aún no hay reportes publicados" text="¡Sé el primero en reportar una incidencia en tu barrio!" />
+  }
+</div>

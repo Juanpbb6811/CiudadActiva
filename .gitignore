@@ -33,3 +33,9 @@ local.properties
 Thumbs.db
 *.pdf
 *.docx
+
+# ================== FRONTEND WEB & NODE ==================
+**/node_modules/
+**/dist/
+**/.angular/
+codigo_*_completo.txt

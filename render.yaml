@@ -1,0 +1,48 @@
+# =======================================================================
+# Render Blueprint (render.yaml) - CiudadActiva Full Stack
+# Orquesta el despliegue del Backend (Spring Boot) y Frontend Web (Angular 19)
+# =======================================================================
+
+services:
+  # -------------------------------------------------------------------
+  # 1. Backend API (Spring Boot 3.4 / Docker / Java 21)
+  # -------------------------------------------------------------------
+  - type: web
+    name: ciudadactiva-backend
+    env: docker
+    dockerfilePath: Dockerfile
+    rootDir: backend
+    plan: free
+    region: ohio
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:postgresql://aws-0-us-east-2.pooler.supabase.com:5432/postgres?sslmode=require
+      - key: SPRING_DATASOURCE_USERNAME
+        value: postgres.otbdykjhvusjkzjzclqw
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: XoUF92rHTaxms6lj
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JPA_DDL_AUTO
+        value: update
+      - key: SHOW_SQL
+        value: false
+      - key: RESEND_API_KEY
+        sync: false
+
+  # -------------------------------------------------------------------
+  # 2. Frontend Web (Angular 19 / Leaflet / SPA Static Site)
+  # -------------------------------------------------------------------
+  - type: web
+    name: ciudadactiva-web
+    runtime: static
+    rootDir: web
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist/ciudadactiva-web/browser
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

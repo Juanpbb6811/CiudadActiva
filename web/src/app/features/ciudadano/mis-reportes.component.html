@@ -1,0 +1,38 @@
+<app-top-bar title="Reportes" subtitle="Tus incidencias y las de la comunidad" />
+<div class="page">
+  <div class="tabs mb">
+    <button type="button" [class.active]="tab() === 'MIOS'" (click)="tab.set('MIOS')">Mis Reportes ({{ mios().length }})</button>
+    <button type="button" [class.active]="tab() === 'COMUNIDAD'" (click)="tab.set('COMUNIDAD')">Comunidad ({{ comunidad().length }})</button>
+  </div>
+
+  @if (error()) { <app-error-view [message]="error()" (retried)="cargar()" /> }
+  @if (cargando()) { <app-loading [n]="3" /> } @else if (lista().length === 0) {
+    <app-empty [emoji]="tab() === 'MIOS' ? '📝' : '🏘️'" [title]="tab() === 'MIOS' ? 'Aún no has reportado incidencias' : 'No hay reportes en la comunidad'"
+      [text]="tab() === 'MIOS' ? 'Reporta tu primera incidencia en menos de un minuto.' : ''">
+      @if (tab() === 'MIOS') { <button class="btn primary mt" type="button" (click)="nuevo()"><app-icon name="plus" [size]="16" /> Nuevo reporte</button> }
+    </app-empty>
+  } @else {
+    <div class="grid grid-auto">
+      @for (r of lista(); track r.id) {
+        <app-reporte-card [r]="r" [mostrarAutor]="tab() === 'COMUNIDAD'">
+          <div class="row gap-sm mt-sm wrap">
+            <button class="btn ghost btn-sm" type="button" (click)="ver(r.id)"><app-icon name="message" [size]="14" /> Ver y Comentar</button>
+            @if (esMio(r) && r.estado === 'PENDIENTE') {
+              <button class="btn danger-ghost btn-sm" type="button" (click)="aRetirar.set(r)"><app-icon name="trash" [size]="14" /> Retirar</button>
+            }
+          </div>
+        </app-reporte-card>
+      }
+    </div>
+  }
+</div>
+
+@if (aRetirar(); as r) {
+  <app-modal title="¿Retirar este reporte?" (closed)="aRetirar.set(null)">
+    <p>¿Estás seguro de que deseas retirar el reporte <strong>"{{ r.titulo }}"</strong>? Se eliminará permanentemente del sistema.</p>
+    <ng-container footer>
+      <button class="btn ghost" type="button" (click)="aRetirar.set(null)">Cancelar</button>
+      <button class="btn danger" type="button" [disabled]="retirando()" (click)="confirmarRetiro()">Sí, retirar reporte</button>
+    </ng-container>
+  </app-modal>
+}

@@ -1,0 +1,27 @@
+<app-top-bar title="Nuevo Reporte" subtitle="Paso 1 de 3 · Descripción" [back]="true" fallback="/ciudadano/inicio" />
+<div class="page page-narrow">
+  <div class="progress-steps"><i class="on"></i><i></i><i></i></div>
+  @if (error()) { <app-error-view [message]="error()" [retry]="false" /> }
+
+  <h2 class="section-title" style="margin-top:6px">Selecciona la categoría (RF02)</h2>
+  <div class="grid grid-2">
+    @for (c of categorias(); track c.id) {
+      <button type="button" class="cat-tile" [class.sel]="store.categoria()?.id === c.id" (click)="store.categoria.set(c)">
+        <span class="cat-emoji">{{ emoji(c.icono) }}</span><strong>{{ c.nombre }}</strong>
+      </button>
+    }
+  </div>
+
+  <label class="field mt-lg"><span>Título de la Incidencia *</span>
+    <input type="text" maxlength="120" [ngModel]="store.titulo()" (ngModelChange)="store.titulo.set($event)" placeholder="Ej: Hueco profundo en calzada principal" />
+    @if (intento() && store.titulo().trim().length < 5) { <small class="field-error">Escribe un título de al menos 5 caracteres</small> }
+  </label>
+  <label class="field"><span>Descripción del Problema *</span>
+    <textarea rows="4" [ngModel]="store.descripcion()" (ngModelChange)="store.descripcion.set($event)" placeholder="Detalla el daño y posibles riesgos..."></textarea>
+    @if (intento() && store.descripcion().trim().length < 10) { <small class="field-error">Describe el problema (mínimo 10 caracteres)</small> }
+  </label>
+
+  <div class="alert info"><span><strong>Urgencia calculada automáticamente.</strong> El nivel de prioridad y el semáforo de atención se asignan según la concentración de reportes en la misma zona geográfica (1 reporte = Verde, 10+ reportes = Rojo Crítico).</span></div>
+
+  <button class="btn primary block mt" type="button" (click)="siguiente()">Continuar a Ubicación (Paso 2) →</button>
+</div>

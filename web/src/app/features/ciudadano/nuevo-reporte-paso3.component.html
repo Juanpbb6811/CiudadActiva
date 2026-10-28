@@ -1,0 +1,22 @@
+<app-top-bar title="Nuevo Reporte" subtitle="Paso 3 de 3 · Evidencia" [back]="true" fallback="/ciudadano/nuevo-reporte/2" />
+<div class="page page-narrow">
+  <div class="progress-steps"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+
+  <div class="card mb">
+    <small class="kicker">{{ store.categoria()?.nombre?.toUpperCase() }}</small>
+    <h3>{{ store.titulo() }}</h3>
+    <p class="muted small">📍 {{ store.direccion() }}</p>
+  </div>
+
+  <h2 class="section-title" style="margin-top:6px">Fotografía del problema (opcional)</h2>
+  <app-photo-picker [preview]="store.fotoPreview()" (fileChange)="store.setFoto($event)" />
+
+  <div class="alert info mt"><span><strong>Protección de datos y privacidad (RNF01).</strong> La fotografía y las coordenadas se procesan de forma cifrada y son almacenadas con respaldo de trazabilidad institucional.</span></div>
+
+  @if (error()) { <div class="alert error"><app-icon name="alert" [size]="18" /><span>{{ error() }}</span></div> }
+
+  <div class="row gap mt">
+    <button class="btn ghost" type="button" (click)="atras()" [disabled]="enviando()">← Atrás</button>
+    <button class="btn primary grow" type="button" (click)="publicar()" [disabled]="enviando()">{{ enviando() ? 'Publicando…' : 'Publicar Incidencia Oficial' }}</button>
+  </div>
+</div>

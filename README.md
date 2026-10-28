@@ -149,6 +149,33 @@ mvn spring-boot:run
 
 ---
 
+## 💻 Frontend Web (Angular 19)
+
+Portal web de CiudadActiva equivalente a la app móvil, desarrollado en **Angular 19** con componentes Standalone y mapas interactivos **Leaflet**.
+
+### Tecnologías
+- **Angular 19.2** (Standalone Components)
+- **TypeScript 5.7 & RxJS 7.8**
+- **Leaflet & OpenStreetMap** (Georreferenciación y semáforos)
+- **SCSS Moderno & Responsive Design**
+
+### Ejecución Local
+```bash
+cd web
+npm install
+npm start
+```
+Disponible localmente en `http://localhost:4200/`. Consume por defecto el backend desplegado en Render (`https://ciudadactiva-4ah7.onrender.com`).
+
+### Despliegue en Render (Static Site Gratuito)
+El archivo `render.yaml` en la raíz ya incluye la configuración automática para Static Site:
+- **Root Directory:** `web`
+- **Build Command:** `npm install && npm run build`
+- **Publish Directory:** `dist/ciudadactiva-web/browser`
+- **Rewrite Rule (SPA):** `/*` -> `/index.html`
+
+---
+
 ## 👥 Acceso a la Plataforma
 - **Ciudadanos:** Pueden registrarse de forma gratuita desde la pantalla de bienvenida o iniciar sesión directamente con su cuenta de Google.
 - **Personal Institucional (Gestores, Operadores, Administradores):** Cuentas gestionadas internamente por la administración municipal.
