@@ -14,6 +14,7 @@ public class UsuarioResponse {
     private Boolean activo;
     private String rol;
     private Long laboresActivas;
+    private Boolean verificado;
     private LocalDateTime creadoEn;
 
     public UsuarioResponse() {
@@ -28,11 +29,20 @@ public class UsuarioResponse {
             this.direccion = usuario.getDireccion();
             this.fotoUrl = usuario.getFotoUrl();
             this.activo = usuario.getActivo();
+            this.verificado = usuario.getVerificado();
             if (usuario.getRol() != null) {
                 this.rol = usuario.getRol().getNombre().name();
             }
             this.creadoEn = usuario.getCreadoEn();
         }
+    }
+
+    public Boolean getVerificado() {
+        return verificado;
+    }
+
+    public void setVerificado(Boolean verificado) {
+        this.verificado = verificado;
     }
 
     public Long getId() {

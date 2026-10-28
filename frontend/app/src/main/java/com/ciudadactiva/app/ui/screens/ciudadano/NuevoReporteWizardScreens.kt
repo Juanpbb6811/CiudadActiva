@@ -677,12 +677,27 @@ fun NuevoReporteExitoScreen(
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            Text(
-                text = "Radicado Oficial N.° ${reporte?.id ?: 1045}",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color = BrandCopper
-            )
+            val radicadoTexto = reporte?.codigoSeguimiento ?: "RAD-2026-${String.format("%05d", reporte?.id ?: 1)}"
+            Surface(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .border(1.5.dp, BrandCopper, RoundedCornerShape(12.dp)),
+                color = Color(0xFFFFF8E1)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.Tag, contentDescription = null, tint = BrandCopper, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Código de Seguimiento: $radicadoTexto",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF8D6E63)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(14.dp))
 

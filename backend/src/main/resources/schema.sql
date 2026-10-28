@@ -20,6 +20,11 @@ CREATE TABLE IF NOT EXISTS usuarios (
     telefono VARCHAR(30),
     direccion VARCHAR(200),
     activo BOOLEAN NOT NULL DEFAULT TRUE,
+    verificado BOOLEAN NOT NULL DEFAULT FALSE,
+    codigo_verificacion VARCHAR(10),
+    codigo_verificacion_expira TIMESTAMP WITHOUT TIME ZONE,
+    codigo_recuperacion VARCHAR(10),
+    codigo_recuperacion_expira TIMESTAMP WITHOUT TIME ZONE,
     rol_id BIGINT NOT NULL REFERENCES roles(id) ON DELETE RESTRICT,
     creado_en TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
     actualizado_en TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
@@ -38,6 +43,7 @@ CREATE TABLE IF NOT EXISTS categorias (
 -- 4. Tabla de Reportes
 CREATE TABLE IF NOT EXISTS reportes (
     id BIGSERIAL PRIMARY KEY,
+    codigo_seguimiento VARCHAR(30) UNIQUE,
     titulo VARCHAR(150) NOT NULL,
     descripcion TEXT NOT NULL,
     latitud DOUBLE PRECISION,

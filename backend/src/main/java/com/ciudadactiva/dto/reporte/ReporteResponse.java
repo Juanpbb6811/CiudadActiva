@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 public class ReporteResponse {
 
     private Long id;
+    private String codigoSeguimiento;
     private String titulo;
     private String descripcion;
     private Long categoriaId;
@@ -43,6 +44,7 @@ public class ReporteResponse {
     public ReporteResponse(Reporte reporte) {
         if (reporte != null) {
             this.id = reporte.getId();
+            this.codigoSeguimiento = reporte.getCodigoSeguimiento();
             this.titulo = reporte.getTitulo();
             this.descripcion = reporte.getDescripcion();
             if (reporte.getCategoria() != null) {
@@ -78,6 +80,14 @@ public class ReporteResponse {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getCodigoSeguimiento() {
+        return codigoSeguimiento;
+    }
+
+    public void setCodigoSeguimiento(String codigoSeguimiento) {
+        this.codigoSeguimiento = codigoSeguimiento;
     }
 
     public String getTitulo() {

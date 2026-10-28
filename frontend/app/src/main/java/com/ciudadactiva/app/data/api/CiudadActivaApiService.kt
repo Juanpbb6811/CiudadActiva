@@ -15,6 +15,21 @@ interface CiudadActivaApiService {
     @POST("api/auth/register")
     suspend fun registrar(@Body request: RegisterRequest): Response<ApiResponse<AuthResponse>>
 
+    @POST("api/auth/verificar-codigo")
+    suspend fun verificarCodigo(@Body request: VerificarCodigoRequest): Response<ApiResponse<AuthResponse>>
+
+    @POST("api/auth/reenviar-codigo")
+    suspend fun reenviarCodigo(@Body request: ReenviarCodigoRequest): Response<ApiResponse<String>>
+
+    @POST("api/auth/recuperar-password")
+    suspend fun solicitarRecuperacionPassword(@Body request: ForgotPasswordRequest): Response<ApiResponse<String>>
+
+    @POST("api/auth/reset-password")
+    suspend fun resetPassword(@Body request: ResetPasswordRequest): Response<ApiResponse<String>>
+
+    @POST("api/auth/cambiar-password")
+    suspend fun cambiarPassword(@Body request: CambiarPasswordRequest): Response<ApiResponse<String>>
+
     @GET("api/usuarios/me")
     suspend fun obtenerMiPerfil(): Response<ApiResponse<UsuarioModel>>
 
@@ -51,6 +66,9 @@ interface CiudadActivaApiService {
 
     @GET("api/reportes/{id}")
     suspend fun obtenerDetalleReporte(@Path("id") id: Long): Response<ApiResponse<ReporteDetalleResponse>>
+
+    @GET("api/reportes/radicado/{codigo}")
+    suspend fun obtenerPorRadicado(@Path("codigo") codigo: String): Response<ApiResponse<ReporteDetalleResponse>>
 
     @DELETE("api/reportes/{id}")
     suspend fun eliminarReporte(@Path("id") id: Long): Response<ApiResponse<Void>>

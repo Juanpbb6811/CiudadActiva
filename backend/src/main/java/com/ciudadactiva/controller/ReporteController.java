@@ -83,6 +83,13 @@ public class ReporteController {
         return ResponseEntity.ok(ApiResponse.ok("Detalle del reporte obtenido", detalle));
     }
 
+    @GetMapping({"/radicado/{codigo}", "/seguimiento/{codigo}"})
+    @Operation(summary = "Consultar Reporte por Radicado / Código de Seguimiento", description = "Permite buscar un reporte por su código único de radicado oficial (ej: RAD-2026-X8K9M).")
+    public ResponseEntity<ApiResponse<ReporteDetalleResponse>> consultarPorRadicado(@PathVariable String codigo) {
+        ReporteDetalleResponse detalle = reporteService.obtenerPorCodigo(codigo.trim().toUpperCase());
+        return ResponseEntity.ok(ApiResponse.ok("Reporte encontrado con éxito", detalle));
+    }
+
     // ================== RETIRAR / ELIMINAR REPORTE PENDIENTE ==================
     @DeleteMapping("/{id}")
     @Operation(summary = "Retirar o Eliminar Reporte Pendiente", description = "Permite al ciudadano autor o administrador eliminar un reporte si aún se encuentra en estado PENDIENTE.")

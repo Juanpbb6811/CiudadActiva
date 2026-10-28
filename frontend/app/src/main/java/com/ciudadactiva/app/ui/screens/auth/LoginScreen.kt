@@ -64,6 +64,8 @@ fun LoginScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var showServerDialog by remember { mutableStateOf(false) }
     var showGoogleDialog by remember { mutableStateOf(false) }
+    var showRecuperarDialog by remember { mutableStateOf(false) }
+    var showVerificarDialog by remember { mutableStateOf<Pair<String, String?>?>(null) }
     var googleEmailInput by remember { mutableStateOf("") }
 
     var currentServerUrl by remember {
@@ -93,6 +95,9 @@ fun LoginScreen(
                 "ROLE_ADMIN" -> onLoginSuccess(Screen.AdminPanel.route)
                 else -> onLoginSuccess(Screen.CiudadanoHome.route)
             }
+        } else if (uiState is AuthUiState.RequiereVerificacion) {
+            val req = uiState as AuthUiState.RequiereVerificacion
+            showVerificarDialog = req.email to req.demoCode
         }
     }
 
@@ -296,11 +301,11 @@ fun LoginScreen(
                         }
 
                         Text(
-                            text = "¿Olvidaste clave?",
+                            text = "¿Olvidaste tu contraseña?",
                             fontSize = 12.sp,
                             color = Color(0xFF4C877D),
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier.clickable { /* Simulación */ }
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.clickable { showRecuperarDialog = true }
                         )
                     }
 
@@ -487,6 +492,32 @@ fun LoginScreen(
                         Text("Cancelar")
                     }
                 }
+            )
+        }
+
+        if (showRecuperarDialog) {
+            ModalRecuperarPassword(
+                initialEmail = email,
+                onDismiss = { showRecuperarDialog = false },
+                onSuccess = { recoveredEmail ->
+                    showRecuperarDialog = false
+                    viewModel.emailInput.value = recoveredEmail
+                    viewModel.passwordInput.value = ""
+                },
+                viewModel = viewModel
+            )
+        }
+
+        if (showVerificarDialog != null) {
+            ModalVerificarCuenta(
+                email = showVerificarDialog!!.first,
+                demoCode = showVerificarDialog!!.second,
+                onDismiss = { showVerificarDialog = null },
+                onVerificadoExitoso = {
+                    showVerificarDialog = null
+                    onLoginSuccess(Screen.CiudadanoHome.route)
+                },
+                viewModel = viewModel
             )
         }
     }

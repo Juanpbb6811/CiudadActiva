@@ -56,6 +56,7 @@ fun RegisterScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
     var showGoogleDialog by remember { mutableStateOf(false) }
+    var showVerificarDialog by remember { mutableStateOf<Pair<String, String?>?>(null) }
     var googleEmailInput by remember { mutableStateOf("") }
 
     val isEmailValid = email.isBlank() || Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()
@@ -76,6 +77,9 @@ fun RegisterScreen(
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Success) {
             onRegisterSuccess()
+        } else if (uiState is AuthUiState.RequiereVerificacion) {
+            val req = uiState as AuthUiState.RequiereVerificacion
+            showVerificarDialog = req.email to req.demoCode
         }
     }
 
@@ -404,6 +408,19 @@ fun RegisterScreen(
                         Text("Cancelar")
                     }
                 }
+            )
+        }
+
+        if (showVerificarDialog != null) {
+            ModalVerificarCuenta(
+                email = showVerificarDialog!!.first,
+                demoCode = showVerificarDialog!!.second,
+                onDismiss = { showVerificarDialog = null },
+                onVerificadoExitoso = {
+                    showVerificarDialog = null
+                    onRegisterSuccess()
+                },
+                viewModel = viewModel
             )
         }
     }

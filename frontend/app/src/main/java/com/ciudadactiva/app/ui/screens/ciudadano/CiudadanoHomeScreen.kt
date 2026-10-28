@@ -1,5 +1,6 @@
 package com.ciudadactiva.app.ui.screens.ciudadano
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -268,10 +269,10 @@ fun CiudadanoHomeScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "N.° ${activo.id}",
+                            text = activo.codigoSeguimiento ?: "RAD-2026-${String.format("%05d", activo.id)}",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF8B9695)
+                            color = BrandTealDark
                         )
                         StatusChip(status = activo.estado)
                     }
@@ -533,6 +534,23 @@ fun ReporteComunitarioCard(
             }
 
             Spacer(modifier = Modifier.height(10.dp))
+
+            val radicado = reporte.codigoSeguimiento ?: "RAD-2026-${String.format("%05d", reporte.id)}"
+            Surface(
+                shape = RoundedCornerShape(6.dp),
+                color = Color(0xFFF1F5F4),
+                border = BorderStroke(1.dp, Color(0xFFDCE2E1))
+            ) {
+                Text(
+                    text = radicado,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF00695C),
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
 
             // Título
             Text(

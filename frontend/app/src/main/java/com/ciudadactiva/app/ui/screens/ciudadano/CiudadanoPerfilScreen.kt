@@ -39,6 +39,8 @@ import com.ciudadactiva.app.ui.theme.BackgroundLight
 import com.ciudadactiva.app.ui.theme.BrandCopper
 import com.ciudadactiva.app.ui.theme.BrandTealDark
 import com.ciudadactiva.app.ui.theme.TextDark
+import com.ciudadactiva.app.ui.screens.auth.ModalCambiarPasswordPerfil
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 
@@ -71,6 +73,7 @@ fun CiudadanoPerfilScreen(
 
     var isSaving by remember { mutableStateOf(false) }
     var isSwitchingActor by remember { mutableStateOf(false) }
+    var showCambiarPassDialog by remember { mutableStateOf(false) }
     var mensajeExito by remember { mutableStateOf<String?>(null) }
     var mensajeError by remember { mutableStateOf<String?>(null) }
 
@@ -542,6 +545,21 @@ fun CiudadanoPerfilScreen(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Modificar Datos Personales", color = BrandTealDark, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        OutlinedButton(
+                            onClick = { showCambiarPassDialog = true },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF00695C))
+                        ) {
+                            Icon(Icons.Default.LockReset, contentDescription = null, tint = Color(0xFF00695C), modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Cambiar Contraseña de Acceso", color = Color(0xFF00695C), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }
@@ -727,5 +745,13 @@ fun CiudadanoPerfilScreen(
                 )
             }
         }
+    }
+
+    if (showCambiarPassDialog) {
+        ModalCambiarPasswordPerfil(
+            onDismiss = { showCambiarPassDialog = false },
+            onSuccess = { showCambiarPassDialog = false },
+            viewModel = viewModel()
+        )
     }
 }

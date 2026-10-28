@@ -6,8 +6,7 @@ import com.ciudadactiva.app.CiudadActivaApplication
 import com.ciudadactiva.app.data.api.ApiClient
 import com.ciudadactiva.app.data.local.DemoAccount
 import com.ciudadactiva.app.data.local.DemoCredentials
-import com.ciudadactiva.app.data.model.LoginRequest
-import com.ciudadactiva.app.data.model.RegisterRequest
+import com.ciudadactiva.app.data.model.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -16,6 +15,7 @@ sealed class AuthUiState {
     data object Idle : AuthUiState()
     data object Loading : AuthUiState()
     data class Success(val rol: String) : AuthUiState()
+    data class RequiereVerificacion(val email: String, val demoCode: String?) : AuthUiState()
     data class Error(val message: String) : AuthUiState()
 }
 
@@ -56,7 +56,15 @@ class AuthViewModel : ViewModel() {
                         telefono = auth.userTelefono,
                         direccion = auth.userDireccion
                     )
-                    _uiState.value = AuthUiState.Success(userRol)
+
+                    if (auth.requiereVerificacion == true) {
+                        _uiState.value = AuthUiState.RequiereVerificacion(
+                            email = email.trim().lowercase(),
+                            demoCode = auth.codigoGeneradoDemo
+                        )
+                    } else {
+                        _uiState.value = AuthUiState.Success(userRol)
+                    }
                 } else {
                     val errMsg = response.errorBody()?.string() ?: "Credenciales incorrectas"
                     _uiState.value = AuthUiState.Error("Credenciales inválidas. Verifica tu correo y contraseña.")
@@ -85,7 +93,15 @@ class AuthViewModel : ViewModel() {
                         telefono = auth.userTelefono,
                         direccion = auth.userDireccion
                     )
-                    _uiState.value = AuthUiState.Success(userRol)
+
+                    if (auth.requiereVerificacion == true) {
+                        _uiState.value = AuthUiState.RequiereVerificacion(
+                            email = email.trim().lowercase(),
+                            demoCode = auth.codigoGeneradoDemo
+                        )
+                    } else {
+                        _uiState.value = AuthUiState.Success(userRol)
+                    }
                 } else {
                     val errorBodyStr = response.errorBody()?.string() ?: ""
                     val friendlyMsg = when {
@@ -161,6 +177,113 @@ class AuthViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 _uiState.value = AuthUiState.Error("Error al conectar con Google: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    fun verificarCodigo(email: String, codigo: String, onResult: (Boolean, String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val resp = api.verificarCodigo(VerificarCodigoRequest(email.trim().lowercase(), codigo.trim()))
+                if (resp.isSuccessful && resp.body()?.data != null) {
+                    val auth = resp.body()!!.data!!
+                    session.saveAuth(
+                        token = auth.token,
+                        id = auth.userId,
+                        email = auth.userEmail,
+                        nombre = auth.userNombre,
+                        rol = auth.userRol,
+                        fotoUrl = auth.userFotoUrl,
+                        telefono = auth.userTelefono,
+                        direccion = auth.userDireccion
+                    )
+                    _uiState.value = AuthUiState.Success(auth.userRol)
+                    onResult(true, "Cuenta verificada exitosamente")
+                } else {
+                    val errorBody = resp.errorBody()?.string() ?: ""
+                    val msg = if (errorBody.contains("incorrecto", ignoreCase = true)) {
+                        "El código de 6 dígitos es incorrecto."
+                    } else if (errorBody.contains("expirado", ignoreCase = true)) {
+                        "El código ha expirado. Por favor solicita uno nuevo."
+                    } else {
+                        "No se pudo verificar el código. Intenta de nuevo."
+                    }
+                    onResult(false, msg)
+                }
+            } catch (e: Exception) {
+                onResult(false, "Fallo de comunicación: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    fun reenviarCodigo(email: String, tipo: String = "VERIFICACION", onResult: (Boolean, String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val resp = api.reenviarCodigo(ReenviarCodigoRequest(email.trim().lowercase(), tipo))
+                if (resp.isSuccessful) {
+                    val msg = resp.body()?.data ?: "Código reenviado con éxito"
+                    onResult(true, msg)
+                } else {
+                    onResult(false, "No se pudo reenviar el código. Intenta de nuevo.")
+                }
+            } catch (e: Exception) {
+                onResult(false, "Error de red: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    fun solicitarRecuperacionPassword(email: String, onResult: (Boolean, String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val resp = api.solicitarRecuperacionPassword(ForgotPasswordRequest(email.trim().lowercase()))
+                if (resp.isSuccessful) {
+                    val msg = resp.body()?.data ?: "Código de recuperación generado."
+                    onResult(true, msg)
+                } else {
+                    onResult(false, "No se pudo procesar la solicitud de recuperación.")
+                }
+            } catch (e: Exception) {
+                onResult(false, "Fallo de conexión: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    fun resetPassword(email: String, codigo: String, nuevaPass: String, onResult: (Boolean, String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val resp = api.resetPassword(ResetPasswordRequest(email.trim().lowercase(), codigo.trim(), nuevaPass))
+                if (resp.isSuccessful) {
+                    val msg = resp.body()?.data ?: "Contraseña restablecida con éxito."
+                    onResult(true, msg)
+                } else {
+                    val errorBody = resp.errorBody()?.string() ?: ""
+                    val msg = if (errorBody.contains("incorrecto", ignoreCase = true)) {
+                        "El código de recuperación es incorrecto."
+                    } else if (errorBody.contains("expirado", ignoreCase = true)) {
+                        "El código ha expirado. Por favor solicita uno nuevo."
+                    } else {
+                        "No se pudo restablecer la contraseña. Verifica los datos."
+                    }
+                    onResult(false, msg)
+                }
+            } catch (e: Exception) {
+                onResult(false, "Error de red: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    fun cambiarPassword(actual: String, nueva: String, onResult: (Boolean, String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val resp = api.cambiarPassword(CambiarPasswordRequest(actual, nueva))
+                if (resp.isSuccessful) {
+                    onResult(true, "Contraseña actualizada exitosamente.")
+                } else {
+                    val err = resp.errorBody()?.string() ?: ""
+                    onResult(false, if (err.contains("incorrecta", ignoreCase = true)) "La contraseña actual es incorrecta." else "No se pudo cambiar la contraseña.")
+                }
+            } catch (e: Exception) {
+                onResult(false, "Error de comunicación: ${e.localizedMessage}")
             }
         }
     }

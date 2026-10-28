@@ -1,5 +1,6 @@
 package com.ciudadactiva.app.ui.screens.ciudadano
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -106,7 +107,7 @@ fun SeguimientoTimelineScreen(
             .background(BackgroundLight)
     ) {
         CiudadActivaTopBar(
-            title = "Seguimiento #${reporteId}",
+            title = "Seguimiento #${rep?.codigoSeguimiento ?: reporteId}",
             roleTag = rep?.estado ?: "PENDIENTE",
             onBackClick = onBackClick
         )
@@ -141,6 +142,29 @@ fun SeguimientoTimelineScreen(
                                     color = Color(0xFF7A8B88)
                                 )
                                 StatusChip(status = rep.estado)
+                            }
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            val radicadoCodigo = rep.codigoSeguimiento ?: "RAD-2026-${String.format("%05d", reporteId)}"
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = Color(0xFFE0F2F1),
+                                border = BorderStroke(1.dp, Color(0xFF80CBC4))
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(Icons.Default.Tag, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(14.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "Radicado: $radicadoCodigo",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = BrandTealDark
+                                    )
+                                }
                             }
 
                             Spacer(modifier = Modifier.height(8.dp))

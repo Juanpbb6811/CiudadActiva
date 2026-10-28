@@ -272,7 +272,8 @@ fun OperadorTareasScreen(
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text("#${rep.id} • ${rep.categoriaNombre?.uppercase() ?: "GENERAL"}", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF7A8B88))
+                                        val radicado = rep.codigoSeguimiento ?: "RAD-2026-${String.format("%05d", rep.id)}"
+                                        Text("$radicado • ${rep.categoriaNombre?.uppercase() ?: "GENERAL"}", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF7A8B88))
                                         StatusChip(status = rep.estado)
                                     }
 
@@ -915,7 +916,8 @@ fun OperadorHistorialScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("#${rep.id} • ${rep.categoriaNombre ?: "General"}", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF78909C))
+                            val radicado = rep.codigoSeguimiento ?: "RAD-2026-${String.format("%05d", rep.id)}"
+                            Text("$radicado • ${rep.categoriaNombre ?: "General"}", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF78909C))
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(8.dp))

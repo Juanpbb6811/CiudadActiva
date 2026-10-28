@@ -2,6 +2,7 @@ package com.ciudadactiva.app.data.model
 
 data class ReporteResponse(
     val id: Long,
+    val codigoSeguimiento: String? = null,
     val titulo: String,
     val descripcion: String,
     val categoriaId: Long?,
@@ -43,6 +44,7 @@ data class ReporteCreateRequest(
 
 data class ReporteDetalleResponse(
     val id: Long,
+    val codigoSeguimiento: String? = null,
     val titulo: String,
     val descripcion: String,
     val categoriaId: Long?,

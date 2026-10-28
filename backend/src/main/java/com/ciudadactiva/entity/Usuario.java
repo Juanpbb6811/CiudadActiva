@@ -32,6 +32,21 @@ public class Usuario {
     @Column(nullable = false)
     private Boolean activo = true;
 
+    @Column(name = "verificado")
+    private Boolean verificado = false;
+
+    @Column(name = "codigo_verificacion", length = 10)
+    private String codigoVerificacion;
+
+    @Column(name = "codigo_verificacion_expira")
+    private LocalDateTime codigoVerificacionExpira;
+
+    @Column(name = "codigo_recuperacion", length = 10)
+    private String codigoRecuperacion;
+
+    @Column(name = "codigo_recuperacion_expira")
+    private LocalDateTime codigoRecuperacionExpira;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "rol_id", nullable = false)
     private Rol rol;
@@ -53,6 +68,7 @@ public class Usuario {
         this.direccion = direccion;
         this.rol = rol;
         this.activo = true;
+        this.verificado = false;
     }
 
     @PrePersist
@@ -61,6 +77,9 @@ public class Usuario {
         this.actualizadoEn = LocalDateTime.now();
         if (this.activo == null) {
             this.activo = true;
+        }
+        if (this.verificado == null) {
+            this.verificado = false;
         }
     }
 
@@ -147,6 +166,46 @@ public class Usuario {
 
     public void setCreadoEn(LocalDateTime creadoEn) {
         this.creadoEn = creadoEn;
+    }
+
+    public Boolean getVerificado() {
+        return verificado;
+    }
+
+    public void setVerificado(Boolean verificado) {
+        this.verificado = verificado;
+    }
+
+    public String getCodigoVerificacion() {
+        return codigoVerificacion;
+    }
+
+    public void setCodigoVerificacion(String codigoVerificacion) {
+        this.codigoVerificacion = codigoVerificacion;
+    }
+
+    public LocalDateTime getCodigoVerificacionExpira() {
+        return codigoVerificacionExpira;
+    }
+
+    public void setCodigoVerificacionExpira(LocalDateTime codigoVerificacionExpira) {
+        this.codigoVerificacionExpira = codigoVerificacionExpira;
+    }
+
+    public String getCodigoRecuperacion() {
+        return codigoRecuperacion;
+    }
+
+    public void setCodigoRecuperacion(String codigoRecuperacion) {
+        this.codigoRecuperacion = codigoRecuperacion;
+    }
+
+    public LocalDateTime getCodigoRecuperacionExpira() {
+        return codigoRecuperacionExpira;
+    }
+
+    public void setCodigoRecuperacionExpira(LocalDateTime codigoRecuperacionExpira) {
+        this.codigoRecuperacionExpira = codigoRecuperacionExpira;
     }
 
     public LocalDateTime getActualizadoEn() {

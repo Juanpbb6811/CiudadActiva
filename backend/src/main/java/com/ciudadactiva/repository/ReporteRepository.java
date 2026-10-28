@@ -9,9 +9,12 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ReporteRepository extends JpaRepository<Reporte, Long> {
+
+    Optional<Reporte> findByCodigoSeguimiento(String codigoSeguimiento);
 
     List<Reporte> findByCiudadano_IdOrderByCreadoEnDesc(Long ciudadanoId);
 

@@ -4,33 +4,38 @@ Sistema integral para el reporte, validación, asignación operativa y seguimien
 
 ---
 
-## 📲 Descargar App Android (Release v0.1.7)
+## 📲 Descargar App Android (Release v0.1.8)
 
 Ya puedes instalar y probar la versión oficial y firmada de CiudadActiva directamente en tu dispositivo Android o emulador:
 
-[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.1.7_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.7.apk)
+[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.1.8_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.8.apk)
 [![Servidor Cloud](https://img.shields.io/badge/Descarga_Directa-Cloud_Render-blueviolet?style=for-the-badge&logo=render&logoColor=white)](https://ciudadactiva-4ah7.onrender.com/descargar)
-[![GitHub Release](https://img.shields.io/badge/Release_Tag-v0.1.7-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.1.7)
+[![GitHub Release](https://img.shields.io/badge/Release_Tag-v0.1.8-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.1.8)
 
 ### 📥 Enlaces de descarga directa:
-* 🌐 **[Servidor Oficial en la Nube (Render): Descargar CiudadActiva-v0.1.7.apk (12.2 MB)](https://ciudadactiva-4ah7.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
-* 🐙 **[GitHub Directo: Descargar CiudadActiva-v0.1.7.apk (12.2 MB)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.7.apk)**
+* 🌐 **[Servidor Oficial en la Nube (Render): Descargar CiudadActiva-v0.1.8.apk (12.3 MB)](https://ciudadactiva-4ah7.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
+* 🐙 **[GitHub Directo: Descargar CiudadActiva-v0.1.8.apk (12.3 MB)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.1.8.apk)**
 
 ### 🛠️ Instrucciones de Instalación en Android:
-1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.1.7.apk`.
+1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.1.8.apk`.
 2. Al finalizar la descarga, presiona **Abrir** (o ve a tu app de **Archivos / Descargas** y tócalo).
 3. Si el sistema muestra el aviso de seguridad de Android / Xiaomi, activa la opción **Confiar en esta fuente / Instalar aplicaciones desconocidas**.
 4. Pulsa **Instalar** y ¡listo!
 
-### ✨ Novedades de la versión v0.1.7:
-- 🧹 **Depuración y Profesionalización de Textos de Interfaz**:
-  - Eliminación de todas las referencias técnicas directas a requerimientos de ingeniería de software (`RF02`, `RF06`, `RF07`, `RNF01`, `RNF04`, `Regla 1`, `Regla 2`, `BusinessRuleException`, `módulos RUP`) en mensajes de confirmación, cabeceras, botones y cuadros de diálogo.
-  - Textos orientados al usuario final con terminología institucional clara y comprensible.
-- 👤 **Corrección de Datos Preasignados en Cuentas Nuevas**:
-  - Solución al problema donde nuevos registros heredaban números de teléfono y direcciones preconfiguradas o de sesiones anteriores.
-  - Aislamiento completo de sesión en `SessionManager` (`clearSession` y `saveAuth` limpian campos opcionales si no se suministran).
-  - Campos de teléfono y dirección en el formulario de perfil ahora inician limpios con placeholder explicativo `Sin registrar (Opcional)` para nuevos ciudadanos.
-  - Campo de dirección en el Wizard de reporte inicia vacío para permitir ingreso libre o georreferenciación.
+### ✨ Novedades de la versión v0.1.8:
+- 🏷️ **Código Único de Radicado y Seguimiento Oficial (`RAD-YYYY-XXXXX`)**:
+  - Asignación automática de identificador único de radicado a cada reporte generado (`RAD-2026-XXXXX`).
+  - Visualización destacada en tarjetas de ciudadano, ficha de inspección de gestor, órdenes de operador y matriz de administración.
+  - Nuevo endpoint `GET /api/reportes/radicado/{codigo}` para consultar cualquier reporte por su número de seguimiento.
+- 🔐 **API y Flujo de Recuperación de Contraseña Olvidada (OTP de 6 dígitos)**:
+  - Botón interactivo `"¿Olvidaste tu contraseña?"` en el inicio de sesión.
+  - Generación de código OTP aleatorio de 6 dígitos (`SecureRandom`) con vigencia temporal (15 minutos).
+  - Modal interactivo con pasos guiados: solicitud por correo, ingreso de código OTP y establecimiento seguro de la nueva contraseña (`POST /api/auth/reset-password`).
+  - Opción de cambio de contraseña autenticado disponible directamente desde el perfil de usuario.
+- ✉️ **Verificación y Activación de Cuenta por Código OTP**:
+  - Al registrarse una nueva cuenta ciudadana, el sistema genera automáticamente un código de verificación aleatorio de 6 dígitos.
+  - Nuevo componente visual `OtpInputField` con 6 casillas estilizadas, autoenfoque y soporte para pegado directo.
+  - Modal de activación inmediata de cuenta con botón de reenvío con temporizador de enfriamiento (`POST /api/auth/verificar-codigo` y `POST /api/auth/reenviar-codigo`).
     - **ATENDIDO**: Violeta / Púrpura
     - **CERRADO**: Verde oliva / Lima
     - **RECHAZADO**: Rojo carmesí

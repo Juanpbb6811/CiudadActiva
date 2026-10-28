@@ -1,5 +1,6 @@
 package com.ciudadactiva.app.ui.screens.ciudadano
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -305,6 +306,23 @@ fun ReporteFeedItemCard(
             }
 
             Spacer(modifier = Modifier.height(10.dp))
+
+            val radicado = reporte.codigoSeguimiento ?: "RAD-2026-${String.format("%05d", reporte.id)}"
+            Surface(
+                shape = RoundedCornerShape(6.dp),
+                color = Color(0xFFF1F5F4),
+                border = BorderStroke(1.dp, Color(0xFFDCE2E1))
+            ) {
+                Text(
+                    text = radicado,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF00695C),
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
 
             Text(
                 text = reporte.titulo,

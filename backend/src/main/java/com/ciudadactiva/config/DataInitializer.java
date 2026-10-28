@@ -8,6 +8,9 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.Statement;
 import java.util.List;
 
 @Component
@@ -15,6 +18,7 @@ public class DataInitializer implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
 
+    private final DataSource dataSource;
     private final RolRepository rolRepository;
     private final UsuarioRepository usuarioRepository;
     private final CategoriaRepository categoriaRepository;
@@ -23,6 +27,7 @@ public class DataInitializer implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(
+            DataSource dataSource,
             RolRepository rolRepository,
             UsuarioRepository usuarioRepository,
             CategoriaRepository categoriaRepository,
@@ -30,6 +35,7 @@ public class DataInitializer implements CommandLineRunner {
             SeguimientoRepository seguimientoRepository,
             PasswordEncoder passwordEncoder
     ) {
+        this.dataSource = dataSource;
         this.rolRepository = rolRepository;
         this.usuarioRepository = usuarioRepository;
         this.categoriaRepository = categoriaRepository;
@@ -41,6 +47,26 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         log.info("Iniciando verificación y carga de datos iniciales en CiudadActiva...");
+
+        // 0. Ejecución segura e idempotente de migraciones DDL para nuevas columnas
+        try (Connection conn = dataSource.getConnection(); Statement stmt = conn.createStatement()) {
+            stmt.execute("ALTER TABLE reportes ADD COLUMN IF NOT EXISTS codigo_seguimiento VARCHAR(30)");
+            stmt.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_reportes_codigo_seguimiento ON reportes(codigo_seguimiento)");
+            stmt.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS verificado BOOLEAN DEFAULT FALSE");
+            stmt.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS codigo_verificacion VARCHAR(10)");
+            stmt.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS codigo_verificacion_expira TIMESTAMP WITHOUT TIME ZONE");
+            stmt.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS codigo_recuperacion VARCHAR(10)");
+            stmt.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS codigo_recuperacion_expira TIMESTAMP WITHOUT TIME ZONE");
+
+            // Asignar códigos a reportes históricos que no lo tengan
+            stmt.execute("UPDATE reportes SET codigo_seguimiento = 'RAD-' || EXTRACT(YEAR FROM creado_en)::TEXT || '-' || LPAD(id::TEXT, 5, '0') WHERE codigo_seguimiento IS NULL");
+
+            // Asegurar que usuarios demo estén verificados
+            stmt.execute("UPDATE usuarios SET verificado = TRUE WHERE email IN ('admin@ciudadactiva.gov.co', 'gestor@ciudadactiva.gov.co', 'operador@ciudadactiva.gov.co', 'ciudadano@ciudadactiva.gov.co')");
+            log.info("Migraciones DDL aplicadas con éxito en Base de Datos.");
+        } catch (Exception e) {
+            log.warn("Nota sobre migración DDL: {}", e.getMessage());
+        }
 
         // 1. Inicializar Roles
         Rol rolAdmin = inicializarRol(RolNombre.ROLE_ADMIN, "Administrador del Sistema - Control total y configuración");
@@ -110,8 +136,15 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private Usuario inicializarUsuario(String nombre, String email, String rawPassword, String telefono, String direccion, Rol rol) {
-        return usuarioRepository.findByEmail(email).orElseGet(() -> {
+        return usuarioRepository.findByEmail(email).map(u -> {
+            if (!Boolean.TRUE.equals(u.getVerificado())) {
+                u.setVerificado(true);
+                return usuarioRepository.save(u);
+            }
+            return u;
+        }).orElseGet(() -> {
             Usuario u = new Usuario(nombre, email, passwordEncoder.encode(rawPassword), telefono, direccion, rol);
+            u.setVerificado(true);
             return usuarioRepository.save(u);
         });
     }

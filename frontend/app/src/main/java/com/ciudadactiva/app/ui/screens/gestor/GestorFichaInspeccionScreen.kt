@@ -94,8 +94,9 @@ fun GestorFichaInspeccionScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
                     Column(modifier = Modifier.padding(18.dp)) {
+                        val radicado = rep.codigoSeguimiento ?: "RAD-2026-${String.format("%05d", reporteId)}"
                         Text(
-                            text = "${rep.categoriaNombre?.uppercase() ?: "GENERAL"} • RADICADO RECIENTE",
+                            text = "${rep.categoriaNombre?.uppercase() ?: "GENERAL"} • $radicado",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF7A8B88)

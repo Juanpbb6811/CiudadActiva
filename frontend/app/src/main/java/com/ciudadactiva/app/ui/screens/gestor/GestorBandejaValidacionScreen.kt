@@ -188,8 +188,9 @@ fun GestorBandejaValidacionScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
+                                val radicado = rep.codigoSeguimiento ?: "RAD-2026-${String.format("%05d", rep.id)}"
                                 Text(
-                                    text = "#${rep.id} • ${rep.categoriaNombre?.uppercase() ?: "GENERAL"}",
+                                    text = "$radicado • ${rep.categoriaNombre?.uppercase() ?: "GENERAL"}",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = if (esCritica) Color(0xFFD32F2F) else if (esAlta) BrandCopper else Color(0xFF7A8B88)

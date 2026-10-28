@@ -288,6 +288,13 @@ public class ReporteService {
         return response;
     }
 
+    @Transactional(readOnly = true)
+    public ReporteDetalleResponse obtenerPorCodigo(String codigoSeguimiento) {
+        Reporte reporte = reporteRepository.findByCodigoSeguimiento(codigoSeguimiento)
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró reporte con el código de seguimiento: " + codigoSeguimiento));
+        return obtenerDetalle(reporte.getId());
+    }
+
     // ================== RF04: VALIDACIÓN DE REPORTES (GESTOR) ==================
     @Transactional
     public ReporteResponse validarReporte(Long id, String emailGestor, ValidarReporteRequest request) {

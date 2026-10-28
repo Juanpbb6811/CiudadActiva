@@ -325,7 +325,8 @@ fun AdminPanelScreen(
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text("#${rep.id} • ${rep.titulo}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                                        val radicado = rep.codigoSeguimiento ?: "RAD-2026-${String.format("%05d", rep.id)}"
+                                        Text("$radicado • ${rep.titulo}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextDark)
                                         StatusChip(status = rep.estado)
                                     }
 

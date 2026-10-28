@@ -14,6 +14,9 @@ public class Reporte {
     @Column(nullable = false, length = 150)
     private String titulo;
 
+    @Column(name = "codigo_seguimiento", unique = true, length = 30)
+    private String codigoSeguimiento;
+
     @Column(nullable = false, columnDefinition = "TEXT")
     private String descripcion;
 
@@ -96,6 +99,21 @@ public class Reporte {
         if (this.prioridad == null) {
             this.prioridad = PrioridadReporte.MEDIA;
         }
+        if (this.codigoSeguimiento == null || this.codigoSeguimiento.isBlank()) {
+            String randomPart = java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 5).toUpperCase();
+            this.codigoSeguimiento = "RAD-" + java.time.LocalDate.now().getYear() + "-" + randomPart;
+        }
+    }
+
+    public String getCodigoSeguimiento() {
+        if (codigoSeguimiento == null && id != null) {
+            return "RAD-" + (creadoEn != null ? creadoEn.getYear() : 2026) + "-" + String.format("%05d", id);
+        }
+        return codigoSeguimiento;
+    }
+
+    public void setCodigoSeguimiento(String codigoSeguimiento) {
+        this.codigoSeguimiento = codigoSeguimiento;
     }
 
     @PreUpdate
