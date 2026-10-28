@@ -4,32 +4,33 @@ Sistema integral para el reporte, validación, asignación operativa y seguimien
 
 ---
 
-## 📲 Descargar App Android (Release v0.2.1)
+## 📲 Descargar App Android (Release v0.2.2)
 
 Ya puedes instalar y probar la versión oficial y firmada de CiudadActiva directamente en tu dispositivo Android o emulador:
 
-[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.2.1_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.2.1.apk)
+[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.2.2_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.2.2.apk)
 [![Servidor Cloud](https://img.shields.io/badge/Descarga_Directa-Cloud_Render-blueviolet?style=for-the-badge&logo=render&logoColor=white)](https://ciudadactiva-4ah7.onrender.com/descargar)
-[![GitHub Release](https://img.shields.io/badge/Release_Tag-v0.2.1-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.2.1)
+[![GitHub Release](https://img.shields.io/badge/Release_Tag-v0.2.2-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.2.2)
 
 ### 📥 Enlaces de descarga directa:
-* 🌐 **[Servidor Oficial en la Nube (Render): Descargar CiudadActiva-v0.2.1.apk (12.3 MB)](https://ciudadactiva-4ah7.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
-* 🐙 **[GitHub Directo: Descargar CiudadActiva-v0.2.1.apk (12.3 MB)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.2.1.apk)**
+* 🌐 **[Servidor Oficial en la Nube (Render): Descargar CiudadActiva-v0.2.2.apk (12.3 MB)](https://ciudadactiva-4ah7.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
+* 🐙 **[GitHub Directo: Descargar CiudadActiva-v0.2.2.apk (12.3 MB)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.2.2.apk)**
 
 ### 🛠️ Instrucciones de Instalación en Android:
-1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.2.1.apk`.
+1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.2.2.apk`.
 2. Al finalizar la descarga, presiona **Abrir** (o ve a tu app de **Archivos / Descargas** y tócalo).
 3. Si el sistema muestra el aviso de seguridad de Android / Xiaomi, activa la opción **Confiar en esta fuente / Instalar aplicaciones desconocidas**.
 4. Pulsa **Instalar** y ¡listo!
 
-### ✨ Novedades de la versión v0.2.1:
-- 🚀 **Conexión Exitosa y Activación de Gmail SMTP**:
-  - Servicio de correo activo con autenticación oficial de Google (`smtp.gmail.com:587`, TLS 1.3/1.2).
-  - Los códigos de verificación de cuenta y recuperación de contraseña ahora se despachan y entregan inmediatamente a las bandejas reales de los usuarios (con firma DKIM y SPF de Google para evitar spam).
+### ✨ Novedades de la versión v0.2.2:
+- 🚀 **Integración de Resend HTTP API (Puerto 443 HTTPS)**:
+  - Resuelto el bloqueo de puertos SMTP (587/465) en la capa gratuita de Render.
+  - Despacho inmediato y verificado de códigos OTP de activación de cuenta y recuperación de contraseña vía Resend REST API.
+  - Conexión con fallback inteligente: Resend API -> Brevo API -> Google SMTP.
+  - Desactivación de verificador SMTP de Actuator para garantizar `status: UP` en Render.
 - 🔒 **Seguridad OTP Completa y Sin Filtraciones**:
-  - Sin autocompletado en pantalla ni fugas en respuestas HTTP. El usuario recibe su código en el correo y lo introduce de forma segura en la interfaz de 6 casillas.
-- 🏙️ **Georreferenciación Automática**:
-  - Inclusión de Ciudad, Departamento y detección dinámica de Barrio según coordenadas del mapa.
+  - Códigos OTP generados criptográficamente en el servidor, con expiración de 15 minutos.
+  - Casillas vacías en el frontend para ingreso manual por parte del usuario tras consultar su correo real.
 
 ---
 

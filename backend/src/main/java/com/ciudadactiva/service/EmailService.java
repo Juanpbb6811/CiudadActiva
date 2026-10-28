@@ -73,6 +73,7 @@ public class EmailService {
     }
 
     private boolean despacharCorreo(String toEmail, String asunto, String html, String codigoOtp, String tipo) {
+        log.info("🔐 [OTP Service] Solicitud de {}: Destino=[{}], Código OTP=[{}]", tipo, toEmail, codigoOtp);
         boolean enviado = false;
 
         // 1. Intento con Resend API (HTTP REST en puerto 443, no bloqueado por firewalls de hosting)

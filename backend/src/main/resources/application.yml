@@ -72,7 +72,7 @@ spring:
 app:
   mail:
     provider: ${MAIL_PROVIDER:auto} # auto: prueba HTTP APIs (Resend/Brevo) primero para evadir bloqueo de puertos en Render, luego SMTP
-    from: ${MAIL_FROM:CiudadActiva <juanpablobejarano0@gmail.com>}
+    from: ${MAIL_FROM:CiudadActiva <onboarding@resend.dev>}
     resend-api-key: ${RESEND_API_KEY:}
     brevo-api-key: ${BREVO_API_KEY:}
   jwt:
