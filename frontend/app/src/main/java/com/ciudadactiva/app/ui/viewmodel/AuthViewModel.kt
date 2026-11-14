@@ -76,10 +76,53 @@ class AuthViewModel : ViewModel() {
     }
 
     fun registrarCiudadano(nombre: String, email: String, pass: String, tel: String?, dir: String?) {
+        val partes = nombre.trim().split("\\s+".toRegex())
+        val pNom = partes.firstOrNull() ?: "Ciudadano"
+        val pApe = if (partes.size > 1) partes[1] else "Comunitario"
+        val sApe = if (partes.size > 2) partes[2] else "Bogotá"
+        registrarCiudadanoLegal(
+            primerNombre = pNom,
+            segundoNombre = null,
+            primerApellido = pApe,
+            segundoApellido = sApe,
+            tipoDocumento = "CC",
+            numeroDocumento = "10" + (10000000..99999999).random(),
+            email = email,
+            pass = pass,
+            tel = tel ?: "3001234567",
+            dir = dir ?: "Bogotá D.C."
+        )
+    }
+
+    fun registrarCiudadanoLegal(
+        primerNombre: String,
+        segundoNombre: String?,
+        primerApellido: String,
+        segundoApellido: String,
+        tipoDocumento: String,
+        numeroDocumento: String,
+        email: String,
+        pass: String,
+        tel: String,
+        dir: String
+    ) {
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
             try {
-                val response = api.registrar(RegisterRequest(nombre.trim(), email.trim().lowercase(), pass, tel?.trim(), dir?.trim()))
+                val req = RegisterRequest(
+                    primerNombre = primerNombre.trim(),
+                    segundoNombre = segundoNombre?.trim()?.ifBlank { null },
+                    primerApellido = primerApellido.trim(),
+                    segundoApellido = segundoApellido.trim(),
+                    tipoDocumento = tipoDocumento.trim(),
+                    numeroDocumento = numeroDocumento.trim(),
+                    email = email.trim().lowercase(),
+                    password = pass,
+                    telefono = tel.trim(),
+                    direccion = dir.trim(),
+                    nombre = "$primerNombre $primerApellido".trim()
+                )
+                val response = api.registrar(req)
                 if (response.isSuccessful && response.body()?.data != null) {
                     val auth = response.body()!!.data!!
                     val userRol = auth.userRol
@@ -93,26 +136,13 @@ class AuthViewModel : ViewModel() {
                         telefono = auth.userTelefono,
                         direccion = auth.userDireccion
                     )
-
-                    if (auth.requiereVerificacion == true) {
-                        _uiState.value = AuthUiState.RequiereVerificacion(
-                            email = email.trim().lowercase(),
-                            demoCode = auth.codigoGeneradoDemo
-                        )
-                    } else {
-                        _uiState.value = AuthUiState.Success(userRol)
-                    }
+                    _uiState.value = AuthUiState.Success(userRol)
                 } else {
                     val errorBodyStr = response.errorBody()?.string() ?: ""
                     val friendlyMsg = when {
                         errorBodyStr.contains("ya se encuentra registrado", ignoreCase = true) ->
-                            "El correo electrónico ya se encuentra registrado. Por favor inicia sesión con tu contraseña."
-                        errorBodyStr.contains("correo", ignoreCase = true) ->
-                            "El formato del correo electrónico no es válido."
-                        errorBodyStr.contains("contraseña", ignoreCase = true) ->
-                            "La contraseña debe tener al menos 6 caracteres."
-                        else ->
-                            "No se pudo registrar la cuenta. Verifique los datos ingresados."
+                            "El correo electrónico ya se encuentra registrado. Inicia sesión con tu contraseña."
+                        else -> "No se pudo registrar la cuenta. Verifica que los datos obligatorios estén completos."
                     }
                     _uiState.value = AuthUiState.Error(friendlyMsg)
                 }
@@ -122,58 +152,49 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    fun loginConGoogle(googleEmail: String, googleName: String) {
+    fun loginConGoogle(
+        googleEmail: String,
+        googleName: String,
+        primerNombre: String? = null,
+        primerApellido: String? = null,
+        segundoApellido: String? = null,
+        tipoDocumento: String? = "CC",
+        numeroDocumento: String? = null,
+        telefono: String? = null,
+        direccion: String? = null
+    ) {
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
             try {
-                // Intenta login primero
-                val loginResponse = api.login(LoginRequest(googleEmail.trim().lowercase(), "GoogleAuth_2026!"))
-                if (loginResponse.isSuccessful && loginResponse.body()?.data != null) {
-                    val auth = loginResponse.body()!!.data!!
-                    session.saveAuth(
-                        token = auth.token,
-                        id = auth.userId,
-                        email = auth.userEmail,
-                        nombre = auth.userNombre,
-                        rol = auth.userRol,
-                        fotoUrl = auth.userFotoUrl,
-                        telefono = auth.userTelefono,
-                        direccion = auth.userDireccion
-                    )
-                    _uiState.value = AuthUiState.Success(auth.userRol)
-                    return@launch
-                }
-
-                // Si no existe, lo registra automáticamente con cuenta Google
-                val regResponse = api.registrar(
-                    RegisterRequest(
-                        nombre = googleName.ifBlank { "Usuario Google" },
-                        email = googleEmail.trim().lowercase(),
-                        password = "GoogleAuth_2026!",
-                        telefono = null,
-                        direccion = null
-                    )
+                val request = GoogleAuthRequest(
+                    email = googleEmail.trim().lowercase(),
+                    displayName = googleName.trim(),
+                    googleId = googleEmail.trim().lowercase(),
+                    primerNombre = primerNombre,
+                    primerApellido = primerApellido,
+                    segundoApellido = segundoApellido,
+                    tipoDocumento = tipoDocumento,
+                    numeroDocumento = numeroDocumento,
+                    telefono = telefono,
+                    direccion = direccion
                 )
-                if (regResponse.isSuccessful && regResponse.body()?.data != null) {
-                    val auth = regResponse.body()!!.data!!
+                val response = api.loginConGoogle(request)
+                if (response.isSuccessful && response.body()?.data != null) {
+                    val auth = response.body()!!.data!!
+                    val userRol = auth.userRol
                     session.saveAuth(
                         token = auth.token,
                         id = auth.userId,
                         email = auth.userEmail,
                         nombre = auth.userNombre,
-                        rol = auth.userRol,
+                        rol = userRol,
                         fotoUrl = auth.userFotoUrl,
                         telefono = auth.userTelefono,
                         direccion = auth.userDireccion
                     )
-                    _uiState.value = AuthUiState.Success(auth.userRol)
+                    _uiState.value = AuthUiState.Success(userRol)
                 } else {
-                    val err = regResponse.errorBody()?.string() ?: ""
-                    if (err.contains("ya se encuentra registrado", ignoreCase = true)) {
-                        _uiState.value = AuthUiState.Error("Esta cuenta de Google ya está registrada. Inicia sesión con tus credenciales habituales.")
-                    } else {
-                        _uiState.value = AuthUiState.Error("No se pudo autenticar con Google. Intente nuevamente.")
-                    }
+                    _uiState.value = AuthUiState.Error("No se pudo iniciar sesión con Google. Intente nuevamente.")
                 }
             } catch (e: Exception) {
                 _uiState.value = AuthUiState.Error("Error al conectar con Google: ${e.localizedMessage}")

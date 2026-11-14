@@ -6,7 +6,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,12 +31,12 @@ import com.ciudadactiva.app.R
 import com.ciudadactiva.app.ui.components.CiudadActivaTopBar
 import com.ciudadactiva.app.ui.components.GoogleAuthHelper
 import com.ciudadactiva.app.ui.components.GradientButton
-import com.ciudadactiva.app.ui.theme.BackgroundLight
+import com.ciudadactiva.app.ui.theme.BrandCopper
 import com.ciudadactiva.app.ui.theme.BrandTealDark
-import com.ciudadactiva.app.ui.theme.TextDark
 import com.ciudadactiva.app.ui.viewmodel.AuthUiState
 import com.ciudadactiva.app.ui.viewmodel.AuthViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
     viewModel: AuthViewModel,
@@ -46,17 +45,34 @@ fun RegisterScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    var nombre by remember { mutableStateOf("") }
+    // Datos Legales Colombianos del Ciudadano
+    var primerNombre by remember { mutableStateOf("") }
+    var segundoNombre by remember { mutableStateOf("") }
+    var primerApellido by remember { mutableStateOf("") }
+    var segundoApellido by remember { mutableStateOf("") }
+
+    val tiposDocumento = listOf("CC", "TI", "CE", "PASAPORTE", "PPT")
+    val tiposDocumentoLabels = listOf(
+        "CC - Cédula de Ciudadanía",
+        "TI - Tarjeta de Identidad",
+        "CE - Cédula de Extranjería",
+        "PASAPORTE - Pasaporte",
+        "PPT - Permiso Protección Temporal"
+    )
+    var expandedTipoDoc by remember { mutableStateOf(false) }
+    var tipoDocumentoSeleccionado by remember { mutableStateOf("CC") }
+
+    var numeroDocumento by remember { mutableStateOf("") }
+    var telefono by remember { mutableStateOf("") }
+    var direccion by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-    var telefono by remember { mutableStateOf("") }
     var aceptaTerminos by remember { mutableStateOf(true) }
 
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
     var showGoogleDialog by remember { mutableStateOf(false) }
-    var showVerificarDialog by remember { mutableStateOf<Pair<String, String?>?>(null) }
     var googleEmailInput by remember { mutableStateOf("") }
 
     val isEmailValid = email.isBlank() || Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()
@@ -77,16 +93,13 @@ fun RegisterScreen(
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Success) {
             onRegisterSuccess()
-        } else if (uiState is AuthUiState.RequiereVerificacion) {
-            val req = uiState as AuthUiState.RequiereVerificacion
-            showVerificarDialog = req.email to req.demoCode
         }
     }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
@@ -103,16 +116,17 @@ fun RegisterScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Únete a CiudadActiva",
-                    fontSize = 24.sp,
+                    text = "Registro Legal de Ciudadanos",
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = BrandTealDark
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 Text(
-                    text = "Crea tu cuenta personal para reportar incidencias en tu comunidad",
-                    fontSize = 13.sp,
-                    color = Color(0xFF6A7775)
+                    text = "Identificación ciudadana conforme a la normativa colombiana para trazabilidad comunitaria",
+                    fontSize = 12.5.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 17.sp
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -141,8 +155,8 @@ fun RegisterScreen(
                         .fillMaxWidth()
                         .height(48.dp),
                     shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(1.dp, Color(0xFFD0D7D6)),
-                    colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -156,7 +170,7 @@ fun RegisterScreen(
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
                             text = "Registrarse con Google / Gmail",
-                            color = TextDark,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 13.sp
                         )
@@ -169,14 +183,14 @@ fun RegisterScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFDDE3E2))
+                    HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.surfaceVariant)
                     Text(
-                        text = "  O completa tus datos  ",
+                        text = "  O completa tu formulario legal  ",
                         fontSize = 11.sp,
-                        color = Color(0xFF7A8B88),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Medium
                     )
-                    HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFDDE3E2))
+                    HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.surfaceVariant)
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
@@ -184,23 +198,145 @@ fun RegisterScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .shadow(8.dp, RoundedCornerShape(24.dp)),
+                        .shadow(6.dp, RoundedCornerShape(24.dp)),
                     shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Column(
                         modifier = Modifier.padding(20.dp),
-                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Nombre
+                        Text(
+                            text = "Datos de Identificación Personal",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+
+                        // Nombres
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = primerNombre,
+                                onValueChange = { primerNombre = it },
+                                label = { Text("Primer Nombre *") },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(14.dp),
+                                singleLine = true
+                            )
+                            OutlinedTextField(
+                                value = segundoNombre,
+                                onValueChange = { segundoNombre = it },
+                                label = { Text("Segundo Nombre") },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(14.dp),
+                                singleLine = true
+                            )
+                        }
+
+                        // Apellidos
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = primerApellido,
+                                onValueChange = { primerApellido = it },
+                                label = { Text("Primer Apellido *") },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(14.dp),
+                                singleLine = true
+                            )
+                            OutlinedTextField(
+                                value = segundoApellido,
+                                onValueChange = { segundoApellido = it },
+                                label = { Text("Segundo Apellido *") },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(14.dp),
+                                singleLine = true
+                            )
+                        }
+
+                        // Selector Tipo de Documento
+                        ExposedDropdownMenuBox(
+                            expanded = expandedTipoDoc,
+                            onExpandedChange = { expandedTipoDoc = !expandedTipoDoc },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            OutlinedTextField(
+                                value = tiposDocumentoLabels[tiposDocumento.indexOf(tipoDocumentoSeleccionado).coerceAtLeast(0)],
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Tipo de Documento *") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedTipoDoc) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .menuAnchor(),
+                                shape = RoundedCornerShape(14.dp)
+                            )
+                            ExposedDropdownMenu(
+                                expanded = expandedTipoDoc,
+                                onDismissRequest = { expandedTipoDoc = false }
+                            ) {
+                                tiposDocumento.forEachIndexed { idx, code ->
+                                    DropdownMenuItem(
+                                        text = { Text(tiposDocumentoLabels[idx], fontSize = 13.sp) },
+                                        onClick = {
+                                            tipoDocumentoSeleccionado = code
+                                            expandedTipoDoc = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        // Número de Documento
                         OutlinedTextField(
-                            value = nombre,
-                            onValueChange = { nombre = it },
-                            label = { Text("Nombre Completo *") },
-                            leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+                            value = numeroDocumento,
+                            onValueChange = { numeroDocumento = it.filter { char -> char.isLetterOrDigit() } },
+                            label = { Text("Número de Documento *") },
+                            leadingIcon = { Icon(Icons.Default.Badge, contentDescription = null) },
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        )
+
+                        Text(
+                            text = "Contacto y Ubicación en Colombia",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+
+                        // Teléfono Celular
+                        OutlinedTextField(
+                            value = telefono,
+                            onValueChange = { telefono = it.filter { char -> char.isDigit() } },
+                            label = { Text("Número de Teléfono Celular *") },
+                            leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
+                            placeholder = { Text("Ej: 3001234567") },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp),
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+                        )
+
+                        // Dirección
+                        OutlinedTextField(
+                            value = direccion,
+                            onValueChange = { direccion = it },
+                            label = { Text("Dirección de Residencia *") },
+                            leadingIcon = { Icon(Icons.Default.Home, contentDescription = null) },
+                            placeholder = { Text("Ej: Calle 72 # 11-45, Chapinero") },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp),
                             singleLine = true
+                        )
+
+                        Text(
+                            text = "Seguridad de Acceso",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(top = 4.dp)
                         )
 
                         // Correo con validación de formato
@@ -210,7 +346,7 @@ fun RegisterScreen(
                             label = { Text("Correo Electrónico *") },
                             leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
+                            shape = RoundedCornerShape(14.dp),
                             singleLine = true,
                             isError = !isEmailValid,
                             supportingText = {
@@ -235,13 +371,13 @@ fun RegisterScreen(
                                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                     Icon(
                                         imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                        contentDescription = if (passwordVisible) "Ocultar contraseña" else "Ver contraseña",
+                                        contentDescription = if (passwordVisible) "Ocultar" else "Ver",
                                         tint = Color(0xFF7A8B88)
                                     )
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
+                            shape = RoundedCornerShape(14.dp),
                             singleLine = true,
                             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
@@ -251,19 +387,19 @@ fun RegisterScreen(
                         OutlinedTextField(
                             value = confirmPassword,
                             onValueChange = { confirmPassword = it },
-                            label = { Text("Repetir Contraseña *") },
-                            leadingIcon = { Icon(Icons.Default.LockReset, contentDescription = null) },
+                            label = { Text("Confirmar Contraseña *") },
+                            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                             trailingIcon = {
                                 IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
                                     Icon(
                                         imageVector = if (confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                        contentDescription = if (confirmPasswordVisible) "Ocultar contraseña" else "Ver contraseña",
+                                        contentDescription = if (confirmPasswordVisible) "Ocultar" else "Ver",
                                         tint = Color(0xFF7A8B88)
                                     )
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
+                            shape = RoundedCornerShape(14.dp),
                             singleLine = true,
                             isError = !passwordsMatch,
                             supportingText = {
@@ -279,37 +415,26 @@ fun RegisterScreen(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
                         )
 
-                        // Teléfono (opcional)
-                        OutlinedTextField(
-                            value = telefono,
-                            onValueChange = { telefono = it },
-                            label = { Text("Teléfono de Contacto (Opcional)") },
-                            leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
-                        )
-
-                        // Términos
+                        // Términos y condiciones
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(top = 4.dp)
+                            modifier = Modifier.padding(vertical = 4.dp)
                         ) {
                             Checkbox(
                                 checked = aceptaTerminos,
                                 onCheckedChange = { aceptaTerminos = it },
                                 colors = CheckboxDefaults.colors(checkedColor = BrandTealDark)
                             )
+                            Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "Acepto el tratamiento de datos y ubicación para reporte de incidencias",
-                                fontSize = 11.sp,
-                                color = TextDark,
-                                lineHeight = 15.sp
+                                text = "Acepto el tratamiento de datos y términos comunitarios de CiudadActiva",
+                                fontSize = 11.5.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                lineHeight = 16.sp
                             )
                         }
 
-                        // Mensaje de Error
+                        // Mensaje de Error si ocurre
                         if (uiState is AuthUiState.Error) {
                             val errorText = (uiState as AuthUiState.Error).message
                             Box(
@@ -327,8 +452,13 @@ fun RegisterScreen(
                             }
                         }
 
-                        // Botón Completar Registro
-                        val isFormValid = nombre.trim().length >= 2 &&
+                        // Validación de formulario completo
+                        val isFormValid = primerNombre.trim().isNotBlank() &&
+                                primerApellido.trim().isNotBlank() &&
+                                segundoApellido.trim().isNotBlank() &&
+                                numeroDocumento.trim().isNotBlank() &&
+                                telefono.trim().length >= 7 &&
+                                direccion.trim().isNotBlank() &&
                                 email.trim().isNotBlank() &&
                                 isEmailValid &&
                                 password.length >= 6 &&
@@ -336,16 +466,21 @@ fun RegisterScreen(
                                 aceptaTerminos
 
                         GradientButton(
-                            text = "Completar Registro",
+                            text = "Completar Registro Ciudadano",
                             enabled = isFormValid,
                             isLoading = uiState is AuthUiState.Loading,
                             onClick = {
-                                viewModel.registrarCiudadano(
-                                    nombre = nombre,
+                                viewModel.registrarCiudadanoLegal(
+                                    primerNombre = primerNombre,
+                                    segundoNombre = segundoNombre,
+                                    primerApellido = primerApellido,
+                                    segundoApellido = segundoApellido,
+                                    tipoDocumento = tipoDocumentoSeleccionado,
+                                    numeroDocumento = numeroDocumento,
                                     email = email,
                                     pass = password,
-                                    tel = telefono.ifBlank { null },
-                                    dir = null // Dirección de casa removida conforme a requerimiento
+                                    tel = telefono,
+                                    dir = direccion
                                 )
                             }
                         )
@@ -374,9 +509,9 @@ fun RegisterScreen(
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(
-                            text = "Ingresa tu cuenta de Google (Gmail o institucional) para iniciar sesión o registrarte automáticamente:",
+                            text = "Ingresa tu cuenta de Google (Gmail) para vincularte e iniciar sesión automáticamente:",
                             fontSize = 13.sp,
-                            color = Color(0xFF555555)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         OutlinedTextField(
                             value = googleEmailInput,
@@ -394,8 +529,18 @@ fun RegisterScreen(
                         onClick = {
                             if (googleEmailInput.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(googleEmailInput.trim()).matches()) {
                                 showGoogleDialog = false
-                                val inferredName = if (nombre.isNotBlank()) nombre else googleEmailInput.substringBefore("@").replace(".", " ").replaceFirstChar { it.uppercase() }
-                                viewModel.loginConGoogle(googleEmailInput.trim(), inferredName)
+                                val inferredName = if (primerNombre.isNotBlank()) "$primerNombre $primerApellido" else googleEmailInput.substringBefore("@")
+                                viewModel.loginConGoogle(
+                                    googleEmail = googleEmailInput.trim(),
+                                    googleName = inferredName,
+                                    primerNombre = primerNombre.ifBlank { null },
+                                    primerApellido = primerApellido.ifBlank { null },
+                                    segundoApellido = segundoApellido.ifBlank { null },
+                                    tipoDocumento = tipoDocumentoSeleccionado,
+                                    numeroDocumento = numeroDocumento.ifBlank { null },
+                                    telefono = telefono.ifBlank { null },
+                                    direccion = direccion.ifBlank { null }
+                                )
                             }
                         },
                         enabled = googleEmailInput.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(googleEmailInput.trim()).matches()
@@ -408,19 +553,6 @@ fun RegisterScreen(
                         Text("Cancelar")
                     }
                 }
-            )
-        }
-
-        if (showVerificarDialog != null) {
-            ModalVerificarCuenta(
-                email = showVerificarDialog!!.first,
-                demoCode = showVerificarDialog!!.second,
-                onDismiss = { showVerificarDialog = null },
-                onVerificadoExitoso = {
-                    showVerificarDialog = null
-                    onRegisterSuccess()
-                },
-                viewModel = viewModel
             )
         }
     }

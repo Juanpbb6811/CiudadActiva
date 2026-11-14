@@ -16,6 +16,15 @@ val TextDark = Color(0xFF113233)
 val TextMuted = Color(0xFF6C757D)
 val TextLight = Color(0xFFFFFFFF)
 
+// Paleta Modo Oscuro (Dark Theme)
+val DarkBackground = Color(0xFF0F1E1F)
+val DarkSurfaceCard = Color(0xFF182E30)
+val DarkSurfaceBorder = Color(0xFF264447)
+val DarkTextPrimary = Color(0xFFF1F5F4)
+val DarkTextMuted = Color(0xFF9EBCB7)
+val DarkBrandTeal = Color(0xFF74A596)
+val DarkBrandCopper = Color(0xFFE5B88F)
+
 // Estados de Reporte Semánticos RUP
 val StatusPendienteBg = Color(0xFFFFF3E0)
 val StatusPendienteText = Color(0xFFE65100)

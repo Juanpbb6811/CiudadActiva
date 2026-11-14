@@ -12,6 +12,9 @@ interface CiudadActivaApiService {
     @POST("api/auth/login")
     suspend fun login(@Body request: LoginRequest): Response<ApiResponse<AuthResponse>>
 
+    @POST("api/auth/google")
+    suspend fun loginConGoogle(@Body request: GoogleAuthRequest): Response<ApiResponse<AuthResponse>>
+
     @POST("api/auth/register")
     suspend fun registrar(@Body request: RegisterRequest): Response<ApiResponse<AuthResponse>>
 

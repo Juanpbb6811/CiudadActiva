@@ -42,8 +42,8 @@ fun OpenStreetMapComposable(
             if (rep.latitud != null && rep.longitud != null) {
                 val obj = JSONObject().apply {
                     put("id", rep.id)
-                    put("titulo", (rep.titulo ?: "Incidencia").replace("\"", "'").replace("\n", " "))
-                    put("descripcion", (rep.descripcion ?: "").replace("\"", "'").replace("\n", " "))
+                    put("titulo", rep.titulo.replace("\"", "'").replace("\n", " "))
+                    put("descripcion", rep.descripcion.replace("\"", "'").replace("\n", " "))
                     put("categoria", (rep.categoriaNombre ?: "General").replace("\"", "'"))
                     put("direccion", rep.ubicacionLegible.replace("\"", "'"))
                     put("latitud", rep.latitud)
@@ -206,8 +206,11 @@ private fun generateLeafletHtml(
             <title>CiudadActiva Map</title>
             <!-- Leaflet CSS desde Cloudflare CDN -->
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+            <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+            <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
             <!-- Leaflet JS desde Cloudflare CDN -->
             <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+            <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
             <style>
                 * { box-sizing: border-box; }
                 html, body {
@@ -237,6 +240,17 @@ private fun generateLeafletHtml(
                     display: block; width: 100%; margin-top: 8px; padding: 8px 0; background: #1E302F; color: white;
                     text-align: center; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: bold; border: none; cursor: pointer;
                 }
+                .custom-cluster-icon { background: transparent !important; border: none !important; }
+                .cluster-bubble {
+                    width: 36px; height: 36px; border-radius: 50%;
+                    display: flex; align-items: center; justify-content: center;
+                    font-weight: 800; font-size: 13px; color: #FFFFFF;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.35); border: 2.5px solid #FFFFFF;
+                    transition: transform 0.2s ease;
+                }
+                .cluster-green { background: radial-gradient(circle, #4CAF50 0%, #2E7D32 100%); }
+                .cluster-yellow { background: radial-gradient(circle, #FFCA28 0%, #F57F17 100%); color: #113233; }
+                .cluster-red { background: radial-gradient(circle, #F44336 0%, #B71C1C 100%); }
             </style>
         </head>
         <body>
@@ -335,8 +349,29 @@ private fun generateLeafletHtml(
                             }
                         });
                     """ else """
-                        // Modo explorador: Graficar reportes comunitarios con color Semáforo
+                        // Modo explorador: Agrupación inteligente (Clustering) de reportes en radio cercano
                         var reportesData = $reportesJson;
+                        var markersCluster = L.markerClusterGroup({
+                            maxClusterRadius: 55,
+                            spiderfyOnMaxZoom: true,
+                            showCoverageOnHover: false,
+                            zoomToBoundsOnClick: true,
+                            iconCreateFunction: function(cluster) {
+                                var count = cluster.getChildCount();
+                                var cClass = 'cluster-green';
+                                if (count >= 5) {
+                                    cClass = 'cluster-red';
+                                } else if (count >= 3) {
+                                    cClass = 'cluster-yellow';
+                                }
+                                return new L.DivIcon({
+                                    html: '<div class="cluster-bubble ' + cClass + '"><span>' + count + '</span></div>',
+                                    className: 'custom-cluster-icon',
+                                    iconSize: new L.Point(36, 36)
+                                });
+                            }
+                        });
+
                         reportesData.forEach(function(rep) {
                             var circle = L.circleMarker([rep.latitud, rep.longitud], {
                                 radius: 12,
@@ -345,7 +380,7 @@ private fun generateLeafletHtml(
                                 weight: 2.5,
                                 opacity: 1,
                                 fillOpacity: 0.90
-                            }).addTo(map);
+                            });
 
                             var htmlPopup = '<div class="popup-card">' +
                                 '<span class="popup-cat">' + rep.categoria + '</span>' +
@@ -356,7 +391,9 @@ private fun generateLeafletHtml(
                                 '</div>';
 
                             circle.bindPopup(htmlPopup);
+                            markersCluster.addLayer(circle);
                         });
+                        map.addLayer(markersCluster);
                     """}
                 } catch (err) {
                     console.error('Error inicializando Leaflet: ' + err.message);

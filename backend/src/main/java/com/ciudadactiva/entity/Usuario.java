@@ -14,6 +14,25 @@ public class Usuario {
     @Column(nullable = false, length = 120)
     private String nombre;
 
+    @Column(name = "primer_nombre", length = 60)
+    private String primerNombre;
+
+    @Column(name = "segundo_nombre", length = 60)
+    private String segundoNombre;
+
+    @Column(name = "primer_apellido", length = 60)
+    private String primerApellido;
+
+    @Column(name = "segundo_apellido", length = 60)
+    private String segundoApellido;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_documento", length = 20)
+    private TipoDocumento tipoDocumento = TipoDocumento.CC;
+
+    @Column(name = "numero_documento", length = 30)
+    private String numeroDocumento;
+
     @Column(nullable = false, unique = true, length = 120)
     private String email;
 
@@ -29,11 +48,14 @@ public class Usuario {
     @Column(name = "foto_url", columnDefinition = "TEXT")
     private String fotoUrl;
 
+    @Column(name = "google_id", length = 120)
+    private String googleId;
+
     @Column(nullable = false)
     private Boolean activo = true;
 
     @Column(name = "verificado")
-    private Boolean verificado = false;
+    private Boolean verificado = true;
 
     @Column(name = "codigo_verificacion", length = 10)
     private String codigoVerificacion;
@@ -68,7 +90,44 @@ public class Usuario {
         this.direccion = direccion;
         this.rol = rol;
         this.activo = true;
-        this.verificado = false;
+        this.verificado = true; // Por requerimiento: acceso directo sin traba de código OTP
+    }
+
+    public Usuario(String primerNombre, String segundoNombre, String primerApellido, String segundoApellido,
+                   TipoDocumento tipoDocumento, String numeroDocumento,
+                   String email, String password, String telefono, String direccion, Rol rol) {
+        this.primerNombre = primerNombre;
+        this.segundoNombre = segundoNombre;
+        this.primerApellido = primerApellido;
+        this.segundoApellido = segundoApellido;
+        this.tipoDocumento = tipoDocumento != null ? tipoDocumento : TipoDocumento.CC;
+        this.numeroDocumento = numeroDocumento;
+        this.nombre = armarNombreCompleto(primerNombre, segundoNombre, primerApellido, segundoApellido);
+        this.email = email;
+        this.password = password;
+        this.telefono = telefono;
+        this.direccion = direccion;
+        this.rol = rol;
+        this.activo = true;
+        this.verificado = true;
+    }
+
+    private static String armarNombreCompleto(String pNom, String sNom, String pApe, String sApe) {
+        StringBuilder sb = new StringBuilder();
+        if (pNom != null && !pNom.isBlank()) sb.append(pNom.trim());
+        if (sNom != null && !sNom.isBlank()) {
+            if (!sb.isEmpty()) sb.append(" ");
+            sb.append(sNom.trim());
+        }
+        if (pApe != null && !pApe.isBlank()) {
+            if (!sb.isEmpty()) sb.append(" ");
+            sb.append(pApe.trim());
+        }
+        if (sApe != null && !sApe.isBlank()) {
+            if (!sb.isEmpty()) sb.append(" ");
+            sb.append(sApe.trim());
+        }
+        return sb.isEmpty() ? "Ciudadano" : sb.toString();
     }
 
     @PrePersist
@@ -79,13 +138,19 @@ public class Usuario {
             this.activo = true;
         }
         if (this.verificado == null) {
-            this.verificado = false;
+            this.verificado = true;
+        }
+        if (this.nombre == null || this.nombre.isBlank()) {
+            this.nombre = armarNombreCompleto(primerNombre, segundoNombre, primerApellido, segundoApellido);
         }
     }
 
     @PreUpdate
     protected void onUpdate() {
         this.actualizadoEn = LocalDateTime.now();
+        if (this.primerNombre != null && !this.primerNombre.isBlank()) {
+            this.nombre = armarNombreCompleto(primerNombre, segundoNombre, primerApellido, segundoApellido);
+        }
     }
 
     public Long getId() {
@@ -97,11 +162,62 @@ public class Usuario {
     }
 
     public String getNombre() {
-        return nombre;
+        if (nombre != null && !nombre.isBlank()) {
+            return nombre;
+        }
+        return armarNombreCompleto(primerNombre, segundoNombre, primerApellido, segundoApellido);
     }
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
+    }
+
+    public String getPrimerNombre() {
+        return primerNombre;
+    }
+
+    public void setPrimerNombre(String primerNombre) {
+        this.primerNombre = primerNombre;
+    }
+
+    public String getSegundoNombre() {
+        return segundoNombre;
+    }
+
+    public void setSegundoNombre(String segundoNombre) {
+        this.segundoNombre = segundoNombre;
+    }
+
+    public String getPrimerApellido() {
+        return primerApellido;
+    }
+
+    public void setPrimerApellido(String primerApellido) {
+        this.primerApellido = primerApellido;
+    }
+
+    public String getSegundoApellido() {
+        return segundoApellido;
+    }
+
+    public void setSegundoApellido(String segundoApellido) {
+        this.segundoApellido = segundoApellido;
+    }
+
+    public TipoDocumento getTipoDocumento() {
+        return tipoDocumento;
+    }
+
+    public void setTipoDocumento(TipoDocumento tipoDocumento) {
+        this.tipoDocumento = tipoDocumento;
+    }
+
+    public String getNumeroDocumento() {
+        return numeroDocumento;
+    }
+
+    public void setNumeroDocumento(String numeroDocumento) {
+        this.numeroDocumento = numeroDocumento;
     }
 
     public String getEmail() {
@@ -142,6 +258,14 @@ public class Usuario {
 
     public void setFotoUrl(String fotoUrl) {
         this.fotoUrl = fotoUrl;
+    }
+
+    public String getGoogleId() {
+        return googleId;
+    }
+
+    public void setGoogleId(String googleId) {
+        this.googleId = googleId;
     }
 
     public Boolean getActivo() {

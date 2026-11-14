@@ -157,8 +157,8 @@ public class ReporteController {
     }
 
     // ================== DESCARGAR / VISUALIZAR FOTO DE LA INCIDENCIA ==================
-    @GetMapping("/{id}/foto")
-    @Operation(summary = "Obtener Imagen del Reporte", description = "Descarga o visualiza la fotografía original de la incidencia almacenada en la base de datos.")
+    @GetMapping({"/{id}/foto", "/{id}/imagen"})
+    @Operation(summary = "Obtener Imagen del Reporte", description = "Descarga o visualiza la fotografía original de la incidencia almacenada en la base de datos (con soporte de caché HTTP).")
     public ResponseEntity<byte[]> obtenerFotoReporte(@PathVariable Long id) {
         FotoData foto = reporteService.obtenerFotoReporte(id);
         return ResponseEntity.ok()

@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
@@ -53,10 +54,6 @@ fun AdminPanelScreen(
     val stats by viewModel.estadisticas.collectAsState()
     val reportes by viewModel.reportes.collectAsState()
     val filtroReportes by viewModel.filtroEstadoReportes.collectAsState()
-
-    var reporteAEditar by remember { mutableStateOf<ReporteResponse?>(null) }
-    var nuevoEstadoModal by remember { mutableStateOf("ADMITIDO") }
-    var observacionesModal by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         viewModel.cargarTodo()
@@ -278,6 +275,27 @@ fun AdminPanelScreen(
                         }
                     }
 
+                    // Banner Informativo: Modo Consulta Móvil
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F1EF))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.Info, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Modo Consulta Móvil: Las modificaciones de estado y gestión operativa se realizan desde la consola web.",
+                                fontSize = 11.sp,
+                                color = Color(0xFF4A5568),
+                                lineHeight = 14.sp
+                            )
+                        }
+                    }
+
                     // Chips de Filtro
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -368,30 +386,12 @@ fun AdminPanelScreen(
                                         horizontalArrangement = Arrangement.End,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        if (rep.estado == "PENDIENTE") {
-                                            TextButton(
-                                                onClick = {
-                                                    viewModel.eliminarReporte(rep.id) {}
-                                                }
-                                            ) {
-                                                Text("Eliminar", color = Color(0xFFD32F2F), fontSize = 11.sp)
-                                            }
-                                        }
-
-                                        Button(
-                                            onClick = {
-                                                reporteAEditar = rep
-                                                nuevoEstadoModal = rep.estado
-                                                observacionesModal = ""
-                                            },
-                                            colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark, contentColor = Color.White),
-                                            shape = RoundedCornerShape(10.dp),
-                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                                        ) {
-                                            Icon(Icons.Default.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
-                                            Spacer(modifier = Modifier.width(4.dp))
-                                            Text("Modificar Estado", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                        }
+                                        Text(
+                                            text = "Modo Consulta • Consola Web",
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = Color(0xFF78909C)
+                                        )
                                     }
                                 }
                             }
@@ -400,69 +400,6 @@ fun AdminPanelScreen(
                 }
             }
         }
-    }
-
-    // Modal para que el Admin cambie el estado de cualquier reporte
-    if (reporteAEditar != null) {
-        AlertDialog(
-            onDismissRequest = { reporteAEditar = null },
-            title = { Text("Modificar Estado Reporte #${reporteAEditar!!.id}", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = BrandTealDark) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("Selecciona el nuevo estado oficial:", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
-                    val opciones = listOf("PENDIENTE", "EN_REVISION", "ADMITIDO", "EN_PROCESO", "ATENDIDO", "CERRADO", "RECHAZADO")
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        opciones.chunked(2).forEach { rowOpciones ->
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                                rowOpciones.forEach { est ->
-                                    val isSel = nuevoEstadoModal == est
-                                    EstadoSelectorItem(
-                                        estadoKey = est,
-                                        isSelected = isSel,
-                                        onClick = { nuevoEstadoModal = est },
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
-                                if (rowOpciones.size == 1) {
-                                    Spacer(modifier = Modifier.weight(1f))
-                                }
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text("Justificación / Observaciones:", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
-                    OutlinedTextField(
-                        value = observacionesModal,
-                        onValueChange = { observacionesModal = it },
-                        placeholder = { Text("Ej: Validación administrativa de conformidad...", fontSize = 12.sp) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val repId = reporteAEditar!!.id
-                        viewModel.cambiarEstadoReporte(repId, nuevoEstadoModal, observacionesModal) {
-                            reporteAEditar = null
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark, contentColor = Color.White),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(Icons.Default.Save, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Guardar Estado", color = Color.White, fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { reporteAEditar = null }) {
-                    Text("Cancelar", color = Color(0xFF6C757D))
-                }
-            }
-        )
     }
 }
 
@@ -474,12 +411,6 @@ fun AdminUsuariosScreen(
 ) {
     val usuarios by viewModel.usuarios.collectAsState()
     val filtroRol by viewModel.filtroRolUsuarios.collectAsState()
-    var mostrarModalCrear by remember { mutableStateOf(false) }
-
-    var nuevoNombre by remember { mutableStateOf("") }
-    var nuevoEmail by remember { mutableStateOf("") }
-    var nuevoPass by remember { mutableStateOf("123456") }
-    var nuevoRol by remember { mutableStateOf("ROLE_OPERADOR") }
 
     LaunchedEffect(Unit) {
         viewModel.cargarUsuarios()
@@ -493,6 +424,27 @@ fun AdminUsuariosScreen(
             roleTag = "USUARIOS",
             onBackClick = onBackClick
         )
+
+        // Banner informativo: Modo Consulta Móvil
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F1EF))
+        ) {
+            Row(
+                modifier = Modifier.padding(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Default.Info, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Modo Consulta Móvil: El alta, baja y asignación de roles se gestiona desde la consola web central.",
+                    fontSize = 11.sp,
+                    color = Color(0xFF4A5568),
+                    lineHeight = 14.sp
+                )
+            }
+        }
 
         // Filtro por Rol
         Row(
@@ -574,68 +526,11 @@ fun AdminUsuariosScreen(
                                     }
                                 }
                             }
-
-                            IconButton(onClick = { viewModel.desactivarUsuario(u.id) {} }) {
-                                Icon(Icons.Default.Delete, contentDescription = "Desactivar", tint = Color(0xFFEF5350))
-                            }
                         }
                     }
                 }
             }
         }
-
-        Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 10.dp)) {
-            GradientButton(
-                text = "+ Crear Nuevo Usuario",
-                onClick = { mostrarModalCrear = true }
-            )
-        }
-    }
-
-    if (mostrarModalCrear) {
-        AlertDialog(
-            onDismissRequest = { mostrarModalCrear = false },
-            title = { Text("Crear Usuario Administrativo", fontSize = 16.sp, fontWeight = FontWeight.Bold) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    OutlinedTextField(value = nuevoNombre, onValueChange = { nuevoNombre = it }, label = { Text("Nombre") })
-                    OutlinedTextField(value = nuevoEmail, onValueChange = { nuevoEmail = it }, label = { Text("Correo") })
-                    OutlinedTextField(value = nuevoPass, onValueChange = { nuevoPass = it }, label = { Text("Contraseña") })
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf("ROLE_GESTOR", "ROLE_OPERADOR", "ROLE_ADMIN").forEach { r ->
-                            val isSel = nuevoRol == r
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(if (isSel) BrandTealDark else Color(0xFFEBEFF0))
-                                    .clickable { nuevoRol = r }
-                                    .padding(horizontal = 8.dp, vertical = 6.dp)
-                            ) {
-                                Text(r.replace("ROLE_", ""), color = if (isSel) Color.White else TextDark, fontSize = 10.sp)
-                            }
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.crearUsuario(nuevoNombre, nuevoEmail, nuevoPass, nuevoRol, null, null) {
-                            mostrarModalCrear = false
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark, contentColor = Color.White),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("Crear Usuario", color = Color.White, fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { mostrarModalCrear = false }) {
-                    Text("Cancelar", color = Color(0xFF6C757D))
-                }
-            }
-        )
     }
 }
 
@@ -646,9 +541,6 @@ fun AdminCategoriasScreen(
     onBackClick: () -> Unit
 ) {
     val categorias by viewModel.categorias.collectAsState()
-    var mostrarModalCrear by remember { mutableStateOf(false) }
-    var nuevoNombre by remember { mutableStateOf("") }
-    var nuevaDesc by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         viewModel.cargarCategorias()
@@ -658,6 +550,27 @@ fun AdminCategoriasScreen(
         modifier = Modifier.fillMaxSize().background(BackgroundLight).statusBarsPadding().padding(bottom = 80.dp)
     ) {
         CiudadActivaTopBar(title = "Categorías", roleTag = "CATÁLOGO", onBackClick = onBackClick)
+
+        // Banner Informativo: Modo Consulta Móvil
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F1EF))
+        ) {
+            Row(
+                modifier = Modifier.padding(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Default.Info, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Modo Consulta Móvil: El catálogo municipal de tipologías y servicios se administra desde la consola web central.",
+                    fontSize = 11.sp,
+                    color = Color(0xFF4A5568),
+                    lineHeight = 14.sp
+                )
+            }
+        }
 
         LazyColumn(
             modifier = Modifier.weight(1f).padding(horizontal = 20.dp, vertical = 8.dp),
@@ -702,43 +615,6 @@ fun AdminCategoriasScreen(
             }
         }
 
-        Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 10.dp)) {
-            GradientButton(
-                text = "+ Crear Nueva Categoría",
-                onClick = { mostrarModalCrear = true }
-            )
-        }
-    }
-
-    if (mostrarModalCrear) {
-        AlertDialog(
-            onDismissRequest = { mostrarModalCrear = false },
-            title = { Text("Nueva Categoría", fontSize = 16.sp, fontWeight = FontWeight.Bold) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    OutlinedTextField(value = nuevoNombre, onValueChange = { nuevoNombre = it }, label = { Text("Nombre") })
-                    OutlinedTextField(value = nuevaDesc, onValueChange = { nuevaDesc = it }, label = { Text("Descripción") })
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.crearCategoria(nuevoNombre, nuevaDesc, "traffic") {
-                            mostrarModalCrear = false
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark, contentColor = Color.White),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("Guardar", color = Color.White, fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { mostrarModalCrear = false }) {
-                    Text("Cancelar", color = Color(0xFF6C757D))
-                }
-            }
-        )
     }
 }
 

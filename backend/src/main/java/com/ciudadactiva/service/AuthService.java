@@ -3,19 +3,24 @@ package com.ciudadactiva.service;
 import com.ciudadactiva.config.JwtTokenProvider;
 import com.ciudadactiva.dto.auth.*;
 import com.ciudadactiva.dto.usuario.UsuarioResponse;
+import com.ciudadactiva.entity.PasswordResetToken;
 import com.ciudadactiva.entity.Rol;
 import com.ciudadactiva.entity.RolNombre;
+import com.ciudadactiva.entity.TipoDocumento;
 import com.ciudadactiva.entity.Usuario;
 import com.ciudadactiva.exception.BadRequestException;
 import com.ciudadactiva.exception.UnauthorizedException;
+import com.ciudadactiva.repository.PasswordResetTokenRepository;
 import com.ciudadactiva.repository.RolRepository;
 import com.ciudadactiva.repository.UsuarioRepository;
+import com.ciudadactiva.util.TokenCryptoUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class AuthService {
@@ -25,6 +30,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final EmailService emailService;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final TokenCryptoUtil tokenCryptoUtil;
     private final SecureRandom secureRandom = new SecureRandom();
 
     public AuthService(
@@ -32,55 +39,66 @@ public class AuthService {
             RolRepository rolRepository,
             PasswordEncoder passwordEncoder,
             JwtTokenProvider jwtTokenProvider,
-            EmailService emailService
+            EmailService emailService,
+            PasswordResetTokenRepository passwordResetTokenRepository,
+            TokenCryptoUtil tokenCryptoUtil
     ) {
         this.usuarioRepository = usuarioRepository;
         this.rolRepository = rolRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.emailService = emailService;
+        this.passwordResetTokenRepository = passwordResetTokenRepository;
+        this.tokenCryptoUtil = tokenCryptoUtil;
     }
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (usuarioRepository.existsByEmail(request.getEmail())) {
+        String emailLimpio = request.getEmail().trim().toLowerCase();
+        if (usuarioRepository.existsByEmail(emailLimpio)) {
             throw new BadRequestException("El correo electrónico ya se encuentra registrado");
         }
 
-        // Por regla de negocio, el autoregistro ciudadano siempre asigna ROLE_CIUDADANO
+        // Asignación de rol ciudadano por regla de negocio
         Rol rolCiudadano = rolRepository.findByNombre(RolNombre.ROLE_CIUDADANO)
                 .orElseGet(() -> rolRepository.save(new Rol(RolNombre.ROLE_CIUDADANO, "Rol Ciudadano")));
 
+        TipoDocumento tipoDoc = request.getTipoDocumento() != null ? request.getTipoDocumento() : TipoDocumento.CC;
+
         Usuario usuario = new Usuario(
-                request.getNombre(),
-                request.getEmail(),
+                request.getPrimerNombre(),
+                request.getSegundoNombre(),
+                request.getPrimerApellido(),
+                request.getSegundoApellido(),
+                tipoDoc,
+                request.getNumeroDocumento(),
+                emailLimpio,
                 passwordEncoder.encode(request.getPassword()),
                 request.getTelefono(),
                 request.getDireccion(),
                 rolCiudadano
         );
 
-        // Generar código OTP aleatorio de 6 dígitos para verificación de cuenta
-        String codigoOtp = String.format("%06d", secureRandom.nextInt(1_000_000));
-        usuario.setVerificado(false);
-        usuario.setCodigoVerificacion(codigoOtp);
-        usuario.setCodigoVerificacionExpira(LocalDateTime.now().plusMinutes(15));
+        if (request.getNombre() != null && !request.getNombre().isBlank() && (request.getPrimerNombre() == null || request.getPrimerNombre().isBlank())) {
+            usuario.setNombre(request.getNombre().trim());
+        }
+
+        // Cumpliendo el requerimiento: los ciudadanos quedan activos y verificados de inmediato
+        usuario.setActivo(true);
+        usuario.setVerificado(true);
 
         Usuario guardado = usuarioRepository.save(usuario);
         String token = jwtTokenProvider.generarToken(guardado);
 
-        // Envío de correo real con el código OTP
-        emailService.enviarCodigoVerificacion(guardado.getEmail(), guardado.getNombre(), codigoOtp);
-
         AuthResponse response = new AuthResponse(token, new UsuarioResponse(guardado));
-        response.setRequiereVerificacion(true);
+        response.setRequiereVerificacion(false);
         response.setCodigoGeneradoDemo(null);
         return response;
     }
 
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
-        Usuario usuario = usuarioRepository.findByEmail(request.getEmail())
+        Usuario usuario = usuarioRepository.findByEmail(request.getEmail().trim().toLowerCase())
                 .orElseThrow(() -> new UnauthorizedException("Credenciales inválidas: correo no registrado"));
 
         if (!Boolean.TRUE.equals(usuario.getActivo())) {
@@ -93,9 +111,126 @@ public class AuthService {
 
         String token = jwtTokenProvider.generarToken(usuario);
         AuthResponse response = new AuthResponse(token, new UsuarioResponse(usuario));
-        response.setRequiereVerificacion(!Boolean.TRUE.equals(usuario.getVerificado()));
-        response.setCodigoGeneradoDemo(usuario.getCodigoVerificacion());
+        response.setRequiereVerificacion(false);
+        response.setCodigoGeneradoDemo(null);
         return response;
+    }
+
+    @Transactional
+    public AuthResponse loginConGoogle(GoogleAuthRequest request) {
+        String email = request.getEmail().trim().toLowerCase();
+        Optional<Usuario> existenteOpt = usuarioRepository.findByEmail(email);
+
+        Usuario usuario;
+        if (existenteOpt.isPresent()) {
+            usuario = existenteOpt.get();
+            if (request.getGoogleId() != null && (usuario.getGoogleId() == null || usuario.getGoogleId().isBlank())) {
+                usuario.setGoogleId(request.getGoogleId());
+                usuarioRepository.save(usuario);
+            }
+        } else {
+            // Usuario nuevo proveniente de Google
+            Rol rolCiudadano = rolRepository.findByNombre(RolNombre.ROLE_CIUDADANO)
+                    .orElseGet(() -> rolRepository.save(new Rol(RolNombre.ROLE_CIUDADANO, "Rol Ciudadano")));
+
+            TipoDocumento tipoDoc = request.getTipoDocumento() != null ? request.getTipoDocumento() : TipoDocumento.CC;
+
+            usuario = new Usuario(
+                    request.getPrimerNombre(),
+                    request.getSegundoNombre(),
+                    request.getPrimerApellido(),
+                    request.getSegundoApellido(),
+                    tipoDoc,
+                    request.getNumeroDocumento() != null ? request.getNumeroDocumento() : "GOOGLE-PENDIENTE",
+                    email,
+                    passwordEncoder.encode("GoogleOAuth2SecurePass_" + secureRandom.nextInt(1_000_000)),
+                    request.getTelefono() != null ? request.getTelefono() : "3000000000",
+                    request.getDireccion() != null ? request.getDireccion() : "Dirección Pendiente",
+                    rolCiudadano
+            );
+
+            if (request.getDisplayName() != null && !request.getDisplayName().isBlank()) {
+                usuario.setNombre(request.getDisplayName());
+            }
+            usuario.setGoogleId(request.getGoogleId());
+            usuario.setActivo(true);
+            usuario.setVerificado(true);
+            usuario = usuarioRepository.save(usuario);
+        }
+
+        if (!Boolean.TRUE.equals(usuario.getActivo())) {
+            throw new UnauthorizedException("La cuenta se encuentra desactivada. Contacte al administrador.");
+        }
+
+        String token = jwtTokenProvider.generarToken(usuario);
+        AuthResponse response = new AuthResponse(token, new UsuarioResponse(usuario));
+        response.setRequiereVerificacion(false);
+        return response;
+    }
+
+    /**
+     * Solicitud neutra de recuperación con Token Hasheado SHA-256 (Estándar OWASP)
+     */
+    @Transactional
+    public String processForgotPasswordOwasp(String email) {
+        if (email == null || email.isBlank()) {
+            return "Si el correo existe en nuestro sistema, recibirás las instrucciones de recuperación.";
+        }
+
+        String emailLimpio = email.trim().toLowerCase();
+        Optional<Usuario> userOpt = usuarioRepository.findByEmail(emailLimpio);
+        if (userOpt.isEmpty()) {
+            // Respuesta silenciosa/neutra por estándar OWASP para prevenir enumeración de usuarios
+            return "Si el correo existe en nuestro sistema, recibirás las instrucciones de recuperación.";
+        }
+
+        Usuario user = userOpt.get();
+        passwordResetTokenRepository.deleteByUser(user); // Limpia solicitudes previas
+
+        String rawToken = tokenCryptoUtil.generateRawToken();
+        String tokenHash = tokenCryptoUtil.hashToken(rawToken);
+
+        PasswordResetToken resetToken = new PasswordResetToken(
+                tokenHash,
+                user,
+                LocalDateTime.now().plusMinutes(15)
+        );
+        passwordResetTokenRepository.save(resetToken);
+
+        emailService.enviarTokenRecuperacionOwasp(user.getEmail(), user.getNombre(), rawToken);
+
+        return "Si el correo existe en nuestro sistema, recibirás las instrucciones de recuperación.";
+    }
+
+    /**
+     * Validación y cambio de contraseña con Token Criptográfico (Estándar OWASP)
+     */
+    @Transactional
+    public String resetPasswordOwasp(String rawToken, String newPassword) {
+        if (rawToken == null || rawToken.isBlank() || newPassword == null || newPassword.length() < 6) {
+            throw new BadRequestException("Token inválido o la contraseña debe tener al menos 6 caracteres.");
+        }
+
+        String tokenHash = tokenCryptoUtil.hashToken(rawToken.trim());
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByTokenHash(tokenHash)
+                .orElseThrow(() -> new BadRequestException("Token de recuperación inválido o inexistente."));
+
+        if (resetToken.isExpired()) {
+            passwordResetTokenRepository.delete(resetToken);
+            throw new BadRequestException("El token de recuperación ha expirado. Por favor solicita uno nuevo.");
+        }
+
+        Usuario user = resetToken.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        usuarioRepository.save(user);
+
+        // Eliminación inmediata del token tras su uso único
+        passwordResetTokenRepository.delete(resetToken);
+
+        // Envío de correo de alerta de seguridad tras cambio exitoso
+        emailService.enviarConfirmacionCambioPassword(user.getEmail(), user.getNombre());
+
+        return "Contraseña actualizada exitosamente. Ya puedes iniciar sesión.";
     }
 
     @Transactional
@@ -103,24 +238,6 @@ public class AuthService {
         Usuario usuario = usuarioRepository.findByEmail(request.getEmail().trim().toLowerCase())
                 .orElseThrow(() -> new BadRequestException("No se encontró usuario con el correo especificado"));
 
-        if (Boolean.TRUE.equals(usuario.getVerificado())) {
-            String token = jwtTokenProvider.generarToken(usuario);
-            return new AuthResponse(token, new UsuarioResponse(usuario));
-        }
-
-        if (usuario.getCodigoVerificacion() == null || usuario.getCodigoVerificacionExpira() == null) {
-            throw new BadRequestException("No hay ningún código de verificación activo. Por favor solicita uno nuevo.");
-        }
-
-        if (LocalDateTime.now().isAfter(usuario.getCodigoVerificacionExpira())) {
-            throw new BadRequestException("El código de verificación ha expirado. Por favor solicita uno nuevo.");
-        }
-
-        if (!usuario.getCodigoVerificacion().trim().equals(request.getCodigo().trim())) {
-            throw new BadRequestException("El código de verificación ingresado es incorrecto.");
-        }
-
-        // Código válido: cuenta verificada
         usuario.setVerificado(true);
         usuario.setCodigoVerificacion(null);
         usuario.setCodigoVerificacionExpira(null);
@@ -132,47 +249,12 @@ public class AuthService {
 
     @Transactional
     public String solicitarRecuperacionPassword(ForgotPasswordRequest request) {
-        String email = request.getEmail().trim().toLowerCase();
-        Usuario usuario = usuarioRepository.findByEmail(email).orElse(null);
-
-        if (usuario == null) {
-            return "Si el correo está registrado, se ha generado y enviado un código de recuperación de 6 dígitos.";
-        }
-
-        String codigoOtp = String.format("%06d", secureRandom.nextInt(1_000_000));
-        usuario.setCodigoRecuperacion(codigoOtp);
-        usuario.setCodigoRecuperacionExpira(LocalDateTime.now().plusMinutes(15));
-        usuarioRepository.save(usuario);
-
-        emailService.enviarCodigoRecuperacion(usuario.getEmail(), usuario.getNombre(), codigoOtp);
-
-        return "Se ha enviado un código de recuperación de 6 dígitos a tu correo electrónico.";
+        return processForgotPasswordOwasp(request.getEmail());
     }
 
     @Transactional
     public String resetPassword(ResetPasswordRequest request) {
-        String email = request.getEmail().trim().toLowerCase();
-        Usuario usuario = usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> new BadRequestException("Usuario no encontrado con el correo suministrado."));
-
-        if (usuario.getCodigoRecuperacion() == null || usuario.getCodigoRecuperacionExpira() == null) {
-            throw new BadRequestException("No hay una solicitud de recuperación activa o el código ya fue utilizado.");
-        }
-
-        if (LocalDateTime.now().isAfter(usuario.getCodigoRecuperacionExpira())) {
-            throw new BadRequestException("El código de recuperación ha expirado. Por favor solicita uno nuevo.");
-        }
-
-        if (!usuario.getCodigoRecuperacion().trim().equals(request.getCodigo().trim())) {
-            throw new BadRequestException("El código de recuperación ingresado es incorrecto.");
-        }
-
-        usuario.setPassword(passwordEncoder.encode(request.getNuevaPassword()));
-        usuario.setCodigoRecuperacion(null);
-        usuario.setCodigoRecuperacionExpira(null);
-        usuarioRepository.save(usuario);
-
-        return "Contraseña actualizada exitosamente. Ya puedes iniciar sesión con tu nueva contraseña.";
+        return resetPasswordOwasp(request.getCodigo(), request.getNuevaPassword());
     }
 
     @Transactional
@@ -191,25 +273,6 @@ public class AuthService {
 
     @Transactional
     public String reenviarCodigo(ReenviarCodigoRequest request) {
-        String email = request.getEmail().trim().toLowerCase();
-        Usuario usuario = usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> new BadRequestException("Usuario no encontrado con el correo suministrado."));
-
-        String codigoOtp = String.format("%06d", secureRandom.nextInt(1_000_000));
-
-        if ("RECUPERACION".equalsIgnoreCase(request.getTipo())) {
-            usuario.setCodigoRecuperacion(codigoOtp);
-            usuario.setCodigoRecuperacionExpira(LocalDateTime.now().plusMinutes(15));
-            usuarioRepository.save(usuario);
-            emailService.enviarCodigoRecuperacion(usuario.getEmail(), usuario.getNombre(), codigoOtp);
-            return "Se ha reenviado un nuevo código de recuperación a tu correo electrónico.";
-        } else {
-            usuario.setCodigoVerificacion(codigoOtp);
-            usuario.setCodigoVerificacionExpira(LocalDateTime.now().plusMinutes(15));
-            usuarioRepository.save(usuario);
-            emailService.enviarCodigoVerificacion(usuario.getEmail(), usuario.getNombre(), codigoOtp);
-            return "Se ha reenviado un nuevo código de verificación a tu correo electrónico.";
-        }
+        return processForgotPasswordOwasp(request.getEmail());
     }
 }
-

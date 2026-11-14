@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
@@ -243,52 +244,39 @@ fun GestorFichaInspeccionScreen(
 
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        OutlinedButton(
-                            onClick = {
-                                estadoSeleccionado = rep.estado
-                                observacionesCambioEstado = ""
-                                mostrarModalCambiarEstado = true
-                            },
-                            modifier = Modifier.fillMaxWidth().height(44.dp),
-                            shape = RoundedCornerShape(14.dp),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, BrandTealDark),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = BrandTealDark)
+                        // Banner Informativo: Modo Consulta Móvil (Solo Revisión)
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F1EF))
                         ) {
-                            Text("Cambiar Estado del Reporte...", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Row(
+                                modifier = Modifier.padding(14.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.Info,
+                                    contentDescription = null,
+                                    tint = BrandTealDark,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        text = "Modo Consulta Móvil (Solo Revisión)",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.5.sp,
+                                        color = BrandTealDark
+                                    )
+                                    Text(
+                                        text = "La admisión técnica, rechazo y despacho de cuadrillas se gestionan desde la plataforma central.",
+                                        fontSize = 11.sp,
+                                        color = Color(0xFF4A5568),
+                                        lineHeight = 15.sp
+                                    )
+                                }
+                            }
                         }
-                    }
-                }
-
-                if (errorMsg != null) {
-                    Text(text = errorMsg!!, color = Color(0xFFD32F2F), fontSize = 12.sp)
-                }
-
-                // Botones de Acción Rápida (Rechazar o Admitir)
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Button(
-                        onClick = { mostrarModalRechazo = true },
-                        modifier = Modifier.weight(1f).height(50.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                        border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFEF9A9A)),
-                        shape = RoundedCornerShape(25.dp)
-                    ) {
-                        Text("Rechazar (Just.)", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
-                    }
-
-                    Button(
-                        onClick = {
-                            viewModel.admitirYPriorizarReporte(
-                                reporteId = rep.id,
-                                prioridad = prioridadSeleccionada,
-                                justificacion = "Incidencia admitida por Gestor",
-                                onSuccess = { mostrarModalAsignar = true }
-                            )
-                        },
-                        modifier = Modifier.weight(1f).height(50.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark, contentColor = Color.White),
-                        shape = RoundedCornerShape(25.dp)
-                    ) {
-                        Text("Admitir Reporte", color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
             }

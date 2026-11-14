@@ -1,14 +1,21 @@
 package com.ciudadactiva.dto.auth;
 
+import com.ciudadactiva.entity.TipoDocumento;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public class RegisterRequest {
 
-    @NotBlank(message = "El nombre es obligatorio")
-    @Size(min = 2, max = 120, message = "El nombre debe tener entre 2 y 120 caracteres")
-    private String nombre;
+    private String primerNombre;
+    private String segundoNombre;
+    private String primerApellido;
+    private String segundoApellido;
+
+    private TipoDocumento tipoDocumento = TipoDocumento.CC;
+
+    private String numeroDocumento;
 
     @NotBlank(message = "El correo electrónico es obligatorio")
     @Email(message = "El correo electrónico debe ser válido")
@@ -22,23 +29,85 @@ public class RegisterRequest {
 
     private String direccion;
 
+    // Campo de compatibilidad
+    private String nombre;
+
     public RegisterRequest() {
     }
 
-    public RegisterRequest(String nombre, String email, String password, String telefono, String direccion) {
-        this.nombre = nombre;
+    public RegisterRequest(String primerNombre, String segundoNombre, String primerApellido, String segundoApellido,
+                           TipoDocumento tipoDocumento, String numeroDocumento,
+                           String email, String password, String telefono, String direccion) {
+        this.primerNombre = primerNombre;
+        this.segundoNombre = segundoNombre;
+        this.primerApellido = primerApellido;
+        this.segundoApellido = segundoApellido;
+        this.tipoDocumento = tipoDocumento != null ? tipoDocumento : TipoDocumento.CC;
+        this.numeroDocumento = numeroDocumento;
         this.email = email;
         this.password = password;
         this.telefono = telefono;
         this.direccion = direccion;
+        this.nombre = armarNombreCompleto();
     }
 
-    public String getNombre() {
-        return nombre;
+    public String armarNombreCompleto() {
+        if (primerNombre != null && !primerNombre.isBlank()) {
+            StringBuilder sb = new StringBuilder(primerNombre.trim());
+            if (segundoNombre != null && !segundoNombre.isBlank()) sb.append(" ").append(segundoNombre.trim());
+            if (primerApellido != null && !primerApellido.isBlank()) sb.append(" ").append(primerApellido.trim());
+            if (segundoApellido != null && !segundoApellido.isBlank()) sb.append(" ").append(segundoApellido.trim());
+            return sb.toString();
+        }
+        return nombre != null && !nombre.isBlank() ? nombre : "Ciudadano";
     }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
+    public String getPrimerNombre() {
+        return primerNombre;
+    }
+
+    public void setPrimerNombre(String primerNombre) {
+        this.primerNombre = primerNombre;
+    }
+
+    public String getSegundoNombre() {
+        return segundoNombre;
+    }
+
+    public void setSegundoNombre(String segundoNombre) {
+        this.segundoNombre = segundoNombre;
+    }
+
+    public String getPrimerApellido() {
+        return primerApellido;
+    }
+
+    public void setPrimerApellido(String primerApellido) {
+        this.primerApellido = primerApellido;
+    }
+
+    public String getSegundoApellido() {
+        return segundoApellido;
+    }
+
+    public void setSegundoApellido(String segundoApellido) {
+        this.segundoApellido = segundoApellido;
+    }
+
+    public TipoDocumento getTipoDocumento() {
+        return tipoDocumento;
+    }
+
+    public void setTipoDocumento(TipoDocumento tipoDocumento) {
+        this.tipoDocumento = tipoDocumento;
+    }
+
+    public String getNumeroDocumento() {
+        return numeroDocumento;
+    }
+
+    public void setNumeroDocumento(String numeroDocumento) {
+        this.numeroDocumento = numeroDocumento;
     }
 
     public String getEmail() {
@@ -71,5 +140,16 @@ public class RegisterRequest {
 
     public void setDireccion(String direccion) {
         this.direccion = direccion;
+    }
+
+    public String getNombre() {
+        if (nombre != null && !nombre.isBlank()) {
+            return nombre;
+        }
+        return armarNombreCompleto();
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
     }
 }

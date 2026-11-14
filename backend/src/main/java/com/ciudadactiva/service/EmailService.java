@@ -72,6 +72,42 @@ public class EmailService {
         return despacharCorreo(toEmail, asunto, html, codigoOtp, "RECUPERACIÓN");
     }
 
+    /**
+     * Envía correo con token criptográfico temporal de recuperación de contraseña (Estándar OWASP).
+     */
+    public boolean enviarTokenRecuperacionOwasp(String toEmail, String nombreUsuario, String rawToken) {
+        String asunto = "Recuperación segura de contraseña - CiudadActiva";
+        String html = "<!DOCTYPE html><html lang='es'><body style='font-family: sans-serif; background: #f4f6f8; padding: 20px;'>" +
+                "<div style='max-width: 520px; margin: auto; background: #fff; padding: 28px; border-radius: 14px; border: 1px solid #e2e8f0;'>" +
+                "<h2 style='color: #113233;'>Recuperación de Acceso</h2>" +
+                "<p>Hola <strong>" + (nombreUsuario != null ? nombreUsuario : "Ciudadano") + "</strong>,</p>" +
+                "<p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta en CiudadActiva.</p>" +
+                "<p>Tu código / token seguro de recuperación es:</p>" +
+                "<div style='background: #eef7f5; border: 2px dashed #74a596; border-radius: 10px; padding: 16px; text-align: center; margin: 20px 0;'>" +
+                "<span style='font-family: monospace; font-size: 20px; font-weight: bold; color: #113233; word-break: break-all;'>" + rawToken + "</span>" +
+                "<p style='color: #c53030; font-size: 12px; margin-top: 8px;'>⏱️ Expira en 15 minutos</p>" +
+                "</div>" +
+                "<p style='color: #718096; font-size: 13px;'>Ingresa este token en la pantalla de recuperación de la app móvil para definir tu nueva contraseña.</p>" +
+                "<p style='color: #a0aec0; font-size: 12px; margin-top: 24px;'>Si no solicitaste este cambio, puedes ignorar este mensaje de forma segura.</p>" +
+                "</div></body></html>";
+        return despacharCorreo(toEmail, asunto, html, rawToken, "TOKEN_OWASP");
+    }
+
+    /**
+     * Envía alerta de confirmación tras actualización exitosa de contraseña (Checklist OWASP).
+     */
+    public boolean enviarConfirmacionCambioPassword(String toEmail, String nombreUsuario) {
+        String asunto = "Tu contraseña ha sido actualizada - CiudadActiva";
+        String html = "<!DOCTYPE html><html lang='es'><body style='font-family: sans-serif; background: #f4f6f8; padding: 20px;'>" +
+                "<div style='max-width: 520px; margin: auto; background: #fff; padding: 28px; border-radius: 14px; border: 1px solid #e2e8f0;'>" +
+                "<h2 style='color: #113233;'>Contraseña Actualizada</h2>" +
+                "<p>Hola <strong>" + (nombreUsuario != null ? nombreUsuario : "Ciudadano") + "</strong>,</p>" +
+                "<p>Te confirmamos que la contraseña de tu cuenta en CiudadActiva ha sido modificada con éxito.</p>" +
+                "<p style='color: #e53e3e; font-size: 13px;'>Si tú no realizaste este cambio, contacta inmediatamente a soporte técnico.</p>" +
+                "</div></body></html>";
+        return despacharCorreo(toEmail, asunto, html, "CONFIRMACION", "CAMBIO_PASSWORD");
+    }
+
     private boolean despacharCorreo(String toEmail, String asunto, String html, String codigoOtp, String tipo) {
         log.info("🔐 [OTP Service] Solicitud de {}: Destino=[{}], Código OTP=[{}]", tipo, toEmail, codigoOtp);
         boolean enviado = false;

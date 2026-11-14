@@ -6,9 +6,30 @@ data class LoginRequest(
 )
 
 data class RegisterRequest(
-    val nombre: String,
+    val primerNombre: String,
+    val segundoNombre: String? = null,
+    val primerApellido: String,
+    val segundoApellido: String,
+    val tipoDocumento: String = "CC",
+    val numeroDocumento: String,
     val email: String,
     val password: String,
+    val telefono: String,
+    val direccion: String,
+    val nombre: String? = null
+)
+
+data class GoogleAuthRequest(
+    val idToken: String? = null,
+    val email: String,
+    val displayName: String? = null,
+    val googleId: String? = null,
+    val primerNombre: String? = null,
+    val segundoNombre: String? = null,
+    val primerApellido: String? = null,
+    val segundoApellido: String? = null,
+    val tipoDocumento: String? = "CC",
+    val numeroDocumento: String? = null,
     val telefono: String? = null,
     val direccion: String? = null
 )
@@ -50,12 +71,18 @@ data class AuthResponse(
 data class UsuarioModel(
     val id: Long,
     val nombre: String,
+    val primerNombre: String? = null,
+    val segundoNombre: String? = null,
+    val primerApellido: String? = null,
+    val segundoApellido: String? = null,
+    val tipoDocumento: String? = "CC",
+    val numeroDocumento: String? = null,
     val email: String,
     val telefono: String?,
     val direccion: String?,
     val fotoUrl: String? = null,
     val activo: Boolean,
-    val verificado: Boolean? = false,
+    val verificado: Boolean? = true,
     val rol: String,
     val laboresActivas: Long? = 0,
     val creadoEn: String?

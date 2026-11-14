@@ -61,7 +61,7 @@ public class SecurityConfig {
                         ).permitAll()
 
                         // Fotografías públicas (para renderizado directo en componentes visuales móviles y navegadores)
-                        .requestMatchers(HttpMethod.GET, "/api/reportes/*/foto", "/api/reportes/*/foto-solucion").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reportes/*/foto", "/api/reportes/*/foto-solucion", "/api/reportes/*/imagen").permitAll()
 
                         // Cálculo y consulta de semáforos disponible
                         .requestMatchers(HttpMethod.GET, "/api/estadisticas/semaforo/**").permitAll()

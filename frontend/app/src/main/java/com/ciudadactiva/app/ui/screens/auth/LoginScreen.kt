@@ -104,7 +104,7 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
@@ -132,13 +132,13 @@ fun LoginScreen(
                 text = "ciudadactiva",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                color = BrandTealDark
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Text(
                 text = "Gestión y Seguimiento Comunitario",
                 fontSize = 13.sp,
-                color = TextMuted
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -167,8 +167,8 @@ fun LoginScreen(
                     .fillMaxWidth()
                     .height(48.dp),
                 shape = RoundedCornerShape(16.dp),
-                border = BorderStroke(1.dp, Color(0xFFD0D7D6)),
-                colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
+                colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -182,7 +182,7 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
                         text = "Continuar con Google / Gmail",
-                        color = TextDark,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 13.sp
                     )
@@ -195,14 +195,14 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFDDE3E2))
+                HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.surfaceVariant)
                 Text(
                     text = "  O ingresa con tu cuenta  ",
                     fontSize = 11.sp,
-                    color = Color(0xFF7A8B88),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium
                 )
-                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFDDE3E2))
+                HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.surfaceVariant)
             }
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -211,9 +211,9 @@ fun LoginScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .shadow(8.dp, RoundedCornerShape(24.dp)),
+                    .shadow(6.dp, RoundedCornerShape(24.dp)),
                 shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),

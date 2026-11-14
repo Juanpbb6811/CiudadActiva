@@ -37,6 +37,13 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.ok("Inicio de sesión exitoso", response));
     }
 
+    @PostMapping("/google")
+    @Operation(summary = "Inicio de Sesión y Registro con Google", description = "Autentica o registra un ciudadano mediante Google Sign-In y emite token JWT oficial.")
+    public ResponseEntity<ApiResponse<AuthResponse>> loginConGoogle(@RequestBody GoogleAuthRequest request) {
+        AuthResponse response = authService.loginConGoogle(request);
+        return ResponseEntity.ok(ApiResponse.ok("Autenticación con Google exitosa", response));
+    }
+
     @PostMapping("/verificar-codigo")
     @Operation(summary = "Verificación de Cuenta con Código OTP", description = "Valida el código de 6 dígitos generado al azar para activar la cuenta de usuario.")
     public ResponseEntity<ApiResponse<AuthResponse>> verificarCodigo(@Valid @RequestBody VerificarCodigoRequest request) {

@@ -29,6 +29,8 @@ public class ReporteService {
     private final SeguimientoRepository seguimientoRepository;
     private final AsignacionRepository asignacionRepository;
     private final ComentarioRepository comentarioRepository;
+    private final com.ciudadactiva.repository.ReporteImagenRepository reporteImagenRepository;
+    private final com.ciudadactiva.util.ImageOptimizationUtil imageOptimizationUtil;
 
     public ReporteService(
             ReporteRepository reporteRepository,
@@ -36,7 +38,9 @@ public class ReporteService {
             UsuarioRepository usuarioRepository,
             SeguimientoRepository seguimientoRepository,
             AsignacionRepository asignacionRepository,
-            ComentarioRepository comentarioRepository
+            ComentarioRepository comentarioRepository,
+            com.ciudadactiva.repository.ReporteImagenRepository reporteImagenRepository,
+            com.ciudadactiva.util.ImageOptimizationUtil imageOptimizationUtil
     ) {
         this.reporteRepository = reporteRepository;
         this.categoriaRepository = categoriaRepository;
@@ -44,6 +48,8 @@ public class ReporteService {
         this.seguimientoRepository = seguimientoRepository;
         this.asignacionRepository = asignacionRepository;
         this.comentarioRepository = comentarioRepository;
+        this.reporteImagenRepository = reporteImagenRepository;
+        this.imageOptimizationUtil = imageOptimizationUtil;
     }
 
     // ================== RF02: REGISTRO DE REPORTES (JSON / BASE64) ==================
@@ -151,17 +157,19 @@ public class ReporteService {
         reporte.setEstado(EstadoReporte.PENDIENTE);
         reporte.setPrioridad(prioridadCalculada);
 
-        if (foto != null && !foto.isEmpty()) {
+        var optimizado = (foto != null && !foto.isEmpty()) ? imageOptimizationUtil.optimizar(foto.getBytes(), foto.getContentType()) : null;
+        if (optimizado != null) {
             validarTipoImagen(foto.getContentType());
-            reporte.setFotoBytes(foto.getBytes());
-            reporte.setFotoTipo(foto.getContentType() != null ? foto.getContentType() : "image/jpeg");
+            reporte.setFotoBytes(optimizado.bytes());
+            reporte.setFotoTipo(optimizado.mimeType());
         }
 
         Reporte guardado = reporteRepository.save(reporte);
         escalarPrioridadCluster(guardado.getLatitud(), guardado.getLongitud(), categoria.getId(), guardado.getId(), prioridadCalculada);
 
-        if (guardado.getFotoBytes() != null) {
-            guardado.setImagenUrl("/api/reportes/" + guardado.getId() + "/foto");
+        if (optimizado != null) {
+            reporteImagenRepository.save(new com.ciudadactiva.entity.ReporteImagen(guardado, optimizado.bytes(), optimizado.mimeType(), foto.getOriginalFilename()));
+            guardado.setImagenUrl("/api/reportes/" + guardado.getId() + "/imagen");
             guardado = reporteRepository.save(guardado);
         }
 
@@ -190,11 +198,13 @@ public class ReporteService {
         }
 
         validarTipoImagen(foto.getContentType());
-        reporte.setFotoBytes(foto.getBytes());
-        reporte.setFotoTipo(foto.getContentType() != null ? foto.getContentType() : "image/jpeg");
-        reporte.setImagenUrl("/api/reportes/" + reporte.getId() + "/foto");
+        var opt = imageOptimizationUtil.optimizar(foto.getBytes(), foto.getContentType());
+        reporte.setFotoBytes(opt.bytes());
+        reporte.setFotoTipo(opt.mimeType());
+        reporte.setImagenUrl("/api/reportes/" + reporte.getId() + "/imagen");
 
         Reporte guardado = reporteRepository.save(reporte);
+        reporteImagenRepository.save(new com.ciudadactiva.entity.ReporteImagen(guardado, opt.bytes(), opt.mimeType(), foto.getOriginalFilename()));
 
         Usuario usuario = usuarioRepository.findByEmail(emailUsuario).orElse(null);
         Seguimiento seguimiento = new Seguimiento(
@@ -223,8 +233,9 @@ public class ReporteService {
         }
 
         validarTipoImagen(foto.getContentType());
-        reporte.setFotoSolucionBytes(foto.getBytes());
-        reporte.setFotoSolucionTipo(foto.getContentType() != null ? foto.getContentType() : "image/jpeg");
+        var opt = imageOptimizationUtil.optimizar(foto.getBytes(), foto.getContentType());
+        reporte.setFotoSolucionBytes(opt.bytes());
+        reporte.setFotoSolucionTipo(opt.mimeType());
         reporte.setEvidenciaCierreUrl("/api/reportes/" + reporte.getId() + "/foto-solucion");
 
         Reporte guardado = reporteRepository.save(reporte);
@@ -246,6 +257,12 @@ public class ReporteService {
     // ================== CONSULTAR FOTOS BINARIAS ==================
     @Transactional(readOnly = true)
     public FotoData obtenerFotoReporte(Long reporteId) {
+        var imgOpt = reporteImagenRepository.findFirstByReporteIdOrderByIdDesc(reporteId);
+        if (imgOpt.isPresent()) {
+            var img = imgOpt.get();
+            return new FotoData(img.getDatosBinarios(), img.getTipoMime());
+        }
+
         Reporte reporte = buscarPorId(reporteId);
         if (reporte.getFotoBytes() == null || reporte.getFotoBytes().length == 0) {
             throw new ResourceNotFoundException("El reporte ID " + reporteId + " no tiene una fotografía almacenada");
@@ -530,11 +547,12 @@ public class ReporteService {
             }
             byte[] bytes = Base64.getDecoder().decode(rawBase64.trim());
             if (bytes.length > 0) {
-                reporte.setFotoBytes(bytes);
-                reporte.setFotoTipo(tipo);
+                var opt = imageOptimizationUtil.optimizar(bytes, tipo);
+                reporte.setFotoBytes(opt.bytes());
+                reporte.setFotoTipo(opt.mimeType());
             }
-        } catch (IllegalArgumentException e) {
-            // Si no es Base64 válido, se preserva como URL de texto normal
+        } catch (Exception e) {
+            // Si no es Base64 válido o falla el decode, se preserva como URL de texto normal
         }
     }
 
@@ -557,10 +575,11 @@ public class ReporteService {
             }
             byte[] bytes = Base64.getDecoder().decode(rawBase64.trim());
             if (bytes.length > 0) {
-                reporte.setFotoSolucionBytes(bytes);
-                reporte.setFotoSolucionTipo(tipo);
+                var opt = imageOptimizationUtil.optimizar(bytes, tipo);
+                reporte.setFotoSolucionBytes(opt.bytes());
+                reporte.setFotoSolucionTipo(opt.mimeType());
             }
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             // URL ordinaria
         }
     }
