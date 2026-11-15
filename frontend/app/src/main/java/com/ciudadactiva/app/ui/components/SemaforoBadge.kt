@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -15,7 +16,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ciudadactiva.app.data.model.SemaforoModel
-import com.ciudadactiva.app.ui.theme.TextDark
 
 @Composable
 fun SemaforoBadge(
@@ -28,7 +28,7 @@ fun SemaforoBadge(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFF1F5F4))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
         Row(
@@ -47,7 +47,7 @@ fun SemaforoBadge(
                 text = "${semaforo.cantidadReportes} reportes",
                 fontWeight = FontWeight.Bold,
                 fontSize = 13.sp,
-                color = TextDark
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -77,13 +77,13 @@ fun SemaforoBadge(
                     .height(5.dp)
                     .clip(CircleShape),
                 color = color,
-                trackColor = Color(0xFFDCE2E1)
+                trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = semaforo.descripcion,
                 fontSize = 11.sp,
-                color = Color(0xFF5A6665),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 lineHeight = 14.sp
             )
         }

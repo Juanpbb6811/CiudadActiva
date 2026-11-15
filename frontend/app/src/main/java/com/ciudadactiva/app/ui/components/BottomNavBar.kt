@@ -144,7 +144,7 @@ private fun NavTabItem(
             .padding(vertical = 4.dp)
     ) {
         val activeColor = MaterialTheme.colorScheme.primary
-        val inactiveColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+        val inactiveColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f)
 
         Icon(
             imageVector = if (isSelected) item.selectedIcon else item.icon,

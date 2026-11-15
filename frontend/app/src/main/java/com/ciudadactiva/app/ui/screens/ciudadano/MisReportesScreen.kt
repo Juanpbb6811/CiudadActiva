@@ -184,7 +184,14 @@ fun MisReportesScreen(
                     label = { Text(etiqueta, fontSize = 12.sp, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primary,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        labelColor = MaterialTheme.colorScheme.onSurface
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = isSelected,
+                        borderColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                     ),
                     shape = RoundedCornerShape(20.dp)
                 )
@@ -205,7 +212,7 @@ fun MisReportesScreen(
                     Icon(
                         imageVector = if (pestanaSeleccionada == 0) Icons.Default.ChatBubbleOutline else Icons.Default.Description,
                         contentDescription = null,
-                        tint = Color(0xFFB0BEC5),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                         modifier = Modifier.size(54.dp)
                     )
                     Spacer(modifier = Modifier.height(14.dp))
@@ -213,15 +220,16 @@ fun MisReportesScreen(
                         text = if (pestanaSeleccionada == 0) "No hay reportes comunitarios con este filtro" else "Aún no has creado reportes propios",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (pestanaSeleccionada == 0) "Prueba seleccionando otro filtro de estado." else "¡Explora lo que reportan otros vecinos en la pestaña 'Comunidad' o crea una incidencia con el botón (+)!",
                         fontSize = 12.sp,
-                        color = Color(0xFF7A8B88),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        lineHeight = 16.sp
+                        lineHeight = 16.sp,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
                 }
             }
@@ -254,10 +262,10 @@ fun ReporteFeedItemCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(2.dp, RoundedCornerShape(20.dp))
-            .clickable(onClick = onClick),
+            .shadow(2.dp, RoundedCornerShape(20.dp)),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -270,7 +278,7 @@ fun ReporteFeedItemCard(
                         modifier = Modifier
                             .size(32.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFE8F5E9)),
+                            .background(MaterialTheme.colorScheme.secondaryContainer),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -283,7 +291,7 @@ fun ReporteFeedItemCard(
                                 else -> Icons.Default.ReportProblem
                             },
                             contentDescription = null,
-                            tint = Color(0xFF2E7D32),
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -293,12 +301,12 @@ fun ReporteFeedItemCard(
                             text = reporte.categoriaNombre ?: "General",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF2E7D32)
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                         Text(
                             text = "Reportado por: ${reporte.ciudadanoNombre ?: "Ciudadano"}",
                             fontSize = 11.sp,
-                            color = Color(0xFF8B9695)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -310,14 +318,14 @@ fun ReporteFeedItemCard(
             val radicado = reporte.codigoSeguimiento ?: "RAD-2026-${String.format("%05d", reporte.id)}"
             Surface(
                 shape = RoundedCornerShape(6.dp),
-                color = Color(0xFFF1F5F4),
-                border = BorderStroke(1.dp, Color(0xFFDCE2E1))
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             ) {
                 Text(
                     text = radicado,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF00695C),
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                 )
             }
@@ -328,7 +336,7 @@ fun ReporteFeedItemCard(
                 text = reporte.titulo,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
-                color = TextDark,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -338,7 +346,7 @@ fun ReporteFeedItemCard(
                 Text(
                     text = reporte.descripcion,
                     fontSize = 12.sp,
-                    color = Color(0xFF555555),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -350,21 +358,21 @@ fun ReporteFeedItemCard(
                 Icon(
                     imageVector = Icons.Default.LocationOn,
                     contentDescription = null,
-                    tint = Color(0xFF8B9695),
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(14.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = reporte.ubicacionLegible,
                     fontSize = 11.sp,
-                    color = Color(0xFF7A8B88),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(color = Color(0xFFF0F4F3))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
             Spacer(modifier = Modifier.height(8.dp))
 
             Row(

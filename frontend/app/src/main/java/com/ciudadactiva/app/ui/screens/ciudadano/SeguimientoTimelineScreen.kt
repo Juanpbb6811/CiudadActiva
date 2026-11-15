@@ -139,7 +139,7 @@ fun SeguimientoTimelineScreen(
                                     text = "${rep.categoriaNombre?.uppercase() ?: "GENERAL"} • ${rep.ubicacionLegible}",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF7A8B88)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 StatusChip(status = rep.estado)
                             }
@@ -149,20 +149,20 @@ fun SeguimientoTimelineScreen(
                             val radicadoCodigo = rep.codigoSeguimiento ?: "RAD-2026-${String.format("%05d", reporteId)}"
                             Surface(
                                 shape = RoundedCornerShape(8.dp),
-                                color = Color(0xFFE0F2F1),
-                                border = BorderStroke(1.dp, Color(0xFF80CBC4))
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                             ) {
                                 Row(
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(Icons.Default.Tag, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(14.dp))
+                                    Icon(Icons.Default.Tag, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text(
                                         text = "Radicado: $radicadoCodigo",
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = BrandTealDark
+                                        color = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             }
@@ -173,7 +173,7 @@ fun SeguimientoTimelineScreen(
                                 text = rep.titulo,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = BrandTealDark
+                                color = MaterialTheme.colorScheme.onSurface
                             )
 
                             if (!rep.descripcion.isNullOrBlank()) {
@@ -181,19 +181,19 @@ fun SeguimientoTimelineScreen(
                                 Text(
                                     text = rep.descripcion,
                                     fontSize = 13.sp,
-                                    color = Color(0xFF424242),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     lineHeight = 18.sp
                                 )
                             }
 
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Place, contentDescription = null, tint = BrandCopper, modifier = Modifier.size(14.dp))
+                                Icon(Icons.Default.Place, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
                                     text = "Ubicación: ${rep.barrio ?: "Barrio Registrado"}, ${rep.ciudad ?: "Bogotá D.C."} (${rep.departamento ?: "Cundinamarca"})${if (!rep.direccion.isNullOrBlank()) " • " + rep.direccion else ""}",
                                     fontSize = 12.sp,
-                                    color = Color(0xFF5A6665),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontWeight = FontWeight.Medium
                                 )
                             }
@@ -359,18 +359,18 @@ fun SeguimientoTimelineScreen(
                                     text = seg.accion?.replace("_", " ") ?: "Evento",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = BrandTealDark
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
                                     text = seg.creadoEn?.substring(0, 10) ?: "",
                                     fontSize = 11.sp,
-                                    color = Color(0xFF8B9695)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                             Text(
                                 text = seg.observaciones ?: "Acción registrada en trazabilidad",
                                 fontSize = 12.sp,
-                                color = Color(0xFF424242)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -388,13 +388,13 @@ fun SeguimientoTimelineScreen(
                             text = "COMENTARIOS DE LA COMUNIDAD (${comentarios.size})",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
-                            color = BrandTealDark
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
                             text = "Ver todos",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
-                            color = BrandCopper,
+                            color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.clickable { onComentariosClick(reporteId) }
                         )
                     }
@@ -405,7 +405,7 @@ fun SeguimientoTimelineScreen(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F8F7))
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                         ) {
                             Column(
                                 modifier = Modifier.padding(16.dp),
@@ -414,12 +414,12 @@ fun SeguimientoTimelineScreen(
                                 Text(
                                     text = "Aún no hay comentarios en este reporte.",
                                     fontSize = 12.sp,
-                                    color = Color(0xFF7A8B88)
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
                                     text = "Sé el primero en dejar una nota o actualización a la comunidad.",
                                     fontSize = 11.sp,
-                                    color = Color(0xFF9E9E9E)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -431,7 +431,8 @@ fun SeguimientoTimelineScreen(
                                 .fillMaxWidth()
                                 .shadow(1.dp, RoundedCornerShape(16.dp)),
                             shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
                         ) {
                             Column(modifier = Modifier.padding(14.dp)) {
                                 Row(
@@ -443,10 +444,10 @@ fun SeguimientoTimelineScreen(
                                         modifier = Modifier
                                             .size(28.dp)
                                             .clip(CircleShape)
-                                            .background(BrandTealDark),
+                                            .background(MaterialTheme.colorScheme.primary),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text(initials, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        Text(initials, color = MaterialTheme.colorScheme.onPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                     }
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Column(modifier = Modifier.weight(1f)) {
@@ -454,12 +455,12 @@ fun SeguimientoTimelineScreen(
                                             text = com.usuarioNombre,
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = TextDark
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Text(
                                             text = com.creadoEn?.substring(0, 10) ?: "",
                                             fontSize = 10.sp,
-                                            color = Color(0xFF8B9695)
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                 }
@@ -467,7 +468,7 @@ fun SeguimientoTimelineScreen(
                                 Text(
                                     text = "\"${com.contenido}\"",
                                     fontSize = 12.sp,
-                                    color = Color(0xFF424242)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -496,7 +497,15 @@ fun SeguimientoTimelineScreen(
                     placeholder = { Text("Escribe un comentario sobre este reporte...", fontSize = 12.sp) },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(20.dp),
-                    singleLine = true
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 IconButton(
@@ -509,12 +518,12 @@ fun SeguimientoTimelineScreen(
                     modifier = Modifier
                         .size(44.dp)
                         .clip(CircleShape)
-                        .background(if (nuevoComentarioTexto.isNotBlank()) BrandTealDark else Color(0xFFCFD8DC))
+                        .background(if (nuevoComentarioTexto.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Send,
                         contentDescription = "Enviar",
-                        tint = Color.White,
+                        tint = if (nuevoComentarioTexto.isNotBlank()) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
                 }

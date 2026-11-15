@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.launch
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -73,7 +74,7 @@ fun NuevoReportePaso1Screen(
                 text = "SELECCIONA LA CATEGORÍA DE LA INCIDENCIA",
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF7A8B88)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -87,12 +88,14 @@ fun NuevoReportePaso1Screen(
                             .height(96.dp)
                             .border(
                                 width = if (isSelected) 2.dp else 1.dp,
-                                color = if (isSelected) BrandTealDark else Color(0xFFDCE2E1),
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                                 shape = RoundedCornerShape(16.dp)
                             )
                             .clickable { viewModel.nuevoReporteCategoria.value = cat },
                         shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = if (isSelected) Color(0xFFE8F0EF) else Color.White)
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant
+                        )
                     ) {
                         Column(
                             modifier = Modifier
@@ -110,7 +113,7 @@ fun NuevoReportePaso1Screen(
                                     else -> Icons.Default.Traffic
                                 },
                                 contentDescription = null,
-                                tint = if (isSelected) BrandTealDark else Color(0xFF6A7775),
+                                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(26.dp)
                             )
                             Spacer(modifier = Modifier.height(6.dp))
@@ -118,7 +121,7 @@ fun NuevoReportePaso1Screen(
                                 text = cat.nombre.split(" ").firstOrNull() ?: cat.nombre,
                                 fontSize = 11.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                color = BrandTealDark
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
@@ -139,7 +142,7 @@ fun NuevoReportePaso1Screen(
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     Column {
-                        Text("Título de la Incidencia *", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                        Text("Título de la Incidencia *", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                         Spacer(modifier = Modifier.height(6.dp))
                         OutlinedTextField(
                             value = titulo,
@@ -147,12 +150,22 @@ fun NuevoReportePaso1Screen(
                             placeholder = { Text("Ej: Hueco profundo en calzada principal", fontSize = 13.sp) },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(14.dp),
-                            singleLine = true
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         )
                     }
 
                     Column {
-                        Text("Descripción del Problema *", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                        Text("Descripción del Problema *", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                         Spacer(modifier = Modifier.height(6.dp))
                         OutlinedTextField(
                             value = descripcion,
@@ -162,7 +175,17 @@ fun NuevoReportePaso1Screen(
                                 .fillMaxWidth()
                                 .height(110.dp),
                             shape = RoundedCornerShape(14.dp),
-                            maxLines = 4
+                            maxLines = 4,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         )
                     }
 
@@ -171,7 +194,8 @@ fun NuevoReportePaso1Screen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(Color(0xFFE8F5E9))
+                            .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f))
+                            .border(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f), RoundedCornerShape(14.dp))
                             .padding(14.dp)
                     ) {
                         Column {
@@ -180,21 +204,21 @@ fun NuevoReportePaso1Screen(
                                     modifier = Modifier
                                         .size(10.dp)
                                         .clip(CircleShape)
-                                        .background(Color(0xFF2E7D32))
+                                        .background(MaterialTheme.colorScheme.secondary)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = "Urgencia Calculada Automáticamente",
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF1B5E20)
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
                                 text = "El nivel de prioridad y el semáforo de atención se asignan de forma automática según la concentración de reportes en la misma zona geográfica (1 reporte = Verde, 10+ reportes = Rojo Crítico).",
                                 fontSize = 11.sp,
-                                color = Color(0xFF2E7D32),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 lineHeight = 15.sp
                             )
                         }
@@ -300,14 +324,14 @@ fun NuevoReportePaso2Screen(
                             .align(Alignment.TopCenter)
                             .padding(top = 12.dp)
                             .clip(RoundedCornerShape(16.dp))
-                            .background(Color.White.copy(alpha = 0.95f))
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f))
                             .padding(horizontal = 14.dp, vertical = 6.dp)
                     ) {
                         Text(
                             text = "Toca el mapa o arrastra el marcador",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = BrandTealDark
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -343,11 +367,15 @@ fun NuevoReportePaso2Screen(
                     .fillMaxWidth()
                     .height(48.dp),
                 shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = BrandTealDark)
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.primary
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             ) {
-                Icon(Icons.Default.MyLocation, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.MyLocation, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Usar mi ubicación GPS actual", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text("Usar mi ubicación GPS actual", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -372,13 +400,13 @@ fun NuevoReportePaso2Screen(
                             text = "UBICACIÓN GEORREFERENCIADA",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF7A8B88)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         if (isGeocoding) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                CircularProgressIndicator(modifier = Modifier.size(12.dp), strokeWidth = 1.5.dp, color = BrandTealDark)
+                                CircularProgressIndicator(modifier = Modifier.size(12.dp), strokeWidth = 1.5.dp, color = MaterialTheme.colorScheme.primary)
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Detectando...", fontSize = 10.sp, color = BrandTealDark)
+                                Text("Detectando...", fontSize = 10.sp, color = MaterialTheme.colorScheme.primary)
                             }
                         }
                     }
@@ -391,7 +419,15 @@ fun NuevoReportePaso2Screen(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(14.dp),
                             label = { Text("Ciudad *") },
-                            leadingIcon = { Icon(Icons.Default.LocationCity, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(18.dp)) }
+                            leadingIcon = { Icon(Icons.Default.LocationCity, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(18.dp)) },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                            )
                         )
                         OutlinedTextField(
                             value = departamento,
@@ -399,7 +435,15 @@ fun NuevoReportePaso2Screen(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(14.dp),
                             label = { Text("Departamento *") },
-                            leadingIcon = { Icon(Icons.Default.AccountBalance, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(18.dp)) }
+                            leadingIcon = { Icon(Icons.Default.AccountBalance, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(18.dp)) },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                            )
                         )
                     }
 
@@ -410,6 +454,14 @@ fun NuevoReportePaso2Screen(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
                         label = { Text("Barrio o Sector (Según mapa) *") },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        ),
                         placeholder = { Text("Detectado según la posición del pin") },
                         leadingIcon = { Icon(Icons.Default.Place, contentDescription = null, tint = BrandCopper, modifier = Modifier.size(18.dp)) }
                     )
@@ -514,7 +566,7 @@ fun NuevoReportePaso3Screen(
                 text = "FOTOGRAFÍA DEL PROBLEMA (OPCIONAL)",
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF7A8B88)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -524,14 +576,14 @@ fun NuevoReportePaso3Screen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(240.dp)
-                    .border(1.5.dp, Color(0xFF74A596), RoundedCornerShape(24.dp))
+                    .border(1.5.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(24.dp))
                     .clickable {
                         if (fotoBitmap == null) {
                             tomarFotoCamara()
                         }
                     },
                 shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFE4ECEB))
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     if (fotoBitmap != null) {
@@ -547,12 +599,12 @@ fun NuevoReportePaso3Screen(
                                 .align(Alignment.BottomCenter)
                                 .padding(12.dp)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(BrandTealDark.copy(alpha = 0.9f))
+                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
                                 .padding(horizontal = 14.dp, vertical = 6.dp)
                         ) {
                             Text(
                                 text = "✓ Evidencia Adjunta Lista",
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -562,7 +614,7 @@ fun NuevoReportePaso3Screen(
                             Icon(
                                 imageVector = Icons.Default.CameraAlt,
                                 contentDescription = "Tomar foto",
-                                tint = BrandTealDark,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(54.dp)
                             )
                             Spacer(modifier = Modifier.height(10.dp))
@@ -570,12 +622,12 @@ fun NuevoReportePaso3Screen(
                                 text = "Toca aquí para tomar foto",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = BrandTealDark
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = "O usa los botones de abajo para cámara o galería",
                                 fontSize = 12.sp,
-                                color = Color(0xFF6C757D)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -592,14 +644,14 @@ fun NuevoReportePaso3Screen(
                         .weight(1f)
                         .height(48.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = BrandTealDark,
-                        contentColor = Color.White
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
                     ),
                     shape = RoundedCornerShape(14.dp)
                 ) {
-                    Icon(Icons.Default.PhotoCamera, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.PhotoCamera, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = "Tomar Foto", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text(text = "Tomar Foto", color = MaterialTheme.colorScheme.onPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 }
 
                 Button(
@@ -608,15 +660,15 @@ fun NuevoReportePaso3Screen(
                         .weight(1f)
                         .height(48.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        contentColor = MaterialTheme.colorScheme.primary
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = MaterialTheme.colorScheme.onSurface
                     ),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFCFD8DC)),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                     shape = RoundedCornerShape(14.dp)
                 ) {
-                    Icon(Icons.Default.Image, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.Image, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = "Elegir Galería", color = BrandTealDark, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    Text(text = "Elegir Galería", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
 
@@ -644,7 +696,8 @@ fun NuevoReportePaso3Screen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFFE8F5E9))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                     .padding(14.dp)
             ) {
                 Column {
@@ -652,13 +705,13 @@ fun NuevoReportePaso3Screen(
                         text = "Protección de Datos y Privacidad",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF2E7D32)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "La fotografía y las coordenadas se procesan de forma cifrada y son almacenadas con respaldo de trazabilidad institucional.",
                         fontSize = 11.sp,
-                        color = Color(0xFF388E3C),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 15.sp
                     )
                 }
@@ -710,13 +763,13 @@ fun NuevoReporteExitoScreen(
                 modifier = Modifier
                     .size(80.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFE8F5E9)),
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
                     contentDescription = null,
-                    tint = Color(0xFF2E7D32),
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
                     modifier = Modifier.size(46.dp)
                 )
             }
@@ -727,7 +780,7 @@ fun NuevoReporteExitoScreen(
                 text = "¡Incidencia Radicada!",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = BrandTealDark
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.height(6.dp))
@@ -736,20 +789,20 @@ fun NuevoReporteExitoScreen(
             Surface(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
-                    .border(1.5.dp, BrandCopper, RoundedCornerShape(12.dp)),
-                color = Color(0xFFFFF8E1)
+                    .border(1.5.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp)),
+                color = MaterialTheme.colorScheme.surfaceVariant
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.Tag, contentDescription = null, tint = BrandCopper, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.Tag, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Código de Seguimiento: $radicadoTexto",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF8D6E63)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -760,26 +813,26 @@ fun NuevoReporteExitoScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(14.dp)),
-                color = Color(0xFFF1F8F6)
+                color = MaterialTheme.colorScheme.surfaceVariant
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.Place, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.Place, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(10.dp))
                     Column {
                         Text(
                             text = "${reporte?.barrio ?: "Barrio Registrado"}, ${reporte?.ciudad ?: "Bogotá D.C."}",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
-                            color = BrandTealDark
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "Departamento: ${reporte?.departamento ?: "Cundinamarca"}" +
                                     if (!reporte?.direccion.isNullOrBlank()) " • ${reporte?.direccion}" else "",
                             fontSize = 11.sp,
-                            color = Color(0xFF5A6665)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -790,14 +843,14 @@ fun NuevoReporteExitoScreen(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFE0F2F1))
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
                     .padding(horizontal = 14.dp, vertical = 6.dp)
             ) {
                 Text(
                     text = "PENDIENTE DE VALIDACIÓN • PRIORIDAD ASIGNADA: ${reporte?.prioridad ?: "BAJA"}",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF00695C)
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
             }
 
@@ -806,7 +859,7 @@ fun NuevoReporteExitoScreen(
             Text(
                 text = "Tu reporte ha sido registrado con éxito. Se calculó su prioridad inicial según las incidencias del sector y un gestor municipal validará su pertinencia técnica.",
                 fontSize = 13.sp,
-                color = Color(0xFF5A6665),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 lineHeight = 18.sp
             )
@@ -825,7 +878,7 @@ fun NuevoReporteExitoScreen(
             TextButton(onClick = onVolverInicio) {
                 Text(
                     text = "Volver al Menú Principal",
-                    color = BrandTealDark,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
                 )
             }

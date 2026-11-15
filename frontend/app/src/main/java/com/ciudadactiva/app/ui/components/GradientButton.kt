@@ -39,7 +39,7 @@ fun GradientButton(
         )
     }
 
-    val textColor = if (enabled) BrandTealDark else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+    val textColor = if (enabled) BrandTealDark else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f)
 
     Box(
         modifier = modifier

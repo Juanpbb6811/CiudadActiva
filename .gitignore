@@ -11,7 +11,6 @@ target/
 build/
 **/build/
 *.apk
-!releases/*.apk
 !backend/src/main/resources/static/app.apk
 *.aab
 local.properties

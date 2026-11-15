@@ -4,7 +4,9 @@ import android.Manifest
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -152,13 +154,14 @@ fun MapaExploradorScreen(
                     .fillMaxWidth()
                     .shadow(6.dp, RoundedCornerShape(26.dp)),
                 shape = RoundedCornerShape(26.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.Search, contentDescription = null, tint = Color(0xFF7A8B88))
+                    Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(modifier = Modifier.width(8.dp))
                     TextField(
                         value = searchQuery,
@@ -166,6 +169,10 @@ fun MapaExploradorScreen(
                         placeholder = { Text("Buscar por dirección o tipo...", fontSize = 13.sp) },
                         modifier = Modifier.weight(1f),
                         colors = TextFieldDefaults.colors(
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent,
                             focusedIndicatorColor = Color.Transparent,
@@ -175,17 +182,17 @@ fun MapaExploradorScreen(
                     )
                     if (searchQuery.isNotBlank()) {
                         IconButton(onClick = { searchQuery = "" }, modifier = Modifier.size(28.dp)) {
-                            Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = Color.Gray, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
                         }
                     } else {
                         Box(
                             modifier = Modifier
                                 .size(34.dp)
                                 .clip(CircleShape)
-                                .background(BrandTealDark),
+                                .background(MaterialTheme.colorScheme.primary),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.FilterList, contentDescription = "Filtro", tint = Color.White, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.FilterList, contentDescription = "Filtro", tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(16.dp))
                         }
                     }
                 }
@@ -200,7 +207,8 @@ fun MapaExploradorScreen(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(16.dp))
-                            .background(if (isTodos) BrandTealDark else Color.White.copy(alpha = 0.95f))
+                            .background(if (isTodos) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
+                            .border(1.dp, if (isTodos) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                             .clickable { selectedCategoriaId = null }
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
@@ -208,7 +216,7 @@ fun MapaExploradorScreen(
                             text = "Todos (${reportes.size})",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (isTodos) Color.White else TextDark
+                            color = if (isTodos) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -219,7 +227,8 @@ fun MapaExploradorScreen(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(16.dp))
-                            .background(if (isSelected) BrandTealDark else Color.White.copy(alpha = 0.95f))
+                            .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
+                            .border(1.dp, if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                             .clickable {
                                 selectedCategoriaId = if (isSelected) null else cat.id
                             }
@@ -237,7 +246,7 @@ fun MapaExploradorScreen(
                                 text = "${cat.nombre} ($count)",
                                 fontSize = 11.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
-                                color = if (isSelected) Color.White else TextDark
+                                color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
@@ -307,10 +316,10 @@ fun MapaExploradorScreen(
                             text = "INCIDENCIA #${rep.id} • ${rep.categoriaNombre?.uppercase() ?: "GENERAL"}",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF7A8B88)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         IconButton(onClick = { selectedReporte = null }, modifier = Modifier.size(24.dp)) {
-                            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = Color.Gray)
+                            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
 
@@ -318,13 +327,13 @@ fun MapaExploradorScreen(
                         text = rep.titulo,
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Text(
                         text = "📍 ${rep.ubicacionLegible}",
                         fontSize = 12.sp,
-                        color = Color(0xFF6C757D)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -337,14 +346,14 @@ fun MapaExploradorScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFFF4F7F6))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                             .padding(10.dp)
                     ) {
                         Text(
                             text = "📊 ${rep.reportesCercanos ?: 1} reportes acumulados en esta misma zona. ${rep.semaforoDescripcion ?: ""}",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
-                            color = BrandTealDark
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
 

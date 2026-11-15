@@ -423,7 +423,7 @@ fun RegisterScreen(
                             Checkbox(
                                 checked = aceptaTerminos,
                                 onCheckedChange = { aceptaTerminos = it },
-                                colors = CheckboxDefaults.colors(checkedColor = BrandTealDark)
+                                colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(

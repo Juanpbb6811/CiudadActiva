@@ -112,6 +112,19 @@ fun CompletarDatosCiudadanoScreen(
         Spacer(modifier = Modifier.height(18.dp))
 
         // Tarjeta con Formulario
+        val fieldColors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+            focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            focusedLeadingIconColor = MaterialTheme.colorScheme.secondary,
+            unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -133,7 +146,8 @@ fun CompletarDatosCiudadanoScreen(
                             onValueChange = { primerNombre = it },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
-                            shape = RoundedCornerShape(14.dp)
+                            shape = RoundedCornerShape(14.dp),
+                            colors = fieldColors
                         )
                     }
                     Column(modifier = Modifier.weight(1f)) {
@@ -145,7 +159,8 @@ fun CompletarDatosCiudadanoScreen(
                             placeholder = { Text("Opcional", fontSize = 12.sp) },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
-                            shape = RoundedCornerShape(14.dp)
+                            shape = RoundedCornerShape(14.dp),
+                            colors = fieldColors
                         )
                     }
                 }
@@ -160,7 +175,8 @@ fun CompletarDatosCiudadanoScreen(
                             onValueChange = { primerApellido = it },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
-                            shape = RoundedCornerShape(14.dp)
+                            shape = RoundedCornerShape(14.dp),
+                            colors = fieldColors
                         )
                     }
                     Column(modifier = Modifier.weight(1f)) {
@@ -172,7 +188,8 @@ fun CompletarDatosCiudadanoScreen(
                             placeholder = { Text("Opcional", fontSize = 12.sp) },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
-                            shape = RoundedCornerShape(14.dp)
+                            shape = RoundedCornerShape(14.dp),
+                            colors = fieldColors
                         )
                     }
                 }
@@ -193,7 +210,8 @@ fun CompletarDatosCiudadanoScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .menuAnchor(),
-                            shape = RoundedCornerShape(14.dp)
+                            shape = RoundedCornerShape(14.dp),
+                            colors = fieldColors
                         )
                         ExposedDropdownMenu(
                             expanded = expandedTipoDoc,
@@ -221,7 +239,8 @@ fun CompletarDatosCiudadanoScreen(
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        shape = RoundedCornerShape(14.dp)
+                        shape = RoundedCornerShape(14.dp),
+                        colors = fieldColors
                     )
                 }
 
@@ -237,7 +256,8 @@ fun CompletarDatosCiudadanoScreen(
                         leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                        shape = RoundedCornerShape(14.dp)
+                        shape = RoundedCornerShape(14.dp),
+                        colors = fieldColors
                     )
                 }
 
@@ -252,7 +272,8 @@ fun CompletarDatosCiudadanoScreen(
                         placeholder = { Text("Ej: Calle 53 # 13-20, Bogotá", fontSize = 12.sp) },
                         leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                         singleLine = true,
-                        shape = RoundedCornerShape(14.dp)
+                        shape = RoundedCornerShape(14.dp),
+                        colors = fieldColors
                     )
                 }
 

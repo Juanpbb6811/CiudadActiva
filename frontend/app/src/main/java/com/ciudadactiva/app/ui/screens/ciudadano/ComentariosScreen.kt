@@ -74,12 +74,12 @@ fun ComentariosScreen(
                                 modifier = Modifier
                                     .size(36.dp)
                                     .clip(CircleShape)
-                                    .background(BrandTealDark),
+                                    .background(MaterialTheme.colorScheme.primary),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = initials,
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onPrimary,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -92,12 +92,12 @@ fun ComentariosScreen(
                                     text = "${com.usuarioNombre} (${com.usuarioRol?.replace("ROLE_", "")?.lowercase()?.capitalize() ?: "Usuario"})",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TextDark
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
                                     text = com.creadoEn?.substring(0, 10) ?: "",
                                     fontSize = 11.sp,
-                                    color = Color(0xFF8B9695)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
 
@@ -120,7 +120,7 @@ fun ComentariosScreen(
                         Text(
                             text = "\"${com.contenido}\"",
                             fontSize = 13.sp,
-                            color = Color(0xFF424242),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             lineHeight = 17.sp
                         )
                     }
@@ -154,7 +154,15 @@ fun ComentariosScreen(
                     placeholder = { Text("Escribe una nota o agradecimiento...", fontSize = 13.sp) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    maxLines = 3
+                    maxLines = 3,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Button(
@@ -169,7 +177,7 @@ fun ComentariosScreen(
                     ),
                     shape = RoundedCornerShape(14.dp)
                 ) {
-                    Text(text = "Enviar", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(text = "Enviar", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
                 }
             }
         }

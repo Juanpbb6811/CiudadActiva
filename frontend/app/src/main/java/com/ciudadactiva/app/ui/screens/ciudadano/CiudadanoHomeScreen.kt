@@ -173,7 +173,7 @@ fun CiudadanoHomeScreen(
             text = "CATEGORÍAS Y SEMÁFOROS DE RIESGO",
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF7A8B88),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
         )
 
@@ -249,7 +249,7 @@ fun CiudadanoHomeScreen(
                 text = "TU REPORTE ACTIVO",
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF7A8B88),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
             )
 
@@ -308,9 +308,9 @@ fun CiudadanoHomeScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Registrado", fontSize = 10.sp, color = Color(0xFF8B9695))
-                        Text("En atención", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = BrandCopper)
-                        Text("Cerrado", fontSize = 10.sp, color = Color(0xFF8B9695))
+                        Text("Registrado", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("En atención", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                        Text("Cerrado", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -330,13 +330,13 @@ fun CiudadanoHomeScreen(
                 text = "Mapa de Incidencias",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = BrandTealDark
+                color = MaterialTheme.colorScheme.onBackground
             )
             Text(
                 text = "Abrir mapa interactivo 🗺️",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = BrandCopper,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable(onClick = onVerMapaClick)
             )
         }
@@ -352,7 +352,8 @@ fun CiudadanoHomeScreen(
                 .shadow(2.dp, RoundedCornerShape(20.dp))
                 .clickable(onClick = onVerMapaClick),
             shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFE8EFEB))
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
         ) {
             Row(
                 modifier = Modifier
@@ -366,13 +367,13 @@ fun CiudadanoHomeScreen(
                         modifier = Modifier
                             .size(44.dp)
                             .clip(CircleShape)
-                            .background(Color.White),
+                            .background(MaterialTheme.colorScheme.surface),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.Explore,
                             contentDescription = null,
-                            tint = BrandTealDark,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -382,19 +383,19 @@ fun CiudadanoHomeScreen(
                             text = "${reportesCercanos.size} reportes en la ciudad",
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
-                            color = BrandTealDark
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "Explora los reportes con semáforo y coordenadas",
                             fontSize = 11.sp,
-                            color = Color(0xFF5A6B68)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
                 Icon(
                     imageVector = Icons.Default.ChevronRight,
                     contentDescription = null,
-                    tint = BrandTealDark
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -413,12 +414,12 @@ fun CiudadanoHomeScreen(
                 text = "Muro de la Comunidad",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = BrandTealDark
+                color = MaterialTheme.colorScheme.onBackground
             )
             Text(
                 text = "${reportesCercanos.size} publicaciones",
                 fontSize = 12.sp,
-                color = Color(0xFF7A8B88),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Medium
             )
         }
@@ -426,7 +427,7 @@ fun CiudadanoHomeScreen(
         Text(
             text = "Explora lo que reportan otros vecinos y deja tus comentarios:",
             fontSize = 12.sp,
-            color = Color(0xFF6C757D),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
         )
 
@@ -505,7 +506,7 @@ fun ReporteComunitarioCard(
                         modifier = Modifier
                             .size(28.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFE8F5E9)),
+                            .background(MaterialTheme.colorScheme.secondaryContainer),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -518,7 +519,7 @@ fun ReporteComunitarioCard(
                                 else -> Icons.Default.ReportProblem
                             },
                             contentDescription = null,
-                            tint = Color(0xFF2E7D32),
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -527,7 +528,7 @@ fun ReporteComunitarioCard(
                         text = reporte.categoriaNombre ?: "Incidencia Urbana",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF2E7D32)
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                 }
                 StatusChip(status = reporte.estado)
