@@ -77,7 +77,7 @@ fun OperadorTareasScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .padding(bottom = 70.dp)
     ) {
@@ -197,7 +197,7 @@ fun OperadorTareasScreen(
                                     .shadow(3.dp, RoundedCornerShape(20.dp))
                                     .clickable { onFichaClick(tarea.reporteId) },
                                 shape = RoundedCornerShape(20.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color.White)
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                             ) {
                                 Column(modifier = Modifier.padding(18.dp)) {
                                     PrioridadChip(prioridad = "ALTA")
@@ -221,11 +221,14 @@ fun OperadorTareasScreen(
                                         Button(
                                             onClick = { onRegistrarAvanceClick(tarea.reporteId) },
                                             modifier = Modifier.weight(1f).height(44.dp),
-                                            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                                            border = androidx.compose.foundation.BorderStroke(1.dp, BrandTealDark),
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.surface,
+                                                contentColor = MaterialTheme.colorScheme.primary
+                                            ),
+                                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                                             shape = RoundedCornerShape(22.dp)
                                         ) {
-                                            Text("Registrar Avance", color = BrandTealDark, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                            Text("Registrar Avance", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                         }
 
                                         Button(
@@ -264,7 +267,7 @@ fun OperadorTareasScreen(
                                     .shadow(3.dp, RoundedCornerShape(20.dp))
                                     .clickable { onFichaClick(rep.id) },
                                 shape = RoundedCornerShape(20.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color.White)
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                             ) {
                                 Column(modifier = Modifier.padding(16.dp)) {
                                     Row(
@@ -439,7 +442,7 @@ fun OperadorFichaScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
             .padding(bottom = 30.dp)
     ) {
@@ -451,7 +454,7 @@ fun OperadorFichaScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth().shadow(3.dp, RoundedCornerShape(20.dp)),
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Column(modifier = Modifier.padding(18.dp)) {
                         Text("ORDEN DE TRABAJO EN TERRENO", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF7A8B88))
@@ -549,11 +552,14 @@ fun OperadorFichaScreen(
                         Button(
                             onClick = { onRegistrarAvance(f.id) },
                             modifier = Modifier.fillMaxWidth().height(48.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, BrandTealDark),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                contentColor = MaterialTheme.colorScheme.primary
+                            ),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                             shape = RoundedCornerShape(24.dp)
                         ) {
-                            Text("+ Registrar Avance Operativo", color = BrandTealDark, fontWeight = FontWeight.Bold)
+                            Text("+ Registrar Avance Operativo", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                         }
 
                         Spacer(modifier = Modifier.height(10.dp))
@@ -595,7 +601,7 @@ fun OperadorAvanceScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
             .padding(bottom = 40.dp)
     ) {
@@ -605,7 +611,7 @@ fun OperadorAvanceScreen(
             Card(
                 modifier = Modifier.fillMaxWidth().shadow(3.dp, RoundedCornerShape(20.dp)),
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     Text("INCIDENCIA #$reporteId • REGISTRO DE CAMPO", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF7A8B88))
@@ -758,7 +764,7 @@ fun OperadorCierreScreen(
     // SI LA REGLA 3 FUE VIOLADA POR INTENTAR CERRAR SIN AVANCE PREVIO (M03_06)
     if (regla3Bloqueada) {
         Box(
-            modifier = Modifier.fillMaxSize().background(BackgroundLight).padding(24.dp),
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(24.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(
@@ -789,7 +795,7 @@ fun OperadorCierreScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text("REQUISITO DE ATENCIÓN EN TERRENO:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF7A8B88))
@@ -820,7 +826,7 @@ fun OperadorCierreScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
     ) {
         CiudadActivaTopBar(title = "Cierre de Incidencia", roleTag = "CIERRE", onBackClick = onBackClick)
@@ -829,7 +835,7 @@ fun OperadorCierreScreen(
             Card(
                 modifier = Modifier.fillMaxWidth().shadow(3.dp, RoundedCornerShape(20.dp)),
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     Text("Evidencia de Solución Obligatoria * (Cámara Móvil)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
@@ -903,7 +909,7 @@ fun OperadorHistorialScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
             .padding(bottom = 70.dp)
     ) {
         CiudadActivaTopBar(title = "Historial Resueltos", roleTag = "HISTORIAL", onBackClick = onBackClick)
@@ -916,7 +922,7 @@ fun OperadorHistorialScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth().shadow(2.dp, RoundedCornerShape(16.dp)),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

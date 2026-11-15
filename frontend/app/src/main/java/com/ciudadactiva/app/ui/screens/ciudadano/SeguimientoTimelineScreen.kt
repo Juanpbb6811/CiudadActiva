@@ -104,7 +104,7 @@ fun SeguimientoTimelineScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         CiudadActivaTopBar(
             title = "Seguimiento #${rep?.codigoSeguimiento ?: reporteId}",
@@ -127,7 +127,7 @@ fun SeguimientoTimelineScreen(
                             .fillMaxWidth()
                             .shadow(3.dp, RoundedCornerShape(20.dp)),
                         shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
                         Column(modifier = Modifier.padding(18.dp)) {
                             Row(
@@ -431,7 +431,7 @@ fun SeguimientoTimelineScreen(
                                 .fillMaxWidth()
                                 .shadow(1.dp, RoundedCornerShape(16.dp)),
                             shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White)
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                         ) {
                             Column(modifier = Modifier.padding(14.dp)) {
                                 Row(
@@ -482,7 +482,7 @@ fun SeguimientoTimelineScreen(
                 .fillMaxWidth()
                 .shadow(12.dp, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
             shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Row(
                 modifier = Modifier

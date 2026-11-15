@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,9 +20,6 @@ import androidx.compose.ui.unit.sp
 import com.ciudadactiva.app.CiudadActivaApplication
 import com.ciudadactiva.app.R
 import com.ciudadactiva.app.ui.navigation.Screen
-import com.ciudadactiva.app.ui.theme.BackgroundLight
-import com.ciudadactiva.app.ui.theme.BrandTealDark
-import com.ciudadactiva.app.ui.theme.BrandTealLight
 import kotlinx.coroutines.delay
 
 @Composable
@@ -32,11 +30,16 @@ fun SplashScreen(
         delay(1800)
         val session = CiudadActivaApplication.sessionManager
         if (session.isLoggedIn()) {
-            when (session.getRol()) {
-                "ROLE_GESTOR" -> onNavigateNext(Screen.GestorDashboard.route)
-                "ROLE_OPERADOR" -> onNavigateNext(Screen.OperadorTareas.route)
-                "ROLE_ADMIN" -> onNavigateNext(Screen.AdminPanel.route)
-                else -> onNavigateNext(Screen.CiudadanoHome.route)
+            val rol = session.getRol()
+            if (rol == "ROLE_CIUDADANO" && !session.areDatosLegalesCompletos()) {
+                onNavigateNext(Screen.CompletarDatosCiudadano.route)
+            } else {
+                when (rol) {
+                    "ROLE_GESTOR" -> onNavigateNext(Screen.GestorDashboard.route)
+                    "ROLE_OPERADOR" -> onNavigateNext(Screen.OperadorTareas.route)
+                    "ROLE_ADMIN" -> onNavigateNext(Screen.AdminPanel.route)
+                    else -> onNavigateNext(Screen.CiudadanoHome.route)
+                }
             }
         } else {
             onNavigateNext(Screen.Login.route)
@@ -46,7 +49,7 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight),
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -69,7 +72,7 @@ fun SplashScreen(
                 text = "ciudadactiva",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
-                color = BrandTealDark
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -77,7 +80,7 @@ fun SplashScreen(
             Text(
                 text = "Plataforma Comunitaria de Incidencias Urbanas",
                 fontSize = 14.sp,
-                color = Color(0xFF5A6665)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(48.dp))
@@ -87,8 +90,8 @@ fun SplashScreen(
                     .width(180.dp)
                     .height(6.dp)
                     .clip(CircleShape),
-                color = BrandTealLight,
-                trackColor = Color(0xFFDCE2E1)
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -96,7 +99,7 @@ fun SplashScreen(
             Text(
                 text = "Iniciando plataforma...",
                 fontSize = 12.sp,
-                color = Color(0xFF8B9695)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

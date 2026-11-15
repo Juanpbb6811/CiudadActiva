@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ciudadactiva.app.ui.theme.BrandCopper
+import com.ciudadactiva.app.ui.theme.BrandTealDark
 import com.ciudadactiva.app.ui.theme.BrandTealLight
 
 @Composable
@@ -31,10 +33,13 @@ fun GradientButton(
             colors = listOf(BrandTealLight, BrandCopper)
         )
     } else {
+        val disabledBg = MaterialTheme.colorScheme.surfaceVariant
         Brush.horizontalGradient(
-            colors = listOf(Color(0xFFB0BEC5), Color(0xFFCFD8DC))
+            colors = listOf(disabledBg, disabledBg)
         )
     }
+
+    val textColor = if (enabled) BrandTealDark else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
 
     Box(
         modifier = modifier
@@ -47,14 +52,14 @@ fun GradientButton(
     ) {
         if (isLoading) {
             CircularProgressIndicator(
-                color = Color.White,
+                color = textColor,
                 modifier = Modifier.size(24.dp),
                 strokeWidth = 2.5.dp
             )
         } else {
             Text(
                 text = text,
-                color = Color.White,
+                color = textColor,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )

@@ -67,7 +67,7 @@ fun CiudadanoHomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(bottom = 90.dp)
@@ -91,7 +91,7 @@ fun CiudadanoHomeScreen(
                 text = "ciudadactiva",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = BrandTealDark
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
 
@@ -99,7 +99,7 @@ fun CiudadanoHomeScreen(
             text = "Hola, ¿qué quieres\nreportar hoy?",
             fontSize = 26.sp,
             fontWeight = FontWeight.Bold,
-            color = BrandTealDark,
+            color = MaterialTheme.colorScheme.onBackground,
             lineHeight = 32.sp,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
         )
@@ -112,7 +112,7 @@ fun CiudadanoHomeScreen(
                 .shadow(4.dp, RoundedCornerShape(24.dp))
                 .clickable(onClick = onNuevoReporteClick),
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Row(
                 modifier = Modifier.padding(20.dp),
@@ -124,13 +124,13 @@ fun CiudadanoHomeScreen(
                         text = "Reportar ahora",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = BrandTealDark
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Toma una foto y geolocaliza la incidencia",
                         fontSize = 13.sp,
-                        color = Color(0xFF6C757D)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -155,13 +155,13 @@ fun CiudadanoHomeScreen(
                     modifier = Modifier
                         .size(56.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFE0F2F1)),
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.PhotoCamera,
                         contentDescription = "Cámara",
-                        tint = BrandTealDark,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(28.dp)
                     )
                 }
@@ -188,7 +188,7 @@ fun CiudadanoHomeScreen(
                         .clickable { onCategoriaClick(cat) }
                         .shadow(2.dp, RoundedCornerShape(18.dp)),
                     shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Column(
                         modifier = Modifier.padding(12.dp),
@@ -198,7 +198,7 @@ fun CiudadanoHomeScreen(
                             modifier = Modifier
                                 .size(44.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFFF1F5F4)),
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -211,7 +211,7 @@ fun CiudadanoHomeScreen(
                                     else -> Icons.Default.Traffic
                                 },
                                 contentDescription = cat.nombre,
-                                tint = BrandTealDark,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(22.dp)
                             )
                         }
@@ -222,7 +222,7 @@ fun CiudadanoHomeScreen(
                             text = cat.nombre,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = TextDark,
+                            color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 1
                         )
 
@@ -260,7 +260,7 @@ fun CiudadanoHomeScreen(
                     .shadow(3.dp, RoundedCornerShape(20.dp))
                     .clickable { onVerReporteClick(activo.id) },
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(modifier = Modifier.padding(18.dp)) {
                     Row(
@@ -272,7 +272,7 @@ fun CiudadanoHomeScreen(
                             text = activo.codigoSeguimiento ?: "RAD-2026-${String.format("%05d", activo.id)}",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
-                            color = BrandTealDark
+                            color = MaterialTheme.colorScheme.primary
                         )
                         StatusChip(status = activo.estado)
                     }
@@ -283,7 +283,7 @@ fun CiudadanoHomeScreen(
                         text = activo.titulo,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(modifier = Modifier.height(14.dp))
@@ -295,11 +295,11 @@ fun CiudadanoHomeScreen(
                         val isEnAtencion = activo.estado == "ADMITIDO" || activo.estado == "EN_PROCESO" || activo.estado == "ATENDIDO"
                         val isCerrado = activo.estado == "CERRADO"
 
-                        Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(BrandTealDark))
-                        Box(modifier = Modifier.weight(1f).height(3.dp).background(if (isEnAtencion || isCerrado) BrandTealDark else Color(0xFFDCE2E1)))
-                        Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(if (isEnAtencion || isCerrado) BrandCopper else Color(0xFFB0BEC5)))
-                        Box(modifier = Modifier.weight(1f).height(3.dp).background(if (isCerrado) BrandTealDark else Color(0xFFDCE2E1)))
-                        Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(if (isCerrado) BrandTealDark else Color(0xFFCFD8DC)))
+                        Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary))
+                        Box(modifier = Modifier.weight(1f).height(3.dp).background(if (isEnAtencion || isCerrado) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant))
+                        Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(if (isEnAtencion || isCerrado) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant))
+                        Box(modifier = Modifier.weight(1f).height(3.dp).background(if (isCerrado) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant))
+                        Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(if (isCerrado) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant))
                     }
 
                     Spacer(modifier = Modifier.height(6.dp))
@@ -438,7 +438,7 @@ fun CiudadanoHomeScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp),
                 shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(
                     modifier = Modifier.padding(24.dp),
@@ -447,7 +447,7 @@ fun CiudadanoHomeScreen(
                     Icon(
                         imageVector = Icons.Default.ChatBubbleOutline,
                         contentDescription = null,
-                        tint = Color(0xFFB0BEC5),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                         modifier = Modifier.size(36.dp)
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -455,12 +455,12 @@ fun CiudadanoHomeScreen(
                         text = "Aún no hay reportes publicados",
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
-                        color = TextDark
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = "¡Sé el primero en reportar una incidencia en tu barrio!",
                         fontSize = 12.sp,
-                        color = Color(0xFF7A8B88)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -491,7 +491,7 @@ fun ReporteComunitarioCard(
             .shadow(2.dp, RoundedCornerShape(18.dp))
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             // Header: Categoría + Estado
@@ -538,14 +538,14 @@ fun ReporteComunitarioCard(
             val radicado = reporte.codigoSeguimiento ?: "RAD-2026-${String.format("%05d", reporte.id)}"
             Surface(
                 shape = RoundedCornerShape(6.dp),
-                color = Color(0xFFF1F5F4),
-                border = BorderStroke(1.dp, Color(0xFFDCE2E1))
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             ) {
                 Text(
                     text = radicado,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF00695C),
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                 )
             }
@@ -557,7 +557,7 @@ fun ReporteComunitarioCard(
                 text = reporte.titulo,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = TextDark,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -567,7 +567,7 @@ fun ReporteComunitarioCard(
                 Text(
                     text = reporte.descripcion,
                     fontSize = 12.sp,
-                    color = Color(0xFF555555),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -583,28 +583,28 @@ fun ReporteComunitarioCard(
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = null,
-                    tint = Color(0xFF8B9695),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(14.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = reporte.ciudadanoNombre ?: "Vecino Ciudadano",
                     fontSize = 11.sp,
-                    color = Color(0xFF7A8B88),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Icon(
                     imageVector = Icons.Default.LocationOn,
                     contentDescription = null,
-                    tint = Color(0xFF8B9695),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(14.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = reporte.ubicacionLegible,
                     fontSize = 11.sp,
-                    color = Color(0xFF7A8B88),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
@@ -612,7 +612,7 @@ fun ReporteComunitarioCard(
             }
 
             Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(color = Color(0xFFF0F4F3))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
             Spacer(modifier = Modifier.height(10.dp))
 
             // Footer con botón de Comentar
@@ -627,13 +627,13 @@ fun ReporteComunitarioCard(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFFE0F2F1))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
                         .padding(horizontal = 10.dp, vertical = 6.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Comment,
                         contentDescription = "Comentarios",
-                        tint = BrandTealDark,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(14.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
@@ -641,7 +641,7 @@ fun ReporteComunitarioCard(
                         text = "Ver y Comentar",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = BrandTealDark
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }

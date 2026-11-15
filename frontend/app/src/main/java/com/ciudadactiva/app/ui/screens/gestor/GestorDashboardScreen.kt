@@ -49,7 +49,7 @@ fun GestorDashboardScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(bottom = 80.dp)
@@ -69,7 +69,7 @@ fun GestorDashboardScreen(
                 Card(
                     modifier = Modifier.weight(1f).shadow(2.dp, RoundedCornerShape(18.dp)),
                     shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Column(modifier = Modifier.padding(14.dp)) {
                         Text("PENDIENTES", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF90A4AE))
@@ -83,7 +83,7 @@ fun GestorDashboardScreen(
                 Card(
                     modifier = Modifier.weight(1f).shadow(2.dp, RoundedCornerShape(18.dp)),
                     shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Column(modifier = Modifier.padding(14.dp)) {
                         Text("POR ASIGNAR", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF90A4AE))
@@ -98,7 +98,7 @@ fun GestorDashboardScreen(
                 Card(
                     modifier = Modifier.weight(1f).shadow(2.dp, RoundedCornerShape(18.dp)),
                     shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Column(modifier = Modifier.padding(14.dp)) {
                         Text("EN CAMPO", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF90A4AE))
@@ -128,7 +128,7 @@ fun GestorDashboardScreen(
                         .border(1.5.dp, Color(0xFFEF9A9A), RoundedCornerShape(20.dp))
                         .shadow(3.dp, RoundedCornerShape(20.dp)),
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Column(modifier = Modifier.padding(18.dp)) {
                         Text(
@@ -164,7 +164,7 @@ fun GestorDashboardScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Text(
                         text = "✓ No hay incidencias urgentes pendientes de validación.",
@@ -201,7 +201,7 @@ fun GestorDashboardScreen(
                         .shadow(2.dp, RoundedCornerShape(16.dp))
                         .clickable(onClick = accion),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Row(
                         modifier = Modifier.padding(18.dp),

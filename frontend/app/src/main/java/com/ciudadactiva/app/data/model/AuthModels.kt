@@ -44,6 +44,7 @@ data class AuthResponse(
     val nombre: String? = null,
     val rol: String? = null,
     val requiereVerificacion: Boolean? = false,
+    val requiereCompletarDatosLegales: Boolean? = false,
     val codigoGeneradoDemo: String? = null
 ) {
     val userId: Long
@@ -66,6 +67,21 @@ data class AuthResponse(
 
     val userFotoUrl: String?
         get() = usuario?.fotoUrl
+
+    val userTipoDocumento: String?
+        get() = usuario?.tipoDocumento
+
+    val userNumeroDocumento: String?
+        get() = usuario?.numeroDocumento
+
+    val userPrimerNombre: String?
+        get() = usuario?.primerNombre
+
+    val userPrimerApellido: String?
+        get() = usuario?.primerApellido
+
+    val userGoogleId: String?
+        get() = usuario?.googleId
 }
 
 data class UsuarioModel(
@@ -81,6 +97,7 @@ data class UsuarioModel(
     val telefono: String?,
     val direccion: String?,
     val fotoUrl: String? = null,
+    val googleId: String? = null,
     val activo: Boolean,
     val verificado: Boolean? = true,
     val rol: String,
@@ -90,10 +107,17 @@ data class UsuarioModel(
 
 data class UsuarioUpdateRequest(
     val nombre: String?,
+    val primerNombre: String? = null,
+    val segundoNombre: String? = null,
+    val primerApellido: String? = null,
+    val segundoApellido: String? = null,
+    val tipoDocumento: String? = null,
+    val numeroDocumento: String? = null,
     val email: String? = null,
     val telefono: String?,
     val direccion: String?,
     val fotoUrl: String? = null,
+    val googleId: String? = null,
     val activo: Boolean? = null
 )
 
@@ -129,4 +153,15 @@ data class ReenviarCodigoRequest(
 data class CambiarPasswordRequest(
     val passwordActual: String,
     val passwordNueva: String
+)
+
+data class CompletarDatosLegalesRequest(
+    val primerNombre: String,
+    val segundoNombre: String? = null,
+    val primerApellido: String,
+    val segundoApellido: String? = null,
+    val tipoDocumento: String,
+    val numeroDocumento: String,
+    val telefono: String,
+    val direccion: String
 )

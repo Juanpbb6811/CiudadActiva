@@ -2,28 +2,39 @@ package com.ciudadactiva.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Paleta Oficial CiudadActiva (según Mockups RUP)
+// Paleta Oficial CiudadActiva
 val BrandTealDark = Color(0xFF113233)
 val BrandTealMedium = Color(0xFF1E4C4E)
 val BrandTealLight = Color(0xFF74A596)
 val BrandCopper = Color(0xFFD4A373)
 val BrandCopperLight = Color(0xFFE9C496)
 
+// Paleta Modo Claro (Light Theme)
 val BackgroundLight = Color(0xFFF8F9FA)
-val SurfaceCard = Color(0xFFFFFFFF)
-val SurfaceBorder = Color(0xFFE8ECEB)
-val TextDark = Color(0xFF113233)
-val TextMuted = Color(0xFF6C757D)
-val TextLight = Color(0xFFFFFFFF)
+val SurfaceCardLight = Color(0xFFFFFFFF)
+val SurfaceVariantLight = Color(0xFFEDF2F1)
+val SurfaceBorderLight = Color(0xFFD5E0DD)
+val TextPrimaryLight = Color(0xFF113233)
+val TextMutedLight = Color(0xFF6C757D)
+val OnPrimaryLight = Color(0xFFFFFFFF)
 
-// Paleta Modo Oscuro (Dark Theme)
-val DarkBackground = Color(0xFF0F1E1F)
-val DarkSurfaceCard = Color(0xFF182E30)
-val DarkSurfaceBorder = Color(0xFF264447)
-val DarkTextPrimary = Color(0xFFF1F5F4)
+// Paleta Modo Oscuro (Dark Theme) - Alto Contraste WCAG AAA
+val DarkBackground = Color(0xFF0C1819)
+val DarkSurfaceCard = Color(0xFF142728)
+val DarkSurfaceVariant = Color(0xFF1D3739)
+val DarkSurfaceBorder = Color(0xFF2E5154)
+val DarkTextPrimary = Color(0xFFE6F0EE)
 val DarkTextMuted = Color(0xFF9EBCB7)
 val DarkBrandTeal = Color(0xFF74A596)
 val DarkBrandCopper = Color(0xFFE5B88F)
+val DarkOnPrimary = Color(0xFF0C1819)
+
+// Compatibilidad con referencias previas
+val SurfaceCard = SurfaceCardLight
+val SurfaceBorder = SurfaceBorderLight
+val TextDark = TextPrimaryLight
+val TextMuted = TextMutedLight
+val TextLight = OnPrimaryLight
 
 // Estados de Reporte Semánticos RUP
 val StatusPendienteBg = Color(0xFFFFF3E0)

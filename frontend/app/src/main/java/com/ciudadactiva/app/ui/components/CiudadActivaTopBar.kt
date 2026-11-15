@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,8 +19,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ciudadactiva.app.ui.theme.BrandTealDark
-import com.ciudadactiva.app.ui.theme.TextDark
 
 @Composable
 fun CiudadActivaTopBar(
@@ -42,13 +41,13 @@ fun CiudadActivaTopBar(
                 modifier = Modifier
                     .size(42.dp)
                     .clip(CircleShape)
-                    .background(Color.White)
-                    .border(1.dp, Color(0xFFDDE3E2), CircleShape)
+                    .background(MaterialTheme.colorScheme.surface)
+                    .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Atrás",
-                    tint = TextDark
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
             Spacer(modifier = Modifier.width(12.dp))
@@ -58,12 +57,12 @@ fun CiudadActivaTopBar(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
-                    .background(BrandTealDark)
+                    .background(MaterialTheme.colorScheme.primary)
                     .padding(horizontal = 10.dp, vertical = 4.dp)
             ) {
                 Text(
                     text = roleTag.uppercase(),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 11.sp
                 )
@@ -75,7 +74,7 @@ fun CiudadActivaTopBar(
             text = title,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            color = BrandTealDark,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.weight(1f)
         )
 
@@ -85,13 +84,14 @@ fun CiudadActivaTopBar(
                 modifier = Modifier
                     .size(38.dp)
                     .clip(CircleShape)
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
+                    .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
             ) {
                 Box(
                     modifier = Modifier
                         .size(16.dp)
                         .clip(CircleShape)
-                        .background(BrandTealDark)
+                        .background(MaterialTheme.colorScheme.primary)
                 )
             }
         }

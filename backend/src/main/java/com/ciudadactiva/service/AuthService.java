@@ -113,7 +113,28 @@ public class AuthService {
         AuthResponse response = new AuthResponse(token, new UsuarioResponse(usuario));
         response.setRequiereVerificacion(false);
         response.setCodigoGeneradoDemo(null);
+
+        boolean esDemoAna = "ciudadano@ciudadactiva.gov.co".equalsIgnoreCase(usuario.getEmail());
+        boolean esStaff = usuario.getRol() != null && usuario.getRol().getNombre() != RolNombre.ROLE_CIUDADANO;
+        boolean legalCompleto = esDemoAna || esStaff || esCiudadanoLegalCompleto(usuario);
+        response.setRequiereCompletarDatosLegales(!legalCompleto);
+
         return response;
+    }
+
+    private boolean esCiudadanoLegalCompleto(Usuario u) {
+        if (u == null) return false;
+        String pNom = u.getPrimerNombre();
+        String pApe = u.getPrimerApellido();
+        String nom = u.getNombre();
+        boolean tieneIdentidad = (pNom != null && !pNom.isBlank() && pApe != null && !pApe.isBlank()) || (nom != null && !nom.isBlank());
+        String doc = u.getNumeroDocumento();
+        String tel = u.getTelefono();
+        String dir = u.getDireccion();
+        return tieneIdentidad &&
+               doc != null && !doc.isBlank() && !doc.contains("PENDIENTE") &&
+               tel != null && !tel.isBlank() &&
+               dir != null && !dir.isBlank();
     }
 
     @Transactional
@@ -121,41 +142,14 @@ public class AuthService {
         String email = request.getEmail().trim().toLowerCase();
         Optional<Usuario> existenteOpt = usuarioRepository.findByEmail(email);
 
-        Usuario usuario;
-        if (existenteOpt.isPresent()) {
-            usuario = existenteOpt.get();
-            if (request.getGoogleId() != null && (usuario.getGoogleId() == null || usuario.getGoogleId().isBlank())) {
-                usuario.setGoogleId(request.getGoogleId());
-                usuarioRepository.save(usuario);
-            }
-        } else {
-            // Usuario nuevo proveniente de Google
-            Rol rolCiudadano = rolRepository.findByNombre(RolNombre.ROLE_CIUDADANO)
-                    .orElseGet(() -> rolRepository.save(new Rol(RolNombre.ROLE_CIUDADANO, "Rol Ciudadano")));
+        if (existenteOpt.isEmpty()) {
+            throw new UnauthorizedException("La cuenta de Google (" + email + ") no se encuentra vinculada a ningún ciudadano registrado. Por favor regístrese formalmente con sus documentos oficiales de Colombia.");
+        }
 
-            TipoDocumento tipoDoc = request.getTipoDocumento() != null ? request.getTipoDocumento() : TipoDocumento.CC;
-
-            usuario = new Usuario(
-                    request.getPrimerNombre(),
-                    request.getSegundoNombre(),
-                    request.getPrimerApellido(),
-                    request.getSegundoApellido(),
-                    tipoDoc,
-                    request.getNumeroDocumento() != null ? request.getNumeroDocumento() : "GOOGLE-PENDIENTE",
-                    email,
-                    passwordEncoder.encode("GoogleOAuth2SecurePass_" + secureRandom.nextInt(1_000_000)),
-                    request.getTelefono() != null ? request.getTelefono() : "3000000000",
-                    request.getDireccion() != null ? request.getDireccion() : "Dirección Pendiente",
-                    rolCiudadano
-            );
-
-            if (request.getDisplayName() != null && !request.getDisplayName().isBlank()) {
-                usuario.setNombre(request.getDisplayName());
-            }
+        Usuario usuario = existenteOpt.get();
+        if (request.getGoogleId() != null && (usuario.getGoogleId() == null || usuario.getGoogleId().isBlank())) {
             usuario.setGoogleId(request.getGoogleId());
-            usuario.setActivo(true);
-            usuario.setVerificado(true);
-            usuario = usuarioRepository.save(usuario);
+            usuarioRepository.save(usuario);
         }
 
         if (!Boolean.TRUE.equals(usuario.getActivo())) {
@@ -165,7 +159,50 @@ public class AuthService {
         String token = jwtTokenProvider.generarToken(usuario);
         AuthResponse response = new AuthResponse(token, new UsuarioResponse(usuario));
         response.setRequiereVerificacion(false);
+
+        boolean esDemoAna = "ciudadano@ciudadactiva.gov.co".equalsIgnoreCase(usuario.getEmail());
+        boolean esStaff = usuario.getRol() != null && usuario.getRol().getNombre() != RolNombre.ROLE_CIUDADANO;
+        boolean legalCompleto = esDemoAna || esStaff || esCiudadanoLegalCompleto(usuario);
+        response.setRequiereCompletarDatosLegales(!legalCompleto);
+
         return response;
+    }
+
+    @Transactional
+    public AuthResponse completarDatosLegales(String email, com.ciudadactiva.dto.auth.CompletarDatosLegalesRequest req) {
+        Usuario usuario = usuarioRepository.findByEmail(email.trim().toLowerCase())
+                .orElseThrow(() -> new UnauthorizedException("Usuario no encontrado"));
+
+        usuario.setPrimerNombre(req.getPrimerNombre().trim());
+        usuario.setSegundoNombre(req.getSegundoNombre() != null && !req.getSegundoNombre().isBlank() ? req.getSegundoNombre().trim() : null);
+        usuario.setPrimerApellido(req.getPrimerApellido().trim());
+        usuario.setSegundoApellido(req.getSegundoApellido() != null && !req.getSegundoApellido().isBlank() ? req.getSegundoApellido().trim() : null);
+        usuario.setTipoDocumento(req.getTipoDocumento());
+        usuario.setNumeroDocumento(req.getNumeroDocumento().trim());
+        usuario.setTelefono(req.getTelefono().trim());
+        usuario.setDireccion(req.getDireccion().trim());
+        
+        StringBuilder sb = new StringBuilder(req.getPrimerNombre().trim());
+        if (req.getSegundoNombre() != null && !req.getSegundoNombre().isBlank()) sb.append(" ").append(req.getSegundoNombre().trim());
+        sb.append(" ").append(req.getPrimerApellido().trim());
+        if (req.getSegundoApellido() != null && !req.getSegundoApellido().isBlank()) sb.append(" ").append(req.getSegundoApellido().trim());
+        usuario.setNombre(sb.toString());
+
+        Usuario guardado = usuarioRepository.save(usuario);
+        String token = jwtTokenProvider.generarToken(guardado);
+        AuthResponse response = new AuthResponse(token, new UsuarioResponse(guardado));
+        response.setRequiereVerificacion(false);
+        response.setRequiereCompletarDatosLegales(false);
+        return response;
+    }
+
+    @Transactional
+    public String vincularCuentaGoogle(String email, String googleId) {
+        Usuario usuario = usuarioRepository.findByEmail(email.trim().toLowerCase())
+                .orElseThrow(() -> new UnauthorizedException("Usuario no encontrado"));
+        usuario.setGoogleId(googleId.trim());
+        usuarioRepository.save(usuario);
+        return "Cuenta de Google vinculada y sincronizada exitosamente";
     }
 
     /**

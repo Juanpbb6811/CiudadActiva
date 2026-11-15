@@ -152,7 +152,7 @@ fun MapaExploradorScreen(
                     .fillMaxWidth()
                     .shadow(6.dp, RoundedCornerShape(26.dp)),
                 shape = RoundedCornerShape(26.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
@@ -275,8 +275,8 @@ fun MapaExploradorScreen(
                 .align(Alignment.BottomEnd)
                 .padding(bottom = if (selectedReporte != null) 280.dp else 90.dp, end = 16.dp)
                 .size(48.dp),
-            containerColor = Color.White,
-            contentColor = BrandTealDark,
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.primary,
             shape = CircleShape
         ) {
             Icon(Icons.Default.MyLocation, contentDescription = "Mi Ubicación", modifier = Modifier.size(24.dp))
@@ -292,7 +292,7 @@ fun MapaExploradorScreen(
                     .padding(bottom = 60.dp)
                     .shadow(16.dp, RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)),
                 shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),

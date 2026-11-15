@@ -22,6 +22,7 @@ public class UsuarioResponse {
     private String rol;
     private Long laboresActivas;
     private Boolean verificado;
+    private Boolean datosLegalesCompletos;
     private LocalDateTime creadoEn;
 
     public UsuarioResponse() {
@@ -47,6 +48,18 @@ public class UsuarioResponse {
             if (usuario.getRol() != null) {
                 this.rol = usuario.getRol().getNombre().name();
             }
+            boolean esDemoAna = "ciudadano@ciudadactiva.gov.co".equalsIgnoreCase(usuario.getEmail());
+            boolean esStaff = usuario.getRol() != null && usuario.getRol().getNombre() != com.ciudadactiva.entity.RolNombre.ROLE_CIUDADANO;
+            boolean tieneIdentidad = (usuario.getPrimerNombre() != null && !usuario.getPrimerNombre().isBlank() &&
+                                     usuario.getPrimerApellido() != null && !usuario.getPrimerApellido().isBlank()) ||
+                                     (usuario.getNombre() != null && !usuario.getNombre().isBlank());
+            this.datosLegalesCompletos = esDemoAna || esStaff || (
+                tieneIdentidad &&
+                usuario.getNumeroDocumento() != null && !usuario.getNumeroDocumento().isBlank() &&
+                !usuario.getNumeroDocumento().contains("PENDIENTE") &&
+                usuario.getTelefono() != null && !usuario.getTelefono().isBlank() &&
+                usuario.getDireccion() != null && !usuario.getDireccion().isBlank()
+            );
             this.creadoEn = usuario.getCreadoEn();
         }
     }
@@ -185,6 +198,14 @@ public class UsuarioResponse {
 
     public void setVerificado(Boolean verificado) {
         this.verificado = verificado;
+    }
+
+    public Boolean getDatosLegalesCompletos() {
+        return datosLegalesCompletos;
+    }
+
+    public void setDatosLegalesCompletos(Boolean datosLegalesCompletos) {
+        this.datosLegalesCompletos = datosLegalesCompletos;
     }
 
     public LocalDateTime getCreadoEn() {

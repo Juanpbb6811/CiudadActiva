@@ -73,6 +73,21 @@ public class Reporte {
     @JoinColumn(name = "ciudadano_id", nullable = false)
     private Usuario ciudadano;
 
+    @Column(name = "analisis_ia_descripcion", columnDefinition = "TEXT")
+    private String analisisIaDescripcion;
+
+    @Column(name = "analisis_ia_categoria_sugerida", length = 100)
+    private String analisisIaCategoriaSugerida;
+
+    @Column(name = "analisis_ia_prioridad_sugerida", length = 20)
+    private String analisisIaPrioridadSugerida;
+
+    @Column(name = "analisis_ia_nivel_urgencia")
+    private Integer analisisIaNivelUrgencia;
+
+    @Column(name = "analisis_ia_fecha")
+    private LocalDateTime analisisIaFecha;
+
     @Column(name = "creado_en", nullable = false, updatable = false)
     private LocalDateTime creadoEn;
 
@@ -319,5 +334,45 @@ public class Reporte {
 
     public void setBarrio(String barrio) {
         this.barrio = barrio;
+    }
+
+    public String getAnalisisIaDescripcion() {
+        return analisisIaDescripcion;
+    }
+
+    public void setAnalisisIaDescripcion(String analisisIaDescripcion) {
+        this.analisisIaDescripcion = analisisIaDescripcion;
+    }
+
+    public String getAnalisisIaCategoriaSugerida() {
+        return analisisIaCategoriaSugerida;
+    }
+
+    public void setAnalisisIaCategoriaSugerida(String analisisIaCategoriaSugerida) {
+        this.analisisIaCategoriaSugerida = analisisIaCategoriaSugerida;
+    }
+
+    public String getAnalisisIaPrioridadSugerida() {
+        return analisisIaPrioridadSugerida;
+    }
+
+    public void setAnalisisIaPrioridadSugerida(String analisisIaPrioridadSugerida) {
+        this.analisisIaPrioridadSugerida = analisisIaPrioridadSugerida;
+    }
+
+    public Integer getAnalisisIaNivelUrgencia() {
+        return analisisIaNivelUrgencia;
+    }
+
+    public void setAnalisisIaNivelUrgencia(Integer analisisIaNivelUrgencia) {
+        this.analisisIaNivelUrgencia = analisisIaNivelUrgencia;
+    }
+
+    public LocalDateTime getAnalisisIaFecha() {
+        return analisisIaFecha;
+    }
+
+    public void setAnalisisIaFecha(LocalDateTime analisisIaFecha) {
+        this.analisisIaFecha = analisisIaFecha;
     }
 }

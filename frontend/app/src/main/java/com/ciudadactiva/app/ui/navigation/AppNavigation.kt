@@ -130,6 +130,22 @@ fun AppNavigation() {
                 )
             }
 
+            composable(Screen.CompletarDatosCiudadano.route) {
+                CompletarDatosCiudadanoScreen(
+                    onCompletadoExitoso = {
+                        navController.navigate(Screen.CiudadanoHome.route) {
+                            popUpTo(Screen.CompletarDatosCiudadano.route) { inclusive = true }
+                        }
+                    },
+                    onCerrarSesion = {
+                        authViewModel.cerrarSesion()
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
             // ================== RUTAS CIUDADANO ==================
             composable(Screen.CiudadanoHome.route) {
                 CiudadanoHomeScreen(
@@ -250,6 +266,9 @@ fun AppNavigation() {
                         navController.navigate(destino) {
                             popUpTo(0) { inclusive = true }
                         }
+                    },
+                    onCompletarDatosLegales = {
+                        navController.navigate(Screen.CompletarDatosCiudadano.route)
                     },
                     onBackClick = { retrocederSeguro(homeDestino) }
                 )

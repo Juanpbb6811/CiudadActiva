@@ -16,6 +16,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BrightnessAuto
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -43,10 +46,8 @@ import androidx.compose.ui.platform.LocalContext
 import com.ciudadactiva.app.ui.components.GoogleAuthHelper
 import com.ciudadactiva.app.ui.components.GradientButton
 import com.ciudadactiva.app.ui.navigation.Screen
-import com.ciudadactiva.app.ui.theme.BackgroundLight
-import com.ciudadactiva.app.ui.theme.BrandTealDark
-import com.ciudadactiva.app.ui.theme.TextDark
-import com.ciudadactiva.app.ui.theme.TextMuted
+import com.ciudadactiva.app.util.AppThemeMode
+import com.ciudadactiva.app.util.ThemeManager
 import com.ciudadactiva.app.ui.viewmodel.AuthUiState
 import com.ciudadactiva.app.ui.viewmodel.AuthViewModel
 
@@ -89,12 +90,19 @@ fun LoginScreen(
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Success) {
             val rol = (uiState as AuthUiState.Success).rol
-            when (rol) {
-                "ROLE_GESTOR" -> onLoginSuccess(Screen.GestorDashboard.route)
-                "ROLE_OPERADOR" -> onLoginSuccess(Screen.OperadorTareas.route)
-                "ROLE_ADMIN" -> onLoginSuccess(Screen.AdminPanel.route)
-                else -> onLoginSuccess(Screen.CiudadanoHome.route)
+            val sessionManager = CiudadActivaApplication.sessionManager
+            if (rol == "ROLE_CIUDADANO" && !sessionManager.areDatosLegalesCompletos()) {
+                onLoginSuccess(Screen.CompletarDatosCiudadano.route)
+            } else {
+                when (rol) {
+                    "ROLE_GESTOR" -> onLoginSuccess(Screen.GestorDashboard.route)
+                    "ROLE_OPERADOR" -> onLoginSuccess(Screen.OperadorTareas.route)
+                    "ROLE_ADMIN" -> onLoginSuccess(Screen.AdminPanel.route)
+                    else -> onLoginSuccess(Screen.CiudadanoHome.route)
+                }
             }
+        } else if (uiState is AuthUiState.RequiereDatosLegales) {
+            onLoginSuccess(Screen.CompletarDatosCiudadano.route)
         } else if (uiState is AuthUiState.RequiereVerificacion) {
             val req = uiState as AuthUiState.RequiereVerificacion
             showVerificarDialog = req.email to req.demoCode
@@ -181,7 +189,7 @@ fun LoginScreen(
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = "Continuar con Google / Gmail",
+                        text = "Acceder con cuenta de Google vinculada",
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 13.sp
@@ -225,7 +233,7 @@ fun LoginScreen(
                             text = "Correo Electrónico",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = TextDark
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         OutlinedTextField(
@@ -234,7 +242,7 @@ fun LoginScreen(
                             modifier = Modifier.fillMaxWidth(),
                             placeholder = { Text("tu_correo@ejemplo.com", fontSize = 13.sp) },
                             leadingIcon = {
-                                Icon(Icons.Default.Email, contentDescription = null, tint = Color(0xFF7A8B88))
+                                Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             },
                             singleLine = true,
                             isError = !isEmailValid,
@@ -258,7 +266,7 @@ fun LoginScreen(
                             text = "Contraseña",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = TextDark
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         OutlinedTextField(
@@ -267,14 +275,14 @@ fun LoginScreen(
                             modifier = Modifier.fillMaxWidth(),
                             placeholder = { Text("••••••••", fontSize = 14.sp) },
                             leadingIcon = {
-                                Icon(Icons.Default.Lock, contentDescription = null, tint = Color(0xFF7A8B88))
+                                Icon(Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             },
                             trailingIcon = {
                                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                     Icon(
                                         imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                         contentDescription = if (passwordVisible) "Ocultar" else "Ver contraseña",
-                                        tint = Color(0xFF7A8B88)
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             },
@@ -295,15 +303,15 @@ fun LoginScreen(
                             Checkbox(
                                 checked = rememberSession,
                                 onCheckedChange = { viewModel.rememberSession.value = it },
-                                colors = CheckboxDefaults.colors(checkedColor = BrandTealDark)
+                                colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
                             )
-                            Text(text = "Recordar sesión", fontSize = 12.sp, color = TextDark)
+                            Text(text = "Recordar sesión", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
                         }
 
                         Text(
                             text = "¿Olvidaste tu contraseña?",
                             fontSize = 12.sp,
-                            color = Color(0xFF4C877D),
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.clickable { showRecuperarDialog = true }
                         )
@@ -315,13 +323,13 @@ fun LoginScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0xFFFFEBEE))
-                                .border(1.dp, Color(0xFFEF9A9A), RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.errorContainer)
+                                .border(1.dp, MaterialTheme.colorScheme.error, RoundedCornerShape(12.dp))
                                 .padding(12.dp)
                         ) {
                             Text(
                                 text = (uiState as AuthUiState.Error).message,
-                                color = Color(0xFFC62828),
+                                color = MaterialTheme.colorScheme.onErrorContainer,
                                 fontSize = 12.sp,
                                 lineHeight = 16.sp
                             )
@@ -344,35 +352,61 @@ fun LoginScreen(
             Text(
                 text = "¿No tienes una cuenta aún?",
                 fontSize = 13.sp,
-                color = TextMuted
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "Crear cuenta de Ciudadano",
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
-                color = BrandTealDark,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable(onClick = onRegisterClick)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
         }
 
-        // Botón superior de configuración de servidor / URL
-        IconButton(
-            onClick = {
-                currentServerUrl = CiudadActivaApplication.sessionManager.getBaseUrl()
-                showServerDialog = true
-            },
+        // Botones superiores: Selector de Modo Visual y Configuración de servidor
+        val currentThemeMode by ThemeManager.themeMode.collectAsState()
+        Row(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(12.dp)
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Default.Settings,
-                contentDescription = "Configurar Servidor",
-                tint = BrandTealDark
-            )
+            IconButton(
+                onClick = {
+                    val nextMode = when (currentThemeMode) {
+                        AppThemeMode.SYSTEM -> AppThemeMode.LIGHT
+                        AppThemeMode.LIGHT -> AppThemeMode.DARK
+                        AppThemeMode.DARK -> AppThemeMode.SYSTEM
+                    }
+                    ThemeManager.setTheme(context, nextMode)
+                }
+            ) {
+                Icon(
+                    imageVector = when (currentThemeMode) {
+                        AppThemeMode.SYSTEM -> Icons.Default.BrightnessAuto
+                        AppThemeMode.LIGHT -> Icons.Default.LightMode
+                        AppThemeMode.DARK -> Icons.Default.DarkMode
+                    },
+                    contentDescription = "Modo visual: ${currentThemeMode.titulo}",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            IconButton(
+                onClick = {
+                    currentServerUrl = CiudadActivaApplication.sessionManager.getBaseUrl()
+                    showServerDialog = true
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Configurar Servidor",
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+            }
         }
 
         // Diálogo para acceder con Google
@@ -393,9 +427,9 @@ fun LoginScreen(
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(
-                            text = "Ingresa tu cuenta de Google (Gmail o institucional) para iniciar sesión o registrarte automáticamente:",
+                            text = "Ingresa tu cuenta de Google (Gmail) para acceder con tu cuenta de ciudadano vinculada:",
                             fontSize = 13.sp,
-                            color = Color(0xFF555555)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         OutlinedTextField(
                             value = googleEmailInput,
@@ -440,7 +474,7 @@ fun LoginScreen(
                         Text(
                             text = "Selecciona o escribe la URL del servidor:",
                             fontSize = 12.sp,
-                            color = TextMuted
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         OutlinedTextField(
                             value = currentServerUrl,

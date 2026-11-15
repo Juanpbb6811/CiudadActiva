@@ -15,6 +15,7 @@ sealed class AuthUiState {
     data object Idle : AuthUiState()
     data object Loading : AuthUiState()
     data class Success(val rol: String) : AuthUiState()
+    data object RequiereDatosLegales : AuthUiState()
     data class RequiereVerificacion(val email: String, val demoCode: String?) : AuthUiState()
     data class Error(val message: String) : AuthUiState()
 }
@@ -46,6 +47,7 @@ class AuthViewModel : ViewModel() {
                 if (response.isSuccessful && response.body()?.data != null) {
                     val auth = response.body()!!.data!!
                     val userRol = auth.userRol
+                    val u = auth.usuario
                     session.saveAuth(
                         token = auth.token,
                         id = auth.userId,
@@ -54,7 +56,13 @@ class AuthViewModel : ViewModel() {
                         rol = userRol,
                         fotoUrl = auth.userFotoUrl,
                         telefono = auth.userTelefono,
-                        direccion = auth.userDireccion
+                        direccion = auth.userDireccion,
+                        tipoDocumento = u?.tipoDocumento,
+                        numeroDocumento = u?.numeroDocumento,
+                        primerNombre = u?.primerNombre,
+                        primerApellido = u?.primerApellido,
+                        googleId = u?.googleId,
+                        datosLegalesCompletos = auth.requiereCompletarDatosLegales != true
                     )
 
                     if (auth.requiereVerificacion == true) {
@@ -62,6 +70,8 @@ class AuthViewModel : ViewModel() {
                             email = email.trim().lowercase(),
                             demoCode = auth.codigoGeneradoDemo
                         )
+                    } else if (auth.requiereCompletarDatosLegales == true && userRol == "ROLE_CIUDADANO") {
+                        _uiState.value = AuthUiState.RequiereDatosLegales
                     } else {
                         _uiState.value = AuthUiState.Success(userRol)
                     }
@@ -182,6 +192,7 @@ class AuthViewModel : ViewModel() {
                 if (response.isSuccessful && response.body()?.data != null) {
                     val auth = response.body()!!.data!!
                     val userRol = auth.userRol
+                    val u = auth.usuario
                     session.saveAuth(
                         token = auth.token,
                         id = auth.userId,
@@ -190,11 +201,27 @@ class AuthViewModel : ViewModel() {
                         rol = userRol,
                         fotoUrl = auth.userFotoUrl,
                         telefono = auth.userTelefono,
-                        direccion = auth.userDireccion
+                        direccion = auth.userDireccion,
+                        tipoDocumento = u?.tipoDocumento,
+                        numeroDocumento = u?.numeroDocumento,
+                        primerNombre = u?.primerNombre,
+                        primerApellido = u?.primerApellido,
+                        googleId = u?.googleId,
+                        datosLegalesCompletos = auth.requiereCompletarDatosLegales != true
                     )
-                    _uiState.value = AuthUiState.Success(userRol)
+                    if (auth.requiereCompletarDatosLegales == true && userRol == "ROLE_CIUDADANO") {
+                        _uiState.value = AuthUiState.RequiereDatosLegales
+                    } else {
+                        _uiState.value = AuthUiState.Success(userRol)
+                    }
                 } else {
-                    _uiState.value = AuthUiState.Error("No se pudo iniciar sesión con Google. Intente nuevamente.")
+                    val err = response.errorBody()?.string() ?: ""
+                    val errorMsg = if (err.contains("legal", ignoreCase = true) || err.contains("registrado", ignoreCase = true)) {
+                        "Google está habilitado para sincronizar tu cuenta una vez seas un ciudadano con registro legal completo. Primero ingresa con tus credenciales y completa tus datos legales."
+                    } else {
+                        "No se pudo iniciar sesión con Google. Intente nuevamente."
+                    }
+                    _uiState.value = AuthUiState.Error(errorMsg)
                 }
             } catch (e: Exception) {
                 _uiState.value = AuthUiState.Error("Error al conectar con Google: ${e.localizedMessage}")

@@ -38,10 +38,40 @@ public class AuthController {
     }
 
     @PostMapping("/google")
-    @Operation(summary = "Inicio de Sesión y Registro con Google", description = "Autentica o registra un ciudadano mediante Google Sign-In y emite token JWT oficial.")
+    @Operation(summary = "Acceso con Google Vinculado", description = "Autentica un ciudadano que ya tenga vinculada su cuenta de Google y emite token JWT.")
     public ResponseEntity<ApiResponse<AuthResponse>> loginConGoogle(@RequestBody GoogleAuthRequest request) {
         AuthResponse response = authService.loginConGoogle(request);
         return ResponseEntity.ok(ApiResponse.ok("Autenticación con Google exitosa", response));
+    }
+
+    @PostMapping("/completar-datos-legales")
+    @Operation(summary = "Completar Registro Legal de Ciudadano", description = "Permite a un usuario existente completar sus datos oficiales de ciudadanía colombiana.")
+    public ResponseEntity<ApiResponse<AuthResponse>> completarDatosLegales(
+            Principal principal,
+            @Valid @RequestBody com.ciudadactiva.dto.auth.CompletarDatosLegalesRequest request
+    ) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("Debe autenticarse para completar sus datos legales"));
+        }
+        AuthResponse response = authService.completarDatosLegales(principal.getName(), request);
+        return ResponseEntity.ok(ApiResponse.ok("Datos legales registrados con éxito. Ahora es Ciudadano formal.", response));
+    }
+
+    @PostMapping("/vincular-google")
+    @Operation(summary = "Vincular Cuenta de Google", description = "Asocia el correo/id de Google a un ciudadano autenticado.")
+    public ResponseEntity<ApiResponse<String>> vincularGoogle(
+            Principal principal,
+            @RequestBody java.util.Map<String, String> body
+    ) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("Debe autenticarse para vincular Google"));
+        }
+        String googleId = body.getOrDefault("googleId", body.get("email"));
+        if (googleId == null || googleId.isBlank()) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("El identificador o correo de Google es requerido"));
+        }
+        String msg = authService.vincularCuentaGoogle(principal.getName(), googleId);
+        return ResponseEntity.ok(ApiResponse.ok(msg, msg));
     }
 
     @PostMapping("/verificar-codigo")

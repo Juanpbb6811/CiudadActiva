@@ -41,7 +41,7 @@ fun ComentariosScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         CiudadActivaTopBar(
             title = "Comentarios",
@@ -61,7 +61,7 @@ fun ComentariosScreen(
                         .fillMaxWidth()
                         .shadow(2.dp, RoundedCornerShape(18.dp)),
                     shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(
@@ -134,7 +134,7 @@ fun ComentariosScreen(
                 .fillMaxWidth()
                 .shadow(12.dp, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
             shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Column(
                 modifier = Modifier
@@ -145,7 +145,7 @@ fun ComentariosScreen(
                     text = "Escribir Retroalimentación",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
-                    color = BrandTealDark
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
@@ -163,7 +163,10 @@ fun ComentariosScreen(
                         nuevoTexto = ""
                     },
                     modifier = Modifier.align(Alignment.End),
-                    colors = ButtonDefaults.buttonColors(containerColor = BrandTealDark, contentColor = Color.White),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
                     shape = RoundedCornerShape(14.dp)
                 ) {
                     Text(text = "Enviar", color = Color.White, fontWeight = FontWeight.Bold)

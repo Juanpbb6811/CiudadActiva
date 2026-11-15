@@ -96,7 +96,7 @@ fun MisReportesScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
             .padding(bottom = 75.dp)
     ) {
         CiudadActivaTopBar(title = if (pestanaSeleccionada == 0) "Muro Comunitario" else "Mis Reportes")
@@ -107,7 +107,7 @@ fun MisReportesScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 6.dp)
                 .clip(RoundedCornerShape(20.dp))
-                .background(Color(0xFFE5ECEB))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(4.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -115,7 +115,7 @@ fun MisReportesScreen(
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(if (pestanaSeleccionada == 0) Color.White else Color.Transparent)
+                    .background(if (pestanaSeleccionada == 0) MaterialTheme.colorScheme.surface else Color.Transparent)
                     .clickable { pestanaSeleccionada = 0 }
                     .padding(vertical = 8.dp),
                 contentAlignment = Alignment.Center
@@ -124,7 +124,7 @@ fun MisReportesScreen(
                     Icon(
                         imageVector = Icons.Default.Groups,
                         contentDescription = null,
-                        tint = if (pestanaSeleccionada == 0) BrandTealDark else Color(0xFF6A7775),
+                        tint = if (pestanaSeleccionada == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
@@ -132,7 +132,7 @@ fun MisReportesScreen(
                         text = "Comunidad (${reportesComunidad.size})",
                         fontSize = 12.sp,
                         fontWeight = if (pestanaSeleccionada == 0) FontWeight.Bold else FontWeight.Medium,
-                        color = if (pestanaSeleccionada == 0) BrandTealDark else Color(0xFF6A7775)
+                        color = if (pestanaSeleccionada == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -141,7 +141,7 @@ fun MisReportesScreen(
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(if (pestanaSeleccionada == 1) Color.White else Color.Transparent)
+                    .background(if (pestanaSeleccionada == 1) MaterialTheme.colorScheme.surface else Color.Transparent)
                     .clickable { pestanaSeleccionada = 1 }
                     .padding(vertical = 8.dp),
                 contentAlignment = Alignment.Center
@@ -150,7 +150,7 @@ fun MisReportesScreen(
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = null,
-                        tint = if (pestanaSeleccionada == 1) BrandTealDark else Color(0xFF6A7775),
+                        tint = if (pestanaSeleccionada == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
@@ -158,7 +158,7 @@ fun MisReportesScreen(
                         text = "Mis Reportes (${misReportes.size})",
                         fontSize = 12.sp,
                         fontWeight = if (pestanaSeleccionada == 1) FontWeight.Bold else FontWeight.Medium,
-                        color = if (pestanaSeleccionada == 1) BrandTealDark else Color(0xFF6A7775)
+                        color = if (pestanaSeleccionada == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -183,8 +183,8 @@ fun MisReportesScreen(
                     onClick = { filtroEstado = clave },
                     label = { Text(etiqueta, fontSize = 12.sp, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal) },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = BrandTealDark,
-                        selectedLabelColor = Color.White
+                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                     ),
                     shape = RoundedCornerShape(20.dp)
                 )
@@ -257,7 +257,7 @@ fun ReporteFeedItemCard(
             .shadow(2.dp, RoundedCornerShape(20.dp))
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -397,13 +397,13 @@ fun ReporteFeedItemCard(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFFE0F2F1))
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Comment,
                             contentDescription = "Comentar",
-                            tint = BrandTealDark,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
@@ -411,7 +411,7 @@ fun ReporteFeedItemCard(
                             text = "Ver y Comentar 💬",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
-                            color = BrandTealDark
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }

@@ -74,13 +74,13 @@ fun CiudadActivaBottomBar(
             .navigationBarsPadding(),
         contentAlignment = Alignment.BottomCenter
     ) {
-        // Barra blanca de navegación
+        // Barra de navegación adaptada a tema claro / oscuro
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp)
                 .shadow(16.dp, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.surface)
         ) {
             Row(
                 modifier = Modifier.fillMaxSize(),
@@ -143,17 +143,20 @@ private fun NavTabItem(
             .clickable(onClick = onClick)
             .padding(vertical = 4.dp)
     ) {
+        val activeColor = MaterialTheme.colorScheme.primary
+        val inactiveColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+
         Icon(
             imageVector = if (isSelected) item.selectedIcon else item.icon,
             contentDescription = item.title,
-            tint = if (isSelected) BrandTealDark else Color(0xFF9E9E9E),
+            tint = if (isSelected) activeColor else inactiveColor,
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = item.title,
             fontSize = 10.sp,
-            color = if (isSelected) BrandTealDark else Color(0xFF9E9E9E),
+            color = if (isSelected) activeColor else inactiveColor,
             fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Normal
         )
         if (isSelected) {
@@ -161,7 +164,7 @@ private fun NavTabItem(
                 modifier = Modifier
                     .padding(top = 2.dp)
                     .size(width = 16.dp, height = 2.dp)
-                    .background(BrandCopper, CircleShape)
+                    .background(MaterialTheme.colorScheme.secondary, CircleShape)
             )
         }
     }

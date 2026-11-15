@@ -41,6 +41,12 @@ public class ReporteResponse {
     private LocalDateTime actualizadoEn;
     private LocalDateTime fechaCierre;
 
+    private String analisisIaDescripcion;
+    private String analisisIaCategoriaSugerida;
+    private String analisisIaPrioridadSugerida;
+    private Integer analisisIaNivelUrgencia;
+    private LocalDateTime analisisIaFecha;
+
     public ReporteResponse() {
     }
 
@@ -77,6 +83,11 @@ public class ReporteResponse {
             this.creadoEn = reporte.getCreadoEn();
             this.actualizadoEn = reporte.getActualizadoEn();
             this.fechaCierre = reporte.getFechaCierre();
+            this.analisisIaDescripcion = reporte.getAnalisisIaDescripcion();
+            this.analisisIaCategoriaSugerida = reporte.getAnalisisIaCategoriaSugerida();
+            this.analisisIaPrioridadSugerida = reporte.getAnalisisIaPrioridadSugerida();
+            this.analisisIaNivelUrgencia = reporte.getAnalisisIaNivelUrgencia();
+            this.analisisIaFecha = reporte.getAnalisisIaFecha();
         }
     }
 
@@ -347,5 +358,45 @@ public class ReporteResponse {
         if (ciudad != null && !ciudad.isBlank()) return ciudad;
         if (direccion != null && !direccion.isBlank()) return direccion;
         return "Ubicación Georreferenciada";
+    }
+
+    public String getAnalisisIaDescripcion() {
+        return analisisIaDescripcion;
+    }
+
+    public void setAnalisisIaDescripcion(String analisisIaDescripcion) {
+        this.analisisIaDescripcion = analisisIaDescripcion;
+    }
+
+    public String getAnalisisIaCategoriaSugerida() {
+        return analisisIaCategoriaSugerida;
+    }
+
+    public void setAnalisisIaCategoriaSugerida(String analisisIaCategoriaSugerida) {
+        this.analisisIaCategoriaSugerida = analisisIaCategoriaSugerida;
+    }
+
+    public String getAnalisisIaPrioridadSugerida() {
+        return analisisIaPrioridadSugerida;
+    }
+
+    public void setAnalisisIaPrioridadSugerida(String analisisIaPrioridadSugerida) {
+        this.analisisIaPrioridadSugerida = analisisIaPrioridadSugerida;
+    }
+
+    public Integer getAnalisisIaNivelUrgencia() {
+        return analisisIaNivelUrgencia;
+    }
+
+    public void setAnalisisIaNivelUrgencia(Integer analisisIaNivelUrgencia) {
+        this.analisisIaNivelUrgencia = analisisIaNivelUrgencia;
+    }
+
+    public LocalDateTime getAnalisisIaFecha() {
+        return analisisIaFecha;
+    }
+
+    public void setAnalisisIaFecha(LocalDateTime analisisIaFecha) {
+        this.analisisIaFecha = analisisIaFecha;
     }
 }

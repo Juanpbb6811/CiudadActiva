@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,23 +25,28 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.ciudadactiva.app.CiudadActivaApplication
+import com.ciudadactiva.app.R
 import com.ciudadactiva.app.data.api.ApiClient
 import com.ciudadactiva.app.data.local.DemoCredentials
 import com.ciudadactiva.app.data.model.LoginRequest
 import com.ciudadactiva.app.data.model.UsuarioUpdateRequest
 import com.ciudadactiva.app.ui.components.CiudadActivaTopBar
+import com.ciudadactiva.app.ui.components.GoogleAuthHelper
 import com.ciudadactiva.app.ui.components.rememberCameraLauncher
-import com.ciudadactiva.app.ui.theme.BackgroundLight
+import com.ciudadactiva.app.ui.screens.auth.ModalCambiarPasswordPerfil
 import com.ciudadactiva.app.ui.theme.BrandCopper
 import com.ciudadactiva.app.ui.theme.BrandTealDark
-import com.ciudadactiva.app.ui.theme.TextDark
-import com.ciudadactiva.app.ui.screens.auth.ModalCambiarPasswordPerfil
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ciudadactiva.app.ui.theme.BrandTealLight
+import com.ciudadactiva.app.util.AppThemeMode
+import com.ciudadactiva.app.util.ThemeManager
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 
@@ -48,10 +54,15 @@ import java.io.ByteArrayOutputStream
 fun CiudadanoPerfilScreen(
     onCerrarSesion: () -> Unit,
     onCambiarActor: (String) -> Unit = {},
+    onCompletarDatosLegales: (() -> Unit)? = null,
     onBackClick: (() -> Unit)? = null
 ) {
+    val context = LocalContext.current
     val session = CiudadActivaApplication.sessionManager
     val coroutineScope = rememberCoroutineScope()
+
+    // Modo de apariencia reactivo
+    val currentThemeMode by ThemeManager.themeMode.collectAsState()
 
     // Estado de modo edición: FALSO por defecto (solo lectura inicial)
     var isEditing by remember { mutableStateOf(false) }
@@ -64,6 +75,12 @@ fun CiudadanoPerfilScreen(
     var fotoUrl by remember { mutableStateOf(session.getFotoUrl()) }
     var avatarBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
+    // Identificación legal
+    var tipoDoc by remember { mutableStateOf(session.getTipoDocumento()) }
+    var numDoc by remember { mutableStateOf(session.getNumeroDocumento() ?: "") }
+    var googleId by remember { mutableStateOf(session.getGoogleId() ?: "") }
+    var datosLegalesCompletos by remember { mutableStateOf(session.areDatosLegalesCompletos()) }
+
     // Backup para botón Cancelar
     var backupNombre by remember { mutableStateOf(nombre) }
     var backupEmail by remember { mutableStateOf(email) }
@@ -72,6 +89,7 @@ fun CiudadanoPerfilScreen(
     var backupFotoUrl by remember { mutableStateOf(fotoUrl) }
 
     var isSaving by remember { mutableStateOf(false) }
+    var isSyncingGoogle by remember { mutableStateOf(false) }
     var isSwitchingActor by remember { mutableStateOf(false) }
     var showCambiarPassDialog by remember { mutableStateOf(false) }
     var mensajeExito by remember { mutableStateOf<String?>(null) }
@@ -79,7 +97,7 @@ fun CiudadanoPerfilScreen(
 
     val rol = session.getRol() ?: "ROLE_CIUDADANO"
 
-    // Launcher seguro para tomar foto de perfil con verificación de permisos en tiempo de ejecución
+    // Launcher de cámara para foto de perfil
     val tomarFotoPerfil = rememberCameraLauncher(
         onPhotoTaken = { bitmap ->
             avatarBitmap = bitmap
@@ -89,6 +107,33 @@ fun CiudadanoPerfilScreen(
             fotoUrl = base64
         }
     )
+
+    // Launcher de selector de Google
+    val googleAccountPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val cuenta = GoogleAuthHelper.procesarResultadoSelector(result.resultCode, result.data)
+        if (cuenta != null) {
+            isSyncingGoogle = true
+            coroutineScope.launch {
+                try {
+                    val resp = ApiClient.getService().vincularGoogle(mapOf("googleId" to cuenta.first))
+                    if (resp.isSuccessful) {
+                        session.setGoogleId(cuenta.first)
+                        googleId = cuenta.first
+                        mensajeExito = "Cuenta de Google (${cuenta.first}) sincronizada exitosamente con tu identidad ciudadana."
+                    } else {
+                        val err = resp.errorBody()?.string() ?: "No se pudo sincronizar la cuenta."
+                        mensajeError = err
+                    }
+                } catch (e: Exception) {
+                    mensajeError = "Fallo al conectar con el servidor: ${e.localizedMessage}"
+                } finally {
+                    isSyncingGoogle = false
+                }
+            }
+        }
+    }
 
     // Cargar perfil actual desde backend al inicio
     LaunchedEffect(Unit) {
@@ -101,6 +146,10 @@ fun CiudadanoPerfilScreen(
                 telefono = u.telefono ?: ""
                 direccion = u.direccion ?: ""
                 fotoUrl = u.fotoUrl
+                tipoDoc = u.tipoDocumento ?: "CC"
+                numDoc = u.numeroDocumento ?: ""
+                googleId = u.googleId ?: ""
+                datosLegalesCompletos = !numDoc.isBlank() && !numDoc.contains("PENDIENTE") && !telefono.isBlank() && !direccion.isBlank() && !nombre.isBlank()
 
                 backupNombre = nombre
                 backupEmail = email
@@ -108,7 +157,16 @@ fun CiudadanoPerfilScreen(
                 backupDireccion = direccion
                 backupFotoUrl = fotoUrl
 
-                session.updateProfile(u.nombre ?: "", u.email ?: "", u.telefono, u.direccion, u.fotoUrl)
+                session.updateProfile(
+                    nombre = u.nombre ?: "",
+                    email = u.email ?: "",
+                    telefono = u.telefono,
+                    direccion = u.direccion,
+                    fotoUrl = u.fotoUrl,
+                    tipoDocumento = u.tipoDocumento,
+                    numeroDocumento = u.numeroDocumento,
+                    googleId = u.googleId
+                )
             }
         } catch (_: Exception) {
             // Ignorar y usar valores locales
@@ -118,24 +176,24 @@ fun CiudadanoPerfilScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
             .padding(bottom = 90.dp)
     ) {
         CiudadActivaTopBar(title = "Mi Perfil", onBackClick = onBackClick)
 
         Column(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Avatar con botón de cámara (activo en modo edición)
+            // Avatar con botón de cámara
             Box(contentAlignment = Alignment.BottomEnd) {
                 Box(
                     modifier = Modifier
-                        .size(100.dp)
+                        .size(104.dp)
                         .clip(CircleShape)
-                        .background(BrandTealDark)
-                        .border(3.dp, BrandCopper, CircleShape),
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .border(3.dp, MaterialTheme.colorScheme.secondary, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     if (avatarBitmap != null) {
@@ -159,7 +217,7 @@ fun CiudadanoPerfilScreen(
                             .joinToString("")
                         Text(
                             text = if (initials.isNotBlank()) initials else "U",
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 32.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -169,9 +227,9 @@ fun CiudadanoPerfilScreen(
                 // Botón circular para cambiar foto
                 Box(
                     modifier = Modifier
-                        .size(34.dp)
+                        .size(36.dp)
                         .clip(CircleShape)
-                        .background(BrandCopper)
+                        .background(MaterialTheme.colorScheme.secondary)
                         .clickable {
                             if (!isEditing) isEditing = true
                             tomarFotoPerfil()
@@ -181,44 +239,47 @@ fun CiudadanoPerfilScreen(
                     Icon(
                         imageVector = Icons.Default.CameraAlt,
                         contentDescription = "Cambiar Foto",
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.onSecondary,
                         modifier = Modifier.size(18.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // Botón con texto explícito "Tomar Foto"
+            // Botón explícito "Tomar Foto"
             OutlinedButton(
                 onClick = {
                     if (!isEditing) isEditing = true
                     tomarFotoPerfil()
                 },
                 shape = RoundedCornerShape(20.dp),
-                colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White, contentColor = BrandTealDark),
-                border = androidx.compose.foundation.BorderStroke(1.dp, BrandTealDark.copy(alpha = 0.6f)),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.primary
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 2.dp),
                 modifier = Modifier.height(34.dp)
             ) {
-                Icon(Icons.Default.CameraAlt, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(15.dp))
+                Icon(Icons.Default.CameraAlt, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(15.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Tomar Foto", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
+                Text("Tomar Foto", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = nombre,
+                text = nombre.ifBlank { "Ciudadano" },
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = BrandTealDark
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Text(
                 text = email,
                 fontSize = 13.sp,
-                color = Color(0xFF6C757D)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -226,26 +287,336 @@ fun CiudadanoPerfilScreen(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFE0F2F1))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
                     .padding(horizontal = 14.dp, vertical = 4.dp)
             ) {
                 Text(
                     text = rol.replace("ROLE_", "PERFIL: "),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF00695C)
+                    color = MaterialTheme.colorScheme.primary
                 )
+            }
+
+            // Mensajes globales de éxito o error
+            if (mensajeExito != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFF2E7D32).copy(alpha = 0.15f))
+                        .border(1.dp, Color(0xFF2E7D32), RoundedCornerShape(12.dp))
+                        .padding(12.dp)
+                ) {
+                    Text(text = mensajeExito!!, color = MaterialTheme.colorScheme.onSurface, fontSize = 12.sp)
+                }
+            }
+
+            if (mensajeError != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.errorContainer)
+                        .border(1.dp, MaterialTheme.colorScheme.error, RoundedCornerShape(12.dp))
+                        .padding(12.dp)
+                ) {
+                    Text(text = mensajeError!!, color = MaterialTheme.colorScheme.onErrorContainer, fontSize = 12.sp)
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Tarjeta de Datos Personales
+            // =========================================================================
+            // 1. TARJETA: APARIENCIA Y TEMA VISUAL (REQUERIDO)
+            // =========================================================================
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .shadow(3.dp, RoundedCornerShape(20.dp)),
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Palette,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Apariencia y Modo Visual",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    Text(
+                        text = "Elige la apariencia visual de la app o sincronízala automáticamente con el sistema operativo de tu dispositivo.",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        listOf(
+                            Triple(AppThemeMode.SYSTEM, "📱 Sistema", Icons.Default.BrightnessAuto),
+                            Triple(AppThemeMode.LIGHT, "☀️ Claro", Icons.Default.LightMode),
+                            Triple(AppThemeMode.DARK, "🌙 Oscuro", Icons.Default.DarkMode)
+                        ).forEach { (mode, label, icon) ->
+                            val isSelected = currentThemeMode == mode
+                            Surface(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable { ThemeManager.setTheme(context, mode) },
+                                shape = RoundedCornerShape(12.dp),
+                                color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant,
+                                border = BorderStroke(
+                                    width = if (isSelected) 2.dp else 1.dp,
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                                )
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(vertical = 10.dp, horizontal = 4.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Icon(
+                                        imageVector = icon,
+                                        contentDescription = label,
+                                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = label,
+                                        fontSize = 11.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                    )
+                                    if (isSelected) {
+                                        Text(
+                                            text = "Activo",
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.secondary
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // =========================================================================
+            // 2. TARJETA: IDENTIFICACIÓN LEGAL CIUDADANA (REQUERIDO)
+            // =========================================================================
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(3.dp, RoundedCornerShape(20.dp)),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Badge,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Identidad Ciudadana Legal",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        // Badge de verificación
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(
+                                    if (datosLegalesCompletos) Color(0xFF2E7D32).copy(alpha = 0.2f)
+                                    else Color(0xFFE65100).copy(alpha = 0.2f)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = if (datosLegalesCompletos) "Verificado ✓" else "Incompleto ⚠️",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (datosLegalesCompletos) Color(0xFF2E7D32) else Color(0xFFE65100)
+                            )
+                        }
+                    }
+
+                    Text(
+                        text = "Registro único de ciudadano bajo normativa colombiana para radicación oficial de PQRSD e incidencias.",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text(text = "Tipo Documento", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(text = tipoDoc.ifBlank { "CC" }, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                        }
+                        Column {
+                            Text(text = "Número de Documento", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(text = numDoc.ifBlank { "Sin registrar" }, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                        }
+                    }
+
+                    if (!datosLegalesCompletos && onCompletarDatosLegales != null) {
+                        Button(
+                            onClick = onCompletarDatosLegales,
+                            modifier = Modifier.fillMaxWidth().height(42.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                        ) {
+                            Text("Completar mis datos legales ahora", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // =========================================================================
+            // 3. TARJETA: SINCRONIZACIÓN CON GOOGLE (REQUERIDO)
+            // =========================================================================
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(3.dp, RoundedCornerShape(20.dp)),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_google_logo),
+                            contentDescription = "Google",
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Sincronización con Google",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    Text(
+                        text = "Sincroniza tu cuenta de Google para agilizar la verificación de tu identidad legal sin necesidad de contraseña.",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    if (googleId.isNotBlank()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFF2E7D32).copy(alpha = 0.15f))
+                                .border(1.dp, Color(0xFF2E7D32), RoundedCornerShape(12.dp))
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF2E7D32), modifier = Modifier.size(20.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Column {
+                                Text("Cuenta de Google Vinculada", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                                Text(text = googleId, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    } else {
+                        OutlinedButton(
+                            onClick = {
+                                try {
+                                    val intent = GoogleAuthHelper.crearIntentSelectorCuentasGoogle()
+                                    googleAccountPickerLauncher.launch(intent)
+                                } catch (e: Exception) {
+                                    mensajeError = "No se pudo abrir el selector de cuentas de Google: ${e.localizedMessage}"
+                                }
+                            },
+                            enabled = !isSyncingGoogle,
+                            modifier = Modifier.fillMaxWidth().height(46.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                contentColor = MaterialTheme.colorScheme.onSurface
+                            )
+                        ) {
+                            if (isSyncingGoogle) {
+                                CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                            } else {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_google_logo),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Sincronizar mi cuenta con Google", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // =========================================================================
+            // 4. TARJETA: DATOS PERSONALES Y CONTACTO
+            // =========================================================================
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(3.dp, RoundedCornerShape(20.dp)),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(
                     modifier = Modifier.padding(18.dp),
@@ -260,7 +631,7 @@ fun CiudadanoPerfilScreen(
                             text = "Datos Personales",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
-                            color = BrandTealDark
+                            color = MaterialTheme.colorScheme.onSurface
                         )
 
                         if (!isEditing) {
@@ -276,16 +647,16 @@ fun CiudadanoPerfilScreen(
                                     isEditing = true
                                 }
                             ) {
-                                Icon(Icons.Default.Edit, contentDescription = null, tint = BrandCopper, modifier = Modifier.size(16.dp))
+                                Icon(Icons.Default.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Editar", color = BrandCopper, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                                Text("Editar", color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                             }
                         }
                     }
 
                     // Nombre Completo
                     Column {
-                        Text("Nombre Completo *", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
+                        Text("Nombre Completo *", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                         Spacer(modifier = Modifier.height(4.dp))
                         OutlinedTextField(
                             value = nombre,
@@ -300,19 +671,13 @@ fun CiudadanoPerfilScreen(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(14.dp),
                             singleLine = true,
-                            leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = if (isEditing) BrandTealDark else Color.Gray) },
-                            colors = if (!isEditing) TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFFF9FBFA),
-                                unfocusedContainerColor = Color(0xFFF9FBFA),
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color(0xFFE5EBEA)
-                            ) else TextFieldDefaults.colors()
+                            leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
                         )
                     }
 
                     // Correo Electrónico
                     Column {
-                        Text("Correo Electrónico *", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
+                        Text("Correo Electrónico *", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                         Spacer(modifier = Modifier.height(4.dp))
                         OutlinedTextField(
                             value = email,
@@ -327,19 +692,13 @@ fun CiudadanoPerfilScreen(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(14.dp),
                             singleLine = true,
-                            leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = if (isEditing) BrandTealDark else Color.Gray) },
-                            colors = if (!isEditing) TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFFF9FBFA),
-                                unfocusedContainerColor = Color(0xFFF9FBFA),
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color(0xFFE5EBEA)
-                            ) else TextFieldDefaults.colors()
+                            leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
                         )
                     }
 
                     // Teléfono
                     Column {
-                        Text("Número de Teléfono", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
+                        Text("Número de Teléfono", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                         Spacer(modifier = Modifier.height(4.dp))
                         OutlinedTextField(
                             value = telefono,
@@ -351,23 +710,17 @@ fun CiudadanoPerfilScreen(
                                 }
                             },
                             readOnly = !isEditing,
-                            placeholder = { Text("Sin registrar (Opcional)", color = Color.Gray, fontSize = 14.sp) },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(14.dp),
                             singleLine = true,
-                            leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, tint = if (isEditing) BrandTealDark else Color.Gray) },
-                            colors = if (!isEditing) TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFFF9FBFA),
-                                unfocusedContainerColor = Color(0xFFF9FBFA),
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color(0xFFE5EBEA)
-                            ) else TextFieldDefaults.colors()
+                            leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                            placeholder = { Text("Sin registrar (Opcional)", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f), fontSize = 14.sp) }
                         )
                     }
 
                     // Dirección de Residencia
                     Column {
-                        Text("Dirección de Residencia", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
+                        Text("Dirección de Residencia", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                         Spacer(modifier = Modifier.height(4.dp))
                         OutlinedTextField(
                             value = direccion,
@@ -379,86 +732,46 @@ fun CiudadanoPerfilScreen(
                                 }
                             },
                             readOnly = !isEditing,
-                            placeholder = { Text("Sin registrar (Opcional)", color = Color.Gray, fontSize = 14.sp) },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(14.dp),
                             singleLine = true,
-                            leadingIcon = { Icon(Icons.Default.Home, contentDescription = null, tint = if (isEditing) BrandTealDark else Color.Gray) },
-                            colors = if (!isEditing) TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFFF9FBFA),
-                                unfocusedContainerColor = Color(0xFFF9FBFA),
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color(0xFFE5EBEA)
-                            ) else TextFieldDefaults.colors()
+                            leadingIcon = { Icon(Icons.Default.Home, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                            placeholder = { Text("Sin registrar (Opcional)", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f), fontSize = 14.sp) }
                         )
                     }
 
-                    // Botón para tomar foto con la cámara (visible solo si está en modo edición)
+                    // Acciones en modo edición
                     if (isEditing) {
-                        OutlinedButton(
-                            onClick = { tomarFotoPerfil() },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Icon(Icons.Default.CameraAlt, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Tomar Foto para el Perfil", fontSize = 12.sp, color = BrandTealDark, fontWeight = FontWeight.Bold)
-                        }
-                    }
-
-                    // Mensajes de éxito o error
-                    if (mensajeExito != null) {
-                        Text(
-                            text = mensajeExito!!,
-                            color = Color(0xFF2E7D32),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-
-                    if (mensajeError != null) {
-                        Text(
-                            text = mensajeError!!,
-                            color = Color(0xFFD32F2F),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-
-                    // Botones de acción
-                    if (isEditing) {
+                        Spacer(modifier = Modifier.height(8.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            // Botón Cancelar
                             OutlinedButton(
                                 onClick = {
-                                    // Restaurar valores previos
                                     nombre = backupNombre
                                     email = backupEmail
                                     telefono = backupTelefono
                                     direccion = backupDireccion
                                     fotoUrl = backupFotoUrl
                                     avatarBitmap = null
-                                    mensajeError = null
                                     mensajeExito = null
+                                    mensajeError = null
                                     isEditing = false
                                 },
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(48.dp),
+                                    .height(46.dp),
                                 shape = RoundedCornerShape(14.dp),
-                                enabled = !isSaving
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                             ) {
-                                Text("Cancelar", color = Color(0xFF5A6665), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                                Text("Cancelar", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                             }
 
-                            // Botón Guardar Cambios (Con texto blanco visible)
                             Button(
                                 onClick = {
                                     if (nombre.isBlank() || email.isBlank()) {
-                                        mensajeError = "El nombre y el correo no pueden estar vacíos"
+                                        mensajeError = "El nombre y el correo no pueden estar vacíos."
                                         return@Button
                                     }
                                     isSaving = true
@@ -469,102 +782,86 @@ fun CiudadanoPerfilScreen(
                                             val req = UsuarioUpdateRequest(
                                                 nombre = nombre.trim(),
                                                 email = email.trim(),
-                                                telefono = telefono.trim(),
-                                                direccion = direccion.trim(),
+                                                telefono = telefono.trim().ifBlank { null },
+                                                direccion = direccion.trim().ifBlank { null },
                                                 fotoUrl = fotoUrl
                                             )
                                             val resp = ApiClient.getService().actualizarMiPerfil(req)
                                             if (resp.isSuccessful && resp.body()?.data != null) {
                                                 val u = resp.body()!!.data!!
-                                                session.updateProfile(u.nombre, u.email, u.telefono, u.direccion, u.fotoUrl)
-                                                backupNombre = u.nombre
-                                                backupEmail = u.email
-                                                backupTelefono = u.telefono ?: ""
-                                                backupDireccion = u.direccion ?: ""
-                                                backupFotoUrl = u.fotoUrl
-                                                mensajeExito = "✓ Perfil guardado con éxito"
+                                                nombre = u.nombre ?: ""
+                                                email = u.email ?: ""
+                                                telefono = u.telefono ?: ""
+                                                direccion = u.direccion ?: ""
+                                                fotoUrl = u.fotoUrl
+
+                                                backupNombre = nombre
+                                                backupEmail = email
+                                                backupTelefono = telefono
+                                                backupDireccion = direccion
+                                                backupFotoUrl = fotoUrl
+
+                                                session.updateProfile(
+                                                    nombre = u.nombre ?: "",
+                                                    email = u.email ?: "",
+                                                    telefono = u.telefono,
+                                                    direccion = u.direccion,
+                                                    fotoUrl = u.fotoUrl
+                                                )
+
+                                                mensajeExito = "Perfil actualizado correctamente."
                                                 isEditing = false
                                             } else {
-                                                mensajeError = "Error: " + (resp.errorBody()?.string() ?: "No se pudo actualizar")
+                                                mensajeError = "No se pudo actualizar el perfil. Verifica los datos."
                                             }
                                         } catch (e: Exception) {
-                                            session.updateProfile(nombre, email, telefono, direccion, fotoUrl)
-                                            mensajeExito = "✓ Guardado localmente"
-                                            isEditing = false
+                                            mensajeError = "Error al guardar: ${e.localizedMessage}"
                                         } finally {
                                             isSaving = false
                                         }
                                     }
                                 },
                                 modifier = Modifier
-                                    .weight(1.4f)
-                                    .height(48.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = BrandTealDark,
-                                    contentColor = Color.White
-                                ),
+                                    .weight(1f)
+                                    .height(46.dp),
                                 shape = RoundedCornerShape(14.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                ),
                                 enabled = !isSaving
                             ) {
                                 if (isSaving) {
-                                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                                 } else {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Default.Save, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text(
-                                            text = "Guardar",
-                                            color = Color.White,
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    }
+                                    Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text("Guardar", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                                 }
                             }
                         }
                     } else {
-                        // En modo solo lectura: botón para habilitar edición
-                        OutlinedButton(
-                            onClick = {
-                                backupNombre = nombre
-                                backupEmail = email
-                                backupTelefono = telefono
-                                backupDireccion = direccion
-                                backupFotoUrl = fotoUrl
-                                mensajeExito = null
-                                mensajeError = null
-                                isEditing = true
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp),
-                            shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = BrandTealDark)
-                        ) {
-                            Icon(Icons.Default.Edit, contentDescription = null, tint = BrandTealDark, modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Modificar Datos Personales", color = BrandTealDark, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                        }
-
-                        Spacer(modifier = Modifier.height(10.dp))
-
+                        Spacer(modifier = Modifier.height(4.dp))
                         OutlinedButton(
                             onClick = { showCambiarPassDialog = true },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(48.dp),
+                                .height(46.dp),
                             shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF00695C))
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
                         ) {
-                            Icon(Icons.Default.LockReset, contentDescription = null, tint = Color(0xFF00695C), modifier = Modifier.size(18.dp))
+                            Icon(Icons.Default.LockReset, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Cambiar Contraseña de Acceso", color = Color(0xFF00695C), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("Cambiar Contraseña de Acceso", fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
             }
 
-            // Tarjeta de Cambio de Rol / Actor (Metodología RUP) - Exclusiva para Cuentas Demo Oficiales
+            // =========================================================================
+            // 5. TARJETA: CAMBIO DE ROL / ACTOR (EXCLUSIVO CUENTAS DEMO)
+            // =========================================================================
             val emailActual = session.getEmail()?.lowercase()?.trim() ?: ""
             val esCuentaDemo = emailActual in listOf(
                 "ciudadano@ciudadactiva.gov.co",
@@ -574,13 +871,13 @@ fun CiudadanoPerfilScreen(
             )
 
             if (esCuentaDemo) {
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .shadow(3.dp, RoundedCornerShape(20.dp)),
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Column(
                         modifier = Modifier.padding(18.dp),
@@ -596,12 +893,12 @@ fun CiudadanoPerfilScreen(
                                     text = "Cambiar de Rol / Actor",
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = BrandTealDark
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
                                     text = "Alterna entre los 4 perfiles del sistema",
                                     fontSize = 11.sp,
-                                    color = Color(0xFF6C757D)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
 
@@ -609,12 +906,11 @@ fun CiudadanoPerfilScreen(
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(20.dp),
                                     strokeWidth = 2.dp,
-                                    color = BrandTealDark
+                                    color = MaterialTheme.colorScheme.primary
                                 )
                             }
                         }
 
-                        // Botones de los 4 actores
                         val actores = listOf(
                             Triple("ROLE_CIUDADANO", "Ciudadano", "Reportar y seguir incidencias"),
                             Triple("ROLE_GESTOR", "Gestor", "Triage, validar y priorizar"),
@@ -629,7 +925,7 @@ fun CiudadanoPerfilScreen(
                                     .fillMaxWidth()
                                     .border(
                                         width = if (esRolActual) 1.5.dp else 1.dp,
-                                        color = if (esRolActual) BrandTealDark else Color(0xFFE5EBEA),
+                                        color = if (esRolActual) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                                         shape = RoundedCornerShape(14.dp)
                                     )
                                     .clickable(enabled = !isSwitchingActor && !esRolActual) {
@@ -667,7 +963,7 @@ fun CiudadanoPerfilScreen(
                                     },
                                 shape = RoundedCornerShape(14.dp),
                                 colors = CardDefaults.cardColors(
-                                    containerColor = if (esRolActual) Color(0xFFE0F2F1) else Color(0xFFFAFCFB)
+                                    containerColor = if (esRolActual) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant
                                 )
                             ) {
                                 Row(
@@ -682,12 +978,12 @@ fun CiudadanoPerfilScreen(
                                             text = titulo,
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = if (esRolActual) BrandTealDark else TextDark
+                                            color = if (esRolActual) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                                         )
                                         Text(
                                             text = desc,
                                             fontSize = 11.sp,
-                                            color = Color(0xFF6C757D)
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
 
@@ -695,21 +991,21 @@ fun CiudadanoPerfilScreen(
                                         Box(
                                             modifier = Modifier
                                                 .clip(RoundedCornerShape(8.dp))
-                                                .background(BrandTealDark)
+                                                .background(MaterialTheme.colorScheme.primary)
                                                 .padding(horizontal = 8.dp, vertical = 4.dp)
                                         ) {
                                             Text(
                                                 text = "ACTIVO ✓",
                                                 fontSize = 10.sp,
                                                 fontWeight = FontWeight.Bold,
-                                                color = Color.White
+                                                color = MaterialTheme.colorScheme.onPrimary
                                             )
                                         }
                                     } else {
                                         Icon(
                                             imageVector = Icons.Default.SwapHoriz,
                                             contentDescription = "Cambiar",
-                                            tint = BrandTealDark,
+                                            tint = MaterialTheme.colorScheme.primary,
                                             modifier = Modifier.size(20.dp)
                                         )
                                     }
@@ -720,26 +1016,31 @@ fun CiudadanoPerfilScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // Botón Cerrar Sesión
+            // =========================================================================
+            // 6. BOTÓN CERRAR SESIÓN (ALTO CONTRASTE)
+            // =========================================================================
             Button(
                 onClick = onCerrarSesion,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEBEE)),
-                shape = RoundedCornerShape(14.dp)
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                ),
+                shape = RoundedCornerShape(16.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.ExitToApp,
                     contentDescription = null,
-                    tint = Color(0xFFD32F2F)
+                    tint = MaterialTheme.colorScheme.onErrorContainer
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Cerrar Sesión",
-                    color = Color(0xFFD32F2F),
+                    color = MaterialTheme.colorScheme.onErrorContainer,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
                 )

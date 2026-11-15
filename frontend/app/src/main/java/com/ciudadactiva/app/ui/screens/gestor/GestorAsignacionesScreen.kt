@@ -32,7 +32,7 @@ fun GestorAsignacionesScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
             .padding(bottom = 70.dp)
     ) {
         CiudadActivaTopBar(
@@ -81,7 +81,7 @@ fun GestorAsignacionesScreen(
                             .fillMaxWidth()
                             .shadow(2.dp, RoundedCornerShape(18.dp)),
                         shape = RoundedCornerShape(18.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(

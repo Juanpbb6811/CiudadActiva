@@ -73,7 +73,7 @@ fun ModalVerificarCuenta(
                 .wrapContentHeight()
                 .padding(vertical = 16.dp),
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
             Column(
@@ -87,13 +87,13 @@ fun ModalVerificarCuenta(
                     modifier = Modifier
                         .size(64.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFE0F2F1)),
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.VerifiedUser,
                         contentDescription = null,
-                        tint = BrandTealDark,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(36.dp)
                     )
                 }
@@ -104,7 +104,7 @@ fun ModalVerificarCuenta(
                     text = "Verificación de Seguridad",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = BrandTealDark,
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center
                 )
 
@@ -294,7 +294,7 @@ fun ModalRecuperarPassword(
                 .wrapContentHeight()
                 .padding(vertical = 16.dp),
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
             Column(
@@ -308,13 +308,13 @@ fun ModalRecuperarPassword(
                     modifier = Modifier
                         .size(60.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFFFF3E0)),
+                        .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = if (paso == 1) Icons.Default.LockReset else Icons.Default.Key,
                         contentDescription = null,
-                        tint = Color(0xFFE65100),
+                        tint = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.size(32.dp)
                     )
                 }
@@ -325,7 +325,7 @@ fun ModalRecuperarPassword(
                     text = if (paso == 1) "Recuperar Contraseña" else "Restablecer Contraseña",
                     fontSize = 19.sp,
                     fontWeight = FontWeight.Bold,
-                    color = BrandTealDark,
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center
                 )
 
@@ -569,7 +569,7 @@ fun ModalCambiarPasswordPerfil(
         Card(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             shape = RoundedCornerShape(22.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
             Column(
@@ -580,7 +580,7 @@ fun ModalCambiarPasswordPerfil(
                     text = "Cambiar Contraseña",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = BrandTealDark
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))

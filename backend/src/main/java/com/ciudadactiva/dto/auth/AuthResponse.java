@@ -8,6 +8,7 @@ public class AuthResponse {
     private String tipoToken = "Bearer";
     private UsuarioResponse usuario;
     private Boolean requiereVerificacion = false;
+    private Boolean requiereCompletarDatosLegales = false;
     private String codigoGeneradoDemo;
 
     public AuthResponse() {
@@ -33,6 +34,14 @@ public class AuthResponse {
 
     public void setRequiereVerificacion(Boolean requiereVerificacion) {
         this.requiereVerificacion = requiereVerificacion;
+    }
+
+    public Boolean getRequiereCompletarDatosLegales() {
+        return requiereCompletarDatosLegales;
+    }
+
+    public void setRequiereCompletarDatosLegales(Boolean requiereCompletarDatosLegales) {
+        this.requiereCompletarDatosLegales = requiereCompletarDatosLegales;
     }
 
     public String getCodigoGeneradoDemo() {

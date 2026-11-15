@@ -62,7 +62,7 @@ fun AdminPanelScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(bottom = 90.dp)
@@ -76,7 +76,7 @@ fun AdminPanelScreen(
         Column(modifier = Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             // 3 Tarjetas Superiores de Métricas (M04_01)
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                Card(modifier = Modifier.weight(1f).shadow(2.dp, RoundedCornerShape(18.dp)), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                Card(modifier = Modifier.weight(1f).shadow(2.dp, RoundedCornerShape(18.dp)), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                     Column(modifier = Modifier.padding(14.dp)) {
                         Text("TOTAL CASOS", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF90A4AE))
                         Spacer(modifier = Modifier.height(4.dp))
@@ -85,7 +85,7 @@ fun AdminPanelScreen(
                     }
                 }
 
-                Card(modifier = Modifier.weight(1f).shadow(2.dp, RoundedCornerShape(18.dp)), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                Card(modifier = Modifier.weight(1f).shadow(2.dp, RoundedCornerShape(18.dp)), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                     Column(modifier = Modifier.padding(14.dp)) {
                         Text("RESUELTOS", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF90A4AE))
                         Spacer(modifier = Modifier.height(4.dp))
@@ -97,7 +97,7 @@ fun AdminPanelScreen(
                     }
                 }
 
-                Card(modifier = Modifier.weight(1f).shadow(2.dp, RoundedCornerShape(18.dp)), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                Card(modifier = Modifier.weight(1f).shadow(2.dp, RoundedCornerShape(18.dp)), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                     Column(modifier = Modifier.padding(14.dp)) {
                         Text("TIEMPO PROM.", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF90A4AE))
                         Spacer(modifier = Modifier.height(4.dp))
@@ -111,7 +111,7 @@ fun AdminPanelScreen(
             Card(
                 modifier = Modifier.fillMaxWidth().shadow(3.dp, RoundedCornerShape(20.dp)),
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Row(
@@ -179,7 +179,7 @@ fun AdminPanelScreen(
             Card(
                 modifier = Modifier.fillMaxWidth().shadow(3.dp, RoundedCornerShape(20.dp)),
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     Text("Matriz de Criticidad Urbana y Riesgo", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = BrandTealDark)
@@ -261,7 +261,7 @@ fun AdminPanelScreen(
             Card(
                 modifier = Modifier.fillMaxWidth().shadow(3.dp, RoundedCornerShape(20.dp)),
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     Row(
@@ -417,7 +417,7 @@ fun AdminUsuariosScreen(
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().background(BackgroundLight).statusBarsPadding().padding(bottom = 80.dp)
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding().padding(bottom = 80.dp)
     ) {
         CiudadActivaTopBar(
             title = "Directorio Usuarios",
@@ -491,7 +491,7 @@ fun AdminUsuariosScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth().shadow(2.dp, RoundedCornerShape(16.dp)),
                         shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
                         Row(
                             modifier = Modifier.padding(14.dp),
@@ -547,7 +547,7 @@ fun AdminCategoriasScreen(
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().background(BackgroundLight).statusBarsPadding().padding(bottom = 80.dp)
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding().padding(bottom = 80.dp)
     ) {
         CiudadActivaTopBar(title = "Categorías", roleTag = "CATÁLOGO", onBackClick = onBackClick)
 
@@ -587,7 +587,7 @@ fun AdminCategoriasScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth().shadow(2.dp, RoundedCornerShape(16.dp)),
                         shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
                         Row(
                             modifier = Modifier.padding(16.dp),
@@ -631,7 +631,7 @@ fun AdminAuditoriaScreen(
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().background(BackgroundLight).statusBarsPadding().padding(bottom = 80.dp)
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding().padding(bottom = 80.dp)
     ) {
         CiudadActivaTopBar(title = "Auditoría del Sistema", roleTag = "SEGURIDAD", onBackClick = onBackClick)
 
@@ -659,7 +659,7 @@ fun AdminAuditoriaScreen(
                         Card(
                             modifier = Modifier.fillMaxWidth().shadow(2.dp, RoundedCornerShape(16.dp)),
                             shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White)
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                         ) {
                             Row(
                                 modifier = Modifier.padding(16.dp),

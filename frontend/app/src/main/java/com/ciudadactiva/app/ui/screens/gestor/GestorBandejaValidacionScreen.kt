@@ -69,7 +69,7 @@ fun GestorBandejaValidacionScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .padding(bottom = 70.dp)
     ) {
@@ -197,7 +197,7 @@ fun GestorBandejaValidacionScreen(
                             .border(1.5.dp, borderColor, RoundedCornerShape(20.dp))
                             .shadow(3.dp, RoundedCornerShape(20.dp)),
                         shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             // Cabecera: #ID • CATEGORÍA • PRIORIDAD

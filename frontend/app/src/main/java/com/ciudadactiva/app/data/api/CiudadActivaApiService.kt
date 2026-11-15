@@ -33,6 +33,12 @@ interface CiudadActivaApiService {
     @POST("api/auth/cambiar-password")
     suspend fun cambiarPassword(@Body request: CambiarPasswordRequest): Response<ApiResponse<String>>
 
+    @POST("api/auth/completar-datos-legales")
+    suspend fun completarDatosLegales(@Body request: CompletarDatosLegalesRequest): Response<ApiResponse<AuthResponse>>
+
+    @POST("api/auth/vincular-google")
+    suspend fun vincularGoogle(@Body body: Map<String, String>): Response<ApiResponse<String>>
+
     @GET("api/usuarios/me")
     suspend fun obtenerMiPerfil(): Response<ApiResponse<UsuarioModel>>
 

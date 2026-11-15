@@ -59,7 +59,7 @@ fun NuevoReportePaso1Screen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
     ) {
         CiudadActivaTopBar(
@@ -132,7 +132,7 @@ fun NuevoReportePaso1Screen(
                     .fillMaxWidth()
                     .shadow(4.dp, RoundedCornerShape(20.dp)),
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(
                     modifier = Modifier.padding(18.dp),
@@ -260,7 +260,7 @@ fun NuevoReportePaso2Screen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
     ) {
         CiudadActivaTopBar(
@@ -357,7 +357,7 @@ fun NuevoReportePaso2Screen(
                     .fillMaxWidth()
                     .shadow(4.dp, RoundedCornerShape(20.dp)),
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(
                     modifier = Modifier.padding(18.dp),
@@ -500,7 +500,7 @@ fun NuevoReportePaso3Screen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
     ) {
         CiudadActivaTopBar(
@@ -607,7 +607,10 @@ fun NuevoReportePaso3Screen(
                     modifier = Modifier
                         .weight(1f)
                         .height(48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.primary
+                    ),
                     border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFCFD8DC)),
                     shape = RoundedCornerShape(14.dp)
                 ) {
@@ -695,7 +698,7 @@ fun NuevoReporteExitoScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
             .padding(24.dp),
         contentAlignment = Alignment.Center
     ) {

@@ -13,6 +13,7 @@ class CiudadActivaApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         sessionManager = SessionManager(this)
+        com.ciudadactiva.app.util.ThemeManager.init(this)
         com.ciudadactiva.app.util.NotificationHelper.crearCanalNotificaciones(this)
     }
 }
