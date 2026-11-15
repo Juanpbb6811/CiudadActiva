@@ -1,0 +1,28 @@
+name: Render Backend Keep-Alive (Always-On)
+
+# =======================================================================
+# Mantiene activo el backend de Render 24/7 sin periodos de inactividad
+# Render suspende los servicios tras 15 minutos sin tráfico.
+# Este cron envía un ping cada 10 minutos para garantizar que nunca duerma.
+# =======================================================================
+
+on:
+  schedule:
+    # Se ejecuta cada 10 minutos (Render suspende a los 15 minutos)
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Permite disparo manual desde GitHub Actions
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping CiudadActiva Actuator Health
+        run: |
+          echo "Verificando disponibilidad de CiudadActiva Backend..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://ciudadactiva-4ah7.onrender.com/actuator/health)
+          echo "Respuesta HTTP: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -eq 200 ]; then
+            echo "El servidor esta activo, saludable y en linea."
+          else
+            echo "Servidor reactivandose o status no-200 ($HTTP_STATUS)."
+          fi
