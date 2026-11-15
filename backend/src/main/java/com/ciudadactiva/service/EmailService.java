@@ -108,6 +108,33 @@ public class EmailService {
         return despacharCorreo(toEmail, asunto, html, "CONFIRMACION", "CAMBIO_PASSWORD");
     }
 
+    /**
+     * Envía notificación de actualización de estado de incidencia ciudadana.
+     */
+    public boolean enviarNotificacionEstadoReporte(
+            String toEmail,
+            String nombreUsuario,
+            String codigoRadicado,
+            String estadoAnterior,
+            String estadoNuevo,
+            String observaciones
+    ) {
+        String asunto = "Actualización de tu reporte: " + codigoRadicado + " (" + estadoNuevo.replace("_", " ") + ")";
+        String html = "<!DOCTYPE html><html lang='es'><body style='font-family: sans-serif; background: #f4f6f8; padding: 20px;'>" +
+                "<div style='max-width: 540px; margin: auto; background: #fff; padding: 28px; border-radius: 14px; border: 1px solid #e2e8f0;'>" +
+                "<h2 style='color: #113233;'>Estado de Reporte Actualizado</h2>" +
+                "<p>Hola <strong>" + (nombreUsuario != null ? nombreUsuario : "Ciudadano") + "</strong>,</p>" +
+                "<p>Tu reporte con radicado oficial <strong>" + codigoRadicado + "</strong> ha cambiado de estado:</p>" +
+                "<div style='background: #eef7f5; border-radius: 10px; padding: 16px; margin: 20px 0;'>" +
+                "<p style='margin: 4px 0; font-size: 14px;'>Estado anterior: <span style='color: #718096;'>" + (estadoAnterior != null ? estadoAnterior.replace("_", " ") : "INICIAL") + "</span></p>" +
+                "<p style='margin: 4px 0; font-size: 16px; font-weight: bold; color: #113233;'>Nuevo estado: <span style='color: #0d9488;'>" + estadoNuevo.replace("_", " ") + "</span></p>" +
+                (observaciones != null && !observaciones.isBlank() ? "<p style='margin: 8px 0 0 0; font-size: 13px; color: #4a5568;'><em>Nota técnica: " + observaciones + "</em></p>" : "") +
+                "</div>" +
+                "<p style='color: #718096; font-size: 13px;'>Puedes seguir la evolución y evidencias fotográficas en tiempo real desde la aplicación CiudadActiva.</p>" +
+                "</div></body></html>";
+        return despacharCorreo(toEmail, asunto, html, codigoRadicado, "ACTUALIZACION_REPORTE");
+    }
+
     private boolean despacharCorreo(String toEmail, String asunto, String html, String codigoOtp, String tipo) {
         log.info("🔐 [OTP Service] Solicitud de {}: Destino=[{}], Código OTP=[{}]", tipo, toEmail, codigoOtp);
         boolean enviado = false;

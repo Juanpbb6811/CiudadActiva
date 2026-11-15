@@ -68,7 +68,7 @@ spring:
           timeout: 10000
           writetimeout: 10000
 
-# Configuración JWT y Correo para autenticación segura
+# Configuración JWT, IA, Push y Correo para autenticación segura
 app:
   mail:
     provider: ${MAIL_PROVIDER:auto} # auto: prueba HTTP APIs (Resend/Brevo) primero para evadir bloqueo de puertos en Render, luego SMTP
@@ -78,6 +78,18 @@ app:
   jwt:
     secret: ${JWT_SECRET:CiudadActivaSecretKey2026SecureKeyWithMoreThan256BitsLongForHMACSHA256Algorithm}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000} # 24 horas
+  gemini:
+    api-key: ${GEMINI_API_KEY:}
+  fcm:
+    server-key: ${FCM_SERVER_KEY:}
+    project-id: ${FIREBASE_PROJECT_ID:ciudadactiva-app}
+
+# Configuración opcional para Base de Datos Secundaria EXCLUSIVA de Imágenes
+spring:
+  image-datasource:
+    url: ${SPRING_IMAGE_DATASOURCE_URL:}
+    username: ${SPRING_IMAGE_DATASOURCE_USERNAME:}
+    password: ${SPRING_IMAGE_DATASOURCE_PASSWORD:}
 
 # Configuración de Actuator y Health Check
 management:

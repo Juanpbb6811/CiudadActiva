@@ -31,6 +31,10 @@ public class ReporteService {
     private final ComentarioRepository comentarioRepository;
     private final com.ciudadactiva.repository.ReporteImagenRepository reporteImagenRepository;
     private final com.ciudadactiva.util.ImageOptimizationUtil imageOptimizationUtil;
+    private final ImageStorageService imageStorageService;
+    private final GeminiVisionService geminiVisionService;
+    private final BogotaGeocodingService bogotaGeocodingService;
+    private final PushNotificationService pushNotificationService;
 
     public ReporteService(
             ReporteRepository reporteRepository,
@@ -40,7 +44,11 @@ public class ReporteService {
             AsignacionRepository asignacionRepository,
             ComentarioRepository comentarioRepository,
             com.ciudadactiva.repository.ReporteImagenRepository reporteImagenRepository,
-            com.ciudadactiva.util.ImageOptimizationUtil imageOptimizationUtil
+            com.ciudadactiva.util.ImageOptimizationUtil imageOptimizationUtil,
+            ImageStorageService imageStorageService,
+            GeminiVisionService geminiVisionService,
+            BogotaGeocodingService bogotaGeocodingService,
+            PushNotificationService pushNotificationService
     ) {
         this.reporteRepository = reporteRepository;
         this.categoriaRepository = categoriaRepository;
@@ -50,6 +58,10 @@ public class ReporteService {
         this.comentarioRepository = comentarioRepository;
         this.reporteImagenRepository = reporteImagenRepository;
         this.imageOptimizationUtil = imageOptimizationUtil;
+        this.imageStorageService = imageStorageService;
+        this.geminiVisionService = geminiVisionService;
+        this.bogotaGeocodingService = bogotaGeocodingService;
+        this.pushNotificationService = pushNotificationService;
     }
 
     // ================== RF02: REGISTRO DE REPORTES (JSON / BASE64) ==================
@@ -140,15 +152,21 @@ public class ReporteService {
         Categoria categoria = categoriaRepository.findById(categoriaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada: " + categoriaId));
 
+        // API IDECA / Catastro Bogotá: Normalización de nomenclatura urbana y barrio
+        com.ciudadactiva.dto.reporte.DireccionBogota dirInfo = bogotaGeocodingService.georreferenciarInversa(latitud, longitud, direccion);
+        String dirFinal = (direccion != null && !direccion.isBlank()) ? direccion : dirInfo.direccionFormateada();
+        String barrioFinal = (barrio != null && !barrio.isBlank()) ? barrio : dirInfo.barrio();
+        String ciudadFinal = (ciudad != null && !ciudad.isBlank()) ? ciudad : dirInfo.localidad();
+
         Reporte reporte = new Reporte(
                 titulo,
                 descripcion,
                 latitud,
                 longitud,
-                direccion,
-                ciudad != null && !ciudad.isBlank() ? ciudad : "Bogotá D.C.",
+                dirFinal,
+                ciudadFinal,
                 departamento != null && !departamento.isBlank() ? departamento : "Cundinamarca",
-                barrio != null && !barrio.isBlank() ? barrio : "Chapinero",
+                barrioFinal,
                 null,
                 categoria,
                 ciudadano
@@ -167,10 +185,19 @@ public class ReporteService {
         Reporte guardado = reporteRepository.save(reporte);
         escalarPrioridadCluster(guardado.getLatitud(), guardado.getLongitud(), categoria.getId(), guardado.getId(), prioridadCalculada);
 
+        String notaSeguimiento = "Incidencia registrada con fotografía tomada directamente desde la cámara del móvil";
+
         if (optimizado != null) {
-            reporteImagenRepository.save(new com.ciudadactiva.entity.ReporteImagen(guardado, optimizado.bytes(), optimizado.mimeType(), foto.getOriginalFilename()));
+            // Guardado en Base de Datos Exclusiva de Imágenes (Multi-DB Architecture)
+            imageStorageService.guardarImagen(guardado, optimizado.bytes(), optimizado.mimeType(), foto.getOriginalFilename());
             guardado.setImagenUrl("/api/reportes/" + guardado.getId() + "/imagen");
             guardado = reporteRepository.save(guardado);
+
+            // API Google Gemini Vision: Autotriage y evaluación preliminar
+            var aiAnalysis = geminiVisionService.analizarFotoReporte(optimizado.bytes(), optimizado.mimeType());
+            if (aiAnalysis != null && aiAnalysis.diagnostico() != null && !aiAnalysis.diagnostico().isBlank()) {
+                notaSeguimiento += " • [Diagnóstico IA: " + aiAnalysis.diagnostico() + " | Severidad sugerida: " + aiAnalysis.prioridadSugerida() + "]";
+            }
         }
 
         Seguimiento primerSeguimiento = new Seguimiento(
@@ -179,7 +206,7 @@ public class ReporteService {
                 null,
                 EstadoReporte.PENDIENTE,
                 "CREACION_REPORTE",
-                "Incidencia registrada con fotografía tomada directamente desde la cámara del móvil",
+                notaSeguimiento,
                 guardado.getImagenUrl()
         );
         seguimientoRepository.save(primerSeguimiento);
@@ -204,7 +231,7 @@ public class ReporteService {
         reporte.setImagenUrl("/api/reportes/" + reporte.getId() + "/imagen");
 
         Reporte guardado = reporteRepository.save(reporte);
-        reporteImagenRepository.save(new com.ciudadactiva.entity.ReporteImagen(guardado, opt.bytes(), opt.mimeType(), foto.getOriginalFilename()));
+        imageStorageService.guardarImagen(guardado, opt.bytes(), opt.mimeType(), foto.getOriginalFilename());
 
         Usuario usuario = usuarioRepository.findByEmail(emailUsuario).orElse(null);
         Seguimiento seguimiento = new Seguimiento(
@@ -257,10 +284,9 @@ public class ReporteService {
     // ================== CONSULTAR FOTOS BINARIAS ==================
     @Transactional(readOnly = true)
     public FotoData obtenerFotoReporte(Long reporteId) {
-        var imgOpt = reporteImagenRepository.findFirstByReporteIdOrderByIdDesc(reporteId);
+        var imgOpt = imageStorageService.obtenerImagen(reporteId);
         if (imgOpt.isPresent()) {
-            var img = imgOpt.get();
-            return new FotoData(img.getDatosBinarios(), img.getTipoMime());
+            return imgOpt.get();
         }
 
         Reporte reporte = buscarPorId(reporteId);
@@ -389,7 +415,23 @@ public class ReporteService {
             seguimientoRepository.save(seguimiento);
         }
 
-        return mapearReporteResponse(reporteRepository.save(reporte));
+        Reporte guardado = reporteRepository.save(reporte);
+
+        // Notificación Push en tiempo real al ciudadano
+        if (guardado.getCiudadano() != null) {
+            String motivoValidacion = request.getJustificacion() != null ? request.getJustificacion() : "Validación de reporte por gestor municipal";
+            pushNotificationService.notificarCambioEstado(
+                    guardado.getId(),
+                    guardado.getCodigoSeguimiento(),
+                    estadoAnterior.name(),
+                    guardado.getEstado().name(),
+                    guardado.getCiudadano().getEmail(),
+                    guardado.getCiudadano().getNombre(),
+                    motivoValidacion
+            );
+        }
+
+        return mapearReporteResponse(guardado);
     }
 
     // ================== MODIFICAR PRIORIDAD (GESTOR) ==================
@@ -454,7 +496,22 @@ public class ReporteService {
         );
         seguimientoRepository.save(seg);
 
-        return mapearReporteResponse(reporteRepository.save(reporte));
+        Reporte guardado = reporteRepository.save(reporte);
+
+        // Notificación Push en tiempo real al ciudadano
+        if (guardado.getCiudadano() != null) {
+            pushNotificationService.notificarCambioEstado(
+                    guardado.getId(),
+                    guardado.getCodigoSeguimiento(),
+                    estadoAnterior.name(),
+                    guardado.getEstado().name(),
+                    guardado.getCiudadano().getEmail(),
+                    guardado.getCiudadano().getNombre(),
+                    obs
+            );
+        }
+
+        return mapearReporteResponse(guardado);
     }
 
     // ================== RF08: CIERRE DE REPORTES (OPERADOR / GESTOR / ADMIN) ==================
@@ -507,7 +564,22 @@ public class ReporteService {
             asignacionRepository.save(asig);
         });
 
-        return mapearReporteResponse(reporteRepository.save(reporte));
+        Reporte guardado = reporteRepository.save(reporte);
+
+        // Notificación Push en tiempo real al ciudadano
+        if (guardado.getCiudadano() != null) {
+            pushNotificationService.notificarCambioEstado(
+                    guardado.getId(),
+                    guardado.getCodigoSeguimiento(),
+                    estadoAnterior.name(),
+                    guardado.getEstado().name(),
+                    guardado.getCiudadano().getEmail(),
+                    guardado.getCiudadano().getNombre(),
+                    observaciones
+            );
+        }
+
+        return mapearReporteResponse(guardado);
     }
 
     private void validarPermisoModificacion(Reporte reporte, String emailUsuario) {
