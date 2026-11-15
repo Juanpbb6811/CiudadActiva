@@ -31,6 +31,12 @@ spring:
       max-lifetime: 600000
       leak-detection-threshold: 60000
 
+  # Configuración para Base de Datos Secundaria EXCLUSIVA de Imágenes (Neon Serverless Postgres)
+  image-datasource:
+    url: ${SPRING_IMAGE_DATASOURCE_URL:}
+    username: ${SPRING_IMAGE_DATASOURCE_USERNAME:}
+    password: ${SPRING_IMAGE_DATASOURCE_PASSWORD:}
+
   jpa:
     hibernate:
       ddl-auto: ${JPA_DDL_AUTO:none}
@@ -83,13 +89,6 @@ app:
   fcm:
     server-key: ${FCM_SERVER_KEY:}
     project-id: ${FIREBASE_PROJECT_ID:ciudadactiva-app}
-
-# Configuración opcional para Base de Datos Secundaria EXCLUSIVA de Imágenes
-spring:
-  image-datasource:
-    url: ${SPRING_IMAGE_DATASOURCE_URL:}
-    username: ${SPRING_IMAGE_DATASOURCE_USERNAME:}
-    password: ${SPRING_IMAGE_DATASOURCE_PASSWORD:}
 
 # Configuración de Actuator y Health Check
 management:
