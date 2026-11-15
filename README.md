@@ -4,36 +4,44 @@ Sistema integral para el reporte, validación, asignación operativa y seguimien
 
 ---
 
-## 📲 Descargar App Android (Release v0.2.3)
+## 📲 Descargar App Android (Release v0.2.5)
 
 Ya puedes instalar y probar la versión oficial y firmada de CiudadActiva directamente en tu dispositivo Android o emulador:
 
-[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.2.3_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.2.3.apk)
+[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.2.5_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/releases/download/v0.2.5/CiudadActiva-v0.2.5.apk)
 [![Servidor Cloud](https://img.shields.io/badge/Descarga_Directa-Cloud_Render-blueviolet?style=for-the-badge&logo=render&logoColor=white)](https://ciudadactiva-4ah7.onrender.com/descargar)
-[![GitHub Release](https://img.shields.io/badge/Release_Tag-v0.2.3-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.2.3)
+[![GitHub Release](https://img.shields.io/badge/GitHub_Release-v0.2.5-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.2.5)
 
 ### 📥 Enlaces de descarga directa:
-* 🌐 **[Servidor Oficial en la Nube (Render): Descargar CiudadActiva-v0.2.3.apk (12.3 MB)](https://ciudadactiva-4ah7.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
-* 🐙 **[GitHub Directo: Descargar CiudadActiva-v0.2.3.apk (12.3 MB)](https://github.com/Juanpbb6811/CiudadActiva/raw/main/releases/CiudadActiva-v0.2.3.apk)**
+* 🌐 **[Servidor Oficial en la Nube (Render): Descargar CiudadActiva-v0.2.5.apk (12.3 MB)](https://ciudadactiva-4ah7.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
+* 🐙 **[GitHub Release Oficial: Descargar CiudadActiva-v0.2.5.apk (12.3 MB)](https://github.com/Juanpbb6811/CiudadActiva/releases/download/v0.2.5/CiudadActiva-v0.2.5.apk)**
+* 📦 **[Apartado Oficial de Releases en GitHub](https://github.com/Juanpbb6811/CiudadActiva/releases)**
 
 ### 🛠️ Instrucciones de Instalación en Android:
-1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.2.3.apk`.
+1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.2.5.apk`.
 2. Al finalizar la descarga, presiona **Abrir** (o ve a tu app de **Archivos / Descargas** y tócalo).
 3. Si el sistema muestra el aviso de seguridad de Android / Xiaomi, activa la opción **Confiar en esta fuente / Instalar aplicaciones desconocidas**.
 4. Pulsa **Instalar** y ¡listo!
 
-### ✨ Novedades de la versión v0.2.3:
-- 🌙 **Modo Oscuro Integrado (Dark Theme)**:
-  - Nueva paleta visual adaptada para ahorro de batería y confort visual nocturno en Jetpack Compose.
-- 🇨🇴 **Registro Legal de Ciudadanos Colombianos**:
-  - Registro de ciudadanos con nombres completos (primer nombre, segundo nombre opcional, apellidos).
-  - Selector de documentos de identidad oficiales de Colombia: Cédula de Ciudadanía (`CC`), Tarjeta de Identidad (`TI`), Cédula de Extranjería (`CE`), Pasaporte y Permiso de Protección Temporal (`PPT`).
-  - Validación obligatoria de número de teléfono móvil y dirección física en Colombia.
-- 🔑 **Vinculación e Inicio de Sesión con Google**:
-  - Integración nativa de Google Sign-In mediante Google Cloud Console OAuth 2.0 y Android Credential Manager.
-- ⚡ **Optimización de Fotos y Arquitectura Híbrida**:
-  - Almacenamiento desacoplado y optimizado en binario nativo `BYTEA` sobre base de datos Neon Serverless dedicada.
-  - Compresión y redimensionamiento inteligente previo al almacenamiento.
+### ✨ Novedades de la versión v0.2.5:
+- 🌿 **Diseño Botánico Integral ("Botanical Specimen")**:
+  - Nueva identidad visual inspirada en un cuaderno de campo botánico contemporáneo.
+  - Modo claro con fondo menta pastel descansado (`#EDF5F0`), tarjetas blancas estructuradas y tipografía verde bosque profundo de alto contraste (`#182B24`).
+  - Modo oscuro con fondo botánico profundo inmersivo (`#041711`) y tipografía menta clara (`#E0F6EB`).
+  - Botones principales de acción con gradiente continuo de Salvia vegetal (`#7CA38E`) a Oro arena cálido (`#C9A679`).
+- 📱 **Selector Dinámico de Modo Visual**:
+  - Selector reactivo en la pestaña de Perfil y acceso rápido en la pantalla de Login con 3 modalidades:
+    - 📱 **Automático (Sistema)** *(Predeterminado por defecto)*.
+    - ☀️ **Modo Claro**.
+    - 🌙 **Modo Oscuro**.
+- 👤 **Rediseño Editorial de la Ficha Ciudadana (Perfil)**:
+  - Ficha organizada con avatar amplio, botón flotante de captura fotográfica, credencial con ID único y campos en cápsulas redondeadas de alto confort visual.
+  - Gestión voluntaria de información de contacto (nombre, teléfono, correo, documento y dirección).
+- 🔓 **Restauración del Inicio de Sesión Tradicional**:
+  - Acceso directo y expedito sin formularios bloqueantes ni avisos obligatorios.
+  - Inicio de sesión y vinculación simplificada con cuentas de Google.
+- 🤖 **Triaje Inteligente con Visión Artificial (Gemini Vision AI)**:
+  - Clasificación automática de severidad, nivel de urgencia y categoría recomendada para los reportes ciudadanos en la base de datos.
 
 ---
 
