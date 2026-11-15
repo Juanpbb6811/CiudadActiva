@@ -122,7 +122,7 @@ fun CiudadActivaBottomBar(
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Nuevo Reporte",
-                    tint = Color.White,
+                    tint = BrandTealDark,
                     modifier = Modifier.size(32.dp)
                 )
             }

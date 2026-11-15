@@ -31,15 +31,11 @@ fun SplashScreen(
         val session = CiudadActivaApplication.sessionManager
         if (session.isLoggedIn()) {
             val rol = session.getRol()
-            if (rol == "ROLE_CIUDADANO" && !session.areDatosLegalesCompletos()) {
-                onNavigateNext(Screen.CompletarDatosCiudadano.route)
-            } else {
-                when (rol) {
-                    "ROLE_GESTOR" -> onNavigateNext(Screen.GestorDashboard.route)
-                    "ROLE_OPERADOR" -> onNavigateNext(Screen.OperadorTareas.route)
-                    "ROLE_ADMIN" -> onNavigateNext(Screen.AdminPanel.route)
-                    else -> onNavigateNext(Screen.CiudadanoHome.route)
-                }
+            when (rol) {
+                "ROLE_GESTOR" -> onNavigateNext(Screen.GestorDashboard.route)
+                "ROLE_OPERADOR" -> onNavigateNext(Screen.OperadorTareas.route)
+                "ROLE_ADMIN" -> onNavigateNext(Screen.AdminPanel.route)
+                else -> onNavigateNext(Screen.CiudadanoHome.route)
             }
         } else {
             onNavigateNext(Screen.Login.route)

@@ -2,32 +2,58 @@ package com.ciudadactiva.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Paleta Oficial CiudadActiva
-val BrandTealDark = Color(0xFF113233)
-val BrandTealMedium = Color(0xFF1E4C4E)
-val BrandTealLight = Color(0xFF74A596)
-val BrandCopper = Color(0xFFD4A373)
-val BrandCopperLight = Color(0xFFE9C496)
+// Paleta Oficial Botanical Specimen
+val BotanicalSandGold = Color(0xFFC9A679)
+val BotanicalSandGoldDark = Color(0xFF755933)
+val BotanicalSageGreen = Color(0xFF7CA38E)
+val BotanicalForestGreen = Color(0xFF182B24)
+val BotanicalSecondarySlate = Color(0xFF52665E)
 
-// Paleta Modo Claro (Light Theme)
-val BackgroundLight = Color(0xFFF8F9FA)
-val SurfaceCardLight = Color(0xFFFFFFFF)
-val SurfaceVariantLight = Color(0xFFEDF2F1)
-val SurfaceBorderLight = Color(0xFFD5E0DD)
-val TextPrimaryLight = Color(0xFF113233)
-val TextMutedLight = Color(0xFF6C757D)
+// Modo Claro Botanical Specimen
+val BotanicalLightBackground = Color(0xFFEDF5F0)
+val BotanicalLightSurface = Color(0xFFFFFFFF)
+val BotanicalLightSurfaceContainer = Color(0xFFDDF3E9)
+val BotanicalLightSurfaceVariant = Color(0xFFE2ECE6)
+val BotanicalLightOutline = Color(0xFFB8CCC0)
+val BotanicalLightTextPrimary = Color(0xFF182B24)
+val BotanicalLightTextSecondary = Color(0xFF52665E)
+
+// Modo Oscuro Botanical Specimen
+val BotanicalDarkBackground = Color(0xFF041711)
+val BotanicalDarkSurface = Color(0xFF10231D)
+val BotanicalDarkSurfaceVariant = Color(0xFF1B2E27)
+val BotanicalDarkOutline = Color(0xFF3A4E45)
+val BotanicalDarkTextPrimary = Color(0xFFE0F6EB)
+val BotanicalDarkTextSecondary = Color(0xFFA7D0B9)
+val BotanicalDarkPrimary = Color(0xFFE6C192)
+val BotanicalDarkSecondary = Color(0xFFA7D0B9)
+val BotanicalDarkSecondaryContainer = Color(0xFF294E3D)
+val BotanicalDarkOnPrimary = Color(0xFF121C18)
+
+// Aliases para compatibilidad con código existente
+val BrandTealDark = BotanicalForestGreen
+val BrandTealMedium = Color(0xFF416654)
+val BrandTealLight = BotanicalSageGreen
+val BrandCopper = BotanicalSandGold
+val BrandCopperLight = Color(0xFFE5C092)
+
+val BackgroundLight = BotanicalLightBackground
+val SurfaceCardLight = BotanicalLightSurface
+val SurfaceVariantLight = BotanicalLightSurfaceVariant
+val SurfaceBorderLight = BotanicalLightOutline
+val TextPrimaryLight = BotanicalLightTextPrimary
+val TextMutedLight = BotanicalLightTextSecondary
 val OnPrimaryLight = Color(0xFFFFFFFF)
 
-// Paleta Modo Oscuro (Dark Theme) - Alto Contraste WCAG AAA
-val DarkBackground = Color(0xFF0C1819)
-val DarkSurfaceCard = Color(0xFF142728)
-val DarkSurfaceVariant = Color(0xFF1D3739)
-val DarkSurfaceBorder = Color(0xFF2E5154)
-val DarkTextPrimary = Color(0xFFE6F0EE)
-val DarkTextMuted = Color(0xFF9EBCB7)
-val DarkBrandTeal = Color(0xFF74A596)
-val DarkBrandCopper = Color(0xFFE5B88F)
-val DarkOnPrimary = Color(0xFF0C1819)
+val DarkBackground = BotanicalDarkBackground
+val DarkSurfaceCard = BotanicalDarkSurface
+val DarkSurfaceVariant = BotanicalDarkSurfaceVariant
+val DarkSurfaceBorder = BotanicalDarkOutline
+val DarkTextPrimary = BotanicalDarkTextPrimary
+val DarkTextMuted = BotanicalDarkTextSecondary
+val DarkBrandTeal = BotanicalSageGreen
+val DarkBrandCopper = BotanicalDarkPrimary
+val DarkOnPrimary = BotanicalDarkOnPrimary
 
 // Compatibilidad con referencias previas
 val SurfaceCard = SurfaceCardLight

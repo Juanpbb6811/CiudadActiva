@@ -90,19 +90,12 @@ fun LoginScreen(
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Success) {
             val rol = (uiState as AuthUiState.Success).rol
-            val sessionManager = CiudadActivaApplication.sessionManager
-            if (rol == "ROLE_CIUDADANO" && !sessionManager.areDatosLegalesCompletos()) {
-                onLoginSuccess(Screen.CompletarDatosCiudadano.route)
-            } else {
-                when (rol) {
-                    "ROLE_GESTOR" -> onLoginSuccess(Screen.GestorDashboard.route)
-                    "ROLE_OPERADOR" -> onLoginSuccess(Screen.OperadorTareas.route)
-                    "ROLE_ADMIN" -> onLoginSuccess(Screen.AdminPanel.route)
-                    else -> onLoginSuccess(Screen.CiudadanoHome.route)
-                }
+            when (rol) {
+                "ROLE_GESTOR" -> onLoginSuccess(Screen.GestorDashboard.route)
+                "ROLE_OPERADOR" -> onLoginSuccess(Screen.OperadorTareas.route)
+                "ROLE_ADMIN" -> onLoginSuccess(Screen.AdminPanel.route)
+                else -> onLoginSuccess(Screen.CiudadanoHome.route)
             }
-        } else if (uiState is AuthUiState.RequiereDatosLegales) {
-            onLoginSuccess(Screen.CompletarDatosCiudadano.route)
         } else if (uiState is AuthUiState.RequiereVerificacion) {
             val req = uiState as AuthUiState.RequiereVerificacion
             showVerificarDialog = req.email to req.demoCode
@@ -427,7 +420,7 @@ fun LoginScreen(
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(
-                            text = "Ingresa tu cuenta de Google (Gmail) para acceder con tu cuenta de ciudadano vinculada:",
+                            text = "Ingresa tu cuenta de Google (Gmail) para acceder o crear tu cuenta:",
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

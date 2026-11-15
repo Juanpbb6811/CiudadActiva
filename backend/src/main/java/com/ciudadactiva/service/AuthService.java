@@ -117,7 +117,7 @@ public class AuthService {
         boolean esDemoAna = "ciudadano@ciudadactiva.gov.co".equalsIgnoreCase(usuario.getEmail());
         boolean esStaff = usuario.getRol() != null && usuario.getRol().getNombre() != RolNombre.ROLE_CIUDADANO;
         boolean legalCompleto = esDemoAna || esStaff || esCiudadanoLegalCompleto(usuario);
-        response.setRequiereCompletarDatosLegales(!legalCompleto);
+        response.setRequiereCompletarDatosLegales(false);
 
         return response;
     }
@@ -142,14 +142,41 @@ public class AuthService {
         String email = request.getEmail().trim().toLowerCase();
         Optional<Usuario> existenteOpt = usuarioRepository.findByEmail(email);
 
-        if (existenteOpt.isEmpty()) {
-            throw new UnauthorizedException("La cuenta de Google (" + email + ") no se encuentra vinculada a ningún ciudadano registrado. Por favor regístrese formalmente con sus documentos oficiales de Colombia.");
-        }
+        Usuario usuario;
+        if (existenteOpt.isPresent()) {
+            usuario = existenteOpt.get();
+            if (request.getGoogleId() != null && (usuario.getGoogleId() == null || usuario.getGoogleId().isBlank())) {
+                usuario.setGoogleId(request.getGoogleId());
+                usuarioRepository.save(usuario);
+            }
+        } else {
+            // Flujo tradicional: registro automático de nuevo usuario de Google
+            Rol rolCiudadano = rolRepository.findByNombre(RolNombre.ROLE_CIUDADANO)
+                    .orElseGet(() -> rolRepository.save(new Rol(RolNombre.ROLE_CIUDADANO, "Rol Ciudadano")));
 
-        Usuario usuario = existenteOpt.get();
-        if (request.getGoogleId() != null && (usuario.getGoogleId() == null || usuario.getGoogleId().isBlank())) {
+            TipoDocumento tipoDoc = request.getTipoDocumento() != null ? request.getTipoDocumento() : TipoDocumento.CC;
+
+            usuario = new Usuario(
+                    request.getPrimerNombre(),
+                    request.getSegundoNombre(),
+                    request.getPrimerApellido(),
+                    request.getSegundoApellido(),
+                    tipoDoc,
+                    request.getNumeroDocumento() != null ? request.getNumeroDocumento() : "GOOGLE-CIUDADANO",
+                    email,
+                    passwordEncoder.encode(tokenCryptoUtil.generateRawToken()),
+                    request.getTelefono() != null ? request.getTelefono() : "3000000000",
+                    request.getDireccion() != null ? request.getDireccion() : "Bogotá D.C.",
+                    rolCiudadano
+            );
+
+            if (request.getDisplayName() != null && !request.getDisplayName().isBlank()) {
+                usuario.setNombre(request.getDisplayName());
+            }
             usuario.setGoogleId(request.getGoogleId());
-            usuarioRepository.save(usuario);
+            usuario.setActivo(true);
+            usuario.setVerificado(true);
+            usuario = usuarioRepository.save(usuario);
         }
 
         if (!Boolean.TRUE.equals(usuario.getActivo())) {
@@ -159,11 +186,7 @@ public class AuthService {
         String token = jwtTokenProvider.generarToken(usuario);
         AuthResponse response = new AuthResponse(token, new UsuarioResponse(usuario));
         response.setRequiereVerificacion(false);
-
-        boolean esDemoAna = "ciudadano@ciudadactiva.gov.co".equalsIgnoreCase(usuario.getEmail());
-        boolean esStaff = usuario.getRol() != null && usuario.getRol().getNombre() != RolNombre.ROLE_CIUDADANO;
-        boolean legalCompleto = esDemoAna || esStaff || esCiudadanoLegalCompleto(usuario);
-        response.setRequiereCompletarDatosLegales(!legalCompleto);
+        response.setRequiereCompletarDatosLegales(false);
 
         return response;
     }
