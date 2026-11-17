@@ -1,6 +1,7 @@
 package com.ciudadactiva.controller;
 
 import com.ciudadactiva.dto.common.ApiResponse;
+import com.ciudadactiva.dto.common.EstadoActivoRequest;
 import com.ciudadactiva.dto.seguimiento.SeguimientoResponse;
 import com.ciudadactiva.dto.usuario.CambiarRolRequest;
 import com.ciudadactiva.dto.usuario.UsuarioCreateRequest;
@@ -118,6 +119,19 @@ public class UsuarioController {
     ) {
         UsuarioResponse response = usuarioService.cambiarRol(id, request);
         return ResponseEntity.ok(ApiResponse.ok("Rol de usuario modificado con éxito", response));
+    }
+
+    @PatchMapping("/admin/usuarios/{id}/estado")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Activar / Desactivar Usuario (Admin)", description = "Baja lógica (activo=false) o reactivación. Nunca elimina físicamente (RNF08).")
+    public ResponseEntity<ApiResponse<UsuarioResponse>> cambiarEstadoUsuario(
+            @PathVariable Long id,
+            Principal principal,
+            @Valid @RequestBody EstadoActivoRequest request
+    ) {
+        UsuarioResponse response = usuarioService.cambiarEstadoActivo(id, request.getActivo(), principal.getName());
+        String msg = Boolean.TRUE.equals(request.getActivo()) ? "Usuario activado" : "Usuario desactivado lógicamente";
+        return ResponseEntity.ok(ApiResponse.ok(msg, response));
     }
 
     @DeleteMapping("/admin/usuarios/{id}")

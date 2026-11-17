@@ -6,12 +6,16 @@ import com.ciudadactiva.entity.Categoria;
 import com.ciudadactiva.entity.EstadoReporte;
 import com.ciudadactiva.entity.PrioridadReporte;
 import com.ciudadactiva.entity.Reporte;
+import com.ciudadactiva.exception.BadRequestException;
 import com.ciudadactiva.repository.CategoriaRepository;
 import com.ciudadactiva.repository.ReporteRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,10 +34,32 @@ public class EstadisticaService {
     // ================== RF09: INDICADORES ESTADÍSTICOS ==================
     @Transactional(readOnly = true)
     public EstadisticasResponse obtenerEstadisticas() {
-        List<Reporte> todosLosReportes = reporteRepository.findAll();
+        return obtenerEstadisticas(null, null);
+    }
+
+    /**
+     * RF09 / CP10: indicadores filtrados por rango de fechas de creación (ambos extremos inclusivos).
+     * Si fechaInicio > fechaFin se lanza 400 (rango ilógico).
+     */
+    @Transactional(readOnly = true)
+    public EstadisticasResponse obtenerEstadisticas(LocalDate fechaInicio, LocalDate fechaFin) {
+        if (fechaInicio != null && fechaFin != null && fechaInicio.isAfter(fechaFin)) {
+            throw new BadRequestException("Rango de fechas inválido: la fecha de inicio (" + fechaInicio
+                    + ") no puede ser posterior a la fecha de fin (" + fechaFin + ").");
+        }
+        final LocalDateTime desde = fechaInicio != null ? fechaInicio.atStartOfDay() : null;
+        final LocalDateTime hastaExcl = fechaFin != null ? fechaFin.plusDays(1).atStartOfDay() : null;
+
+        List<Reporte> todosLosReportes = reporteRepository.findAll().stream()
+                .filter(r -> r.getCreadoEn() != null)
+                .filter(r -> desde == null || !r.getCreadoEn().isBefore(desde))
+                .filter(r -> hastaExcl == null || r.getCreadoEn().isBefore(hastaExcl))
+                .collect(Collectors.toList());
         List<Categoria> todasLasCategorias = categoriaRepository.findAll();
 
         EstadisticasResponse response = new EstadisticasResponse();
+        response.setFechaInicio(fechaInicio);
+        response.setFechaFin(fechaFin);
         response.setTotalReportes(todosLosReportes.size());
 
         // Conteo por Estado
@@ -84,6 +110,12 @@ public class EstadisticaService {
         response.setReportesAtendidosOCerrados(cerrados);
         response.setReportesPendientes(pendientes);
 
+        long rechazados = porEstado.getOrDefault(EstadoReporte.RECHAZADO.name(), 0L);
+        response.setReportesRechazados(rechazados);
+        long total = response.getTotalReportes();
+        response.setPorcentajeAtendidas(total > 0 ? Math.round(cerrados * 10000.0 / total) / 100.0 : 0.0);
+        response.setPorcentajeRechazadas(total > 0 ? Math.round(rechazados * 10000.0 / total) / 100.0 : 0.0);
+
         // Semáforo Global basado en reportes pendientes / activos o totales
         response.setSemaforoGlobal(SemaforoDTO.calcular((int) response.getTotalReportes()));
 
@@ -101,6 +133,7 @@ public class EstadisticaService {
 
         double promedio = totalCerradosConFecha > 0 ? (totalHoras / totalCerradosConFecha) : 0.0;
         response.setTiempoPromedioAtencionHoras(Math.round(promedio * 100.0) / 100.0);
+        response.setReportesCerradosConTiempo(totalCerradosConFecha);
 
         return response;
     }

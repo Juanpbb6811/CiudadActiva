@@ -315,6 +315,29 @@ public class ReporteService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * RF10 / CP11: reportes con coordenadas para el mapa interactivo del gestor.
+     * Mapeo liviano (sin cálculo de clúster por reporte) para que el mapa cargue rápido.
+     */
+    @Transactional(readOnly = true)
+    public List<ReporteResponse> obtenerGeolocalizados(Long categoriaId, EstadoReporte estado) {
+        return reporteRepository.filtrarReportes(categoriaId, estado, null, null).stream()
+                .filter(r -> r.getLatitud() != null && r.getLongitud() != null)
+                .map(r -> {
+                    ReporteResponse res = new ReporteResponse(r);
+                    // imagenUrl puede traer Base64 pesado: el mapa usa /api/reportes/{id}/foto
+                    if (res.getImagenUrl() != null && res.getImagenUrl().startsWith("data:")) {
+                        res.setImagenUrl(null);
+                    }
+                    asignacionRepository.findByReporte_IdAndActivaTrue(r.getId())
+                            .ifPresent(a -> {
+                                if (a.getOperador() != null) res.setOperadorAsignadoNombre(a.getOperador().getNombre());
+                            });
+                    return res;
+                })
+                .collect(Collectors.toList());
+    }
+
     @Transactional(readOnly = true)
     public List<ReporteResponse> obtenerMisReportes(String emailCiudadano) {
         Usuario ciudadano = usuarioRepository.findByEmail(emailCiudadano)
@@ -369,6 +392,16 @@ public class ReporteService {
                 .orElseThrow(() -> new ResourceNotFoundException("Gestor no encontrado: " + emailGestor));
 
         EstadoReporte estadoAnterior = reporte.getEstado();
+
+        // RN04: Máquina de estados. Solo se validan reportes PENDIENTE o EN_REVISION.
+        if (estadoAnterior != EstadoReporte.PENDIENTE && estadoAnterior != EstadoReporte.EN_REVISION) {
+            throw new BusinessRuleException("RN04: Solo se pueden validar reportes en estado PENDIENTE o EN_REVISION. Estado actual: " + estadoAnterior);
+        }
+
+        // RN02: Todo reporte admitido debe recibir una prioridad oficial
+        if (Boolean.TRUE.equals(request.getAdmitido()) && request.getPrioridad() == null) {
+            throw new BusinessRuleException("RN02: Para admitir un reporte es obligatorio asignar la prioridad oficial (BAJA, MEDIA, ALTA o CRITICA).");
+        }
 
         // Regla 1: Todo reporte rechazado DEBE incluir una justificación clara y visible
         if (Boolean.FALSE.equals(request.getAdmitido())) {

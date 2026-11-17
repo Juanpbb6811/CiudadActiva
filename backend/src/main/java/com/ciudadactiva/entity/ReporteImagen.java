@@ -15,7 +15,6 @@ public class ReporteImagen {
     @JoinColumn(name = "reporte_id", nullable = false)
     private Reporte reporte;
 
-    @Lob
     @Column(name = "datos_binarios", nullable = false, columnDefinition = "BYTEA")
     private byte[] datosBinarios;
 

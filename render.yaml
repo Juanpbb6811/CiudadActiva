@@ -1,6 +1,6 @@
 # =======================================================================
 # Render Blueprint (render.yaml) - CiudadActiva Full Stack
-# Orquesta el despliegue del Backend (Spring Boot) y Frontend Web (Angular 19)
+# Orquesta el despliegue del Backend (Spring Boot) y Frontend Web (Angular 20)
 # =======================================================================
 
 services:
@@ -19,11 +19,12 @@ services:
       - key: PORT
         value: 10000
       - key: SPRING_DATASOURCE_URL
-        value: jdbc:postgresql://aws-0-us-east-2.pooler.supabase.com:5432/postgres?sslmode=require
+        value: jdbc:postgresql://aws-1-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require
       - key: SPRING_DATASOURCE_USERNAME
-        value: postgres.otbdykjhvusjkzjzclqw
+        value: postgres.pfrnobukesevbtcfhbfr
+      # La contraseña NO va en el repo: Render la pide al crear el Blueprint (sync: false)
       - key: SPRING_DATASOURCE_PASSWORD
-        value: XoUF92rHTaxms6lj
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: JPA_DDL_AUTO
@@ -34,7 +35,7 @@ services:
         sync: false
 
   # -------------------------------------------------------------------
-  # 2. Frontend Web (Angular 19 / Leaflet / SPA Static Site)
+  # 2. Frontend Web (Angular 20 / Material / Leaflet / SPA Static Site)
   # -------------------------------------------------------------------
   - type: web
     name: ciudadactiva-web
@@ -42,6 +43,9 @@ services:
     rootDir: web
     buildCommand: npm install && npm run build
     staticPublishPath: dist/ciudadactiva-web/browser
+    envVars:
+      - key: NODE_VERSION
+        value: 22.12.0
     routes:
       - type: rewrite
         source: /*

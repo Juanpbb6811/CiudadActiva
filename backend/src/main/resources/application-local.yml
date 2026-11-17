@@ -1,0 +1,23 @@
+# =======================================================================
+# Perfil: local (H2 en archivo, sin Supabase)
+# Para probar el backend y el portal web en tu PC sin credenciales de la base en la nube.
+#
+# IntelliJ:  Run > Edit Configurations > Active profiles: local
+# Maven:     mvn spring-boot:run "-Dspring-boot.run.profiles=local"
+#
+# Los datos quedan en backend/data/ (borra esa carpeta para empezar de cero).
+# DataInitializer crea roles, categorías, las 4 cuentas demo y 1 reporte de ejemplo.
+# Limitación: en H2 las fotos subidas como bytes quedan limitadas a 255 bytes,
+# así que la subida de fotos desde la app no funciona en este modo (en PostgreSQL sí).
+# =======================================================================
+spring:
+  datasource:
+    url: jdbc:h2:file:./data/ciudadactiva-local;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false

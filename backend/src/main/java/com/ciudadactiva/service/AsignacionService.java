@@ -43,8 +43,12 @@ public class AsignacionService {
         Reporte reporte = reporteRepository.findById(reporteId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reporte no encontrado con ID: " + reporteId));
 
+        // RN09: solo reportes admitidos (o ya en proceso, para reasignar) pueden recibir operador
         if (reporte.getEstado() == EstadoReporte.RECHAZADO || reporte.getEstado() == EstadoReporte.CERRADO) {
-            throw new BusinessRuleException("No se puede asignar un operador a un reporte que está " + reporte.getEstado());
+            throw new BusinessRuleException("RN09: No se puede asignar un operador a un reporte que está " + reporte.getEstado());
+        }
+        if (reporte.getEstado() != EstadoReporte.ADMITIDO && reporte.getEstado() != EstadoReporte.EN_PROCESO) {
+            throw new BusinessRuleException("RN09: Solo se pueden asignar operadores a reportes ADMITIDOS. Estado actual: " + reporte.getEstado());
         }
 
         Usuario gestor = usuarioRepository.findByEmail(emailGestor)
@@ -55,6 +59,9 @@ public class AsignacionService {
 
         if (operador.getRol() == null || operador.getRol().getNombre() != RolNombre.ROLE_OPERADOR) {
             throw new BadRequestException("El usuario seleccionado no tiene el rol de OPERADOR");
+        }
+        if (!Boolean.TRUE.equals(operador.getActivo())) {
+            throw new BusinessRuleException("El operador seleccionado está inactivo y no puede recibir asignaciones.");
         }
 
         // Si ya tenía asignación activa previa, se desactiva
@@ -147,5 +154,33 @@ public class AsignacionService {
                 null
         );
         seguimientoRepository.save(seg);
+    }
+
+    // ================== GESTOR: REASIGNAR (RN05 / RNF08) ==================
+    /**
+     * Reasigna una asignación activa a otro operador. La asignación previa se desactiva lógicamente
+     * (activa = false) y se crea una nueva, conservando el historial completo. Nunca se borra nada.
+     */
+    @Transactional
+    public AsignacionResponse reasignar(Long asignacionId, String emailGestor, AsignacionCreateRequest request) {
+        Asignacion actual = asignacionRepository.findById(asignacionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Asignación no encontrada con ID: " + asignacionId));
+
+        if (!Boolean.TRUE.equals(actual.getActiva())) {
+            throw new BusinessRuleException("Solo se pueden reasignar asignaciones activas.");
+        }
+        if (actual.getOperador() != null && actual.getOperador().getId().equals(request.getOperadorId())) {
+            throw new BusinessRuleException("El reporte ya está asignado a ese operador. Selecciona un operador diferente.");
+        }
+        // asignarOperador desactiva la previa, crea la nueva y registra REASIGNACION_OPERADOR en el seguimiento
+        return asignarOperador(actual.getReporte().getId(), emailGestor, request);
+    }
+
+    // ================== HISTORIAL DE ASIGNACIONES DE UN REPORTE ==================
+    @Transactional(readOnly = true)
+    public List<AsignacionResponse> historialPorReporte(Long reporteId) {
+        return asignacionRepository.findByReporte_IdOrderByCreadoEnDesc(reporteId).stream()
+                .map(AsignacionResponse::new)
+                .collect(Collectors.toList());
     }
 }

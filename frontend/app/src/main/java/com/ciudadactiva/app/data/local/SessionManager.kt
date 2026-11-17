@@ -150,7 +150,7 @@ class SessionManager(context: Context) {
 
     fun getBaseUrl(): String {
         val saved = prefs.getString(KEY_BASE_URL, null)
-        if (saved.isNullOrBlank() || saved.contains("192.168.1.22") || saved.contains("ciudadactiva-backend.onrender.com")) {
+        if (saved.isNullOrBlank()) {
             setBaseUrl(DEFAULT_BASE_URL)
             return DEFAULT_BASE_URL
         }

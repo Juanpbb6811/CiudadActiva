@@ -16,11 +16,12 @@ services:
       - key: PORT
         value: 10000
       - key: SPRING_DATASOURCE_URL
-        value: jdbc:postgresql://aws-0-us-east-2.pooler.supabase.com:5432/postgres?sslmode=require
+        value: jdbc:postgresql://aws-1-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require
       - key: SPRING_DATASOURCE_USERNAME
-        value: postgres.otbdykjhvusjkzjzclqw
+        value: postgres.pfrnobukesevbtcfhbfr
+      # La contraseña se configura en el panel de Render (no va en el repo)
       - key: SPRING_DATASOURCE_PASSWORD
-        value: XoUF92rHTaxms6lj
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: JPA_DDL_AUTO

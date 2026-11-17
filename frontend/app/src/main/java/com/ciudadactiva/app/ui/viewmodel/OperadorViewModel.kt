@@ -14,7 +14,7 @@ import java.io.ByteArrayOutputStream
 
 class OperadorViewModel : ViewModel() {
 
-    private val api = ApiClient.getService()
+    private val api get() = ApiClient.getService()
 
     val isLoading = MutableStateFlow(false)
     val errorMessage = MutableStateFlow<String?>(null)

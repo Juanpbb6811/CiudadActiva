@@ -4,6 +4,9 @@ server:
     context-path: /
 
 spring:
+  # Lee backend/.env si existe (solo desarrollo local; en Render se usan las variables del panel)
+  config:
+    import: "optional:file:.env[.properties],optional:file:backend/.env[.properties]"
   application:
     name: ciudadactiva-backend
 

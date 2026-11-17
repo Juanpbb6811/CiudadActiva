@@ -3,6 +3,7 @@ package com.ciudadactiva.controller;
 import com.ciudadactiva.dto.categoria.CategoriaRequest;
 import com.ciudadactiva.dto.categoria.CategoriaResponse;
 import com.ciudadactiva.dto.common.ApiResponse;
+import com.ciudadactiva.dto.common.EstadoActivoRequest;
 import com.ciudadactiva.service.CategoriaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -70,10 +71,22 @@ public class CategoriaController {
         return ResponseEntity.ok(ApiResponse.ok("Categoría actualizada con éxito", response));
     }
 
+    @PatchMapping("/{id}/estado")
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "BearerAuth")
+    @Operation(summary = "Activar / Desactivar Categoría (Admin)", description = "Baja lógica o reactivación de la categoría (RNF08). Body: { \"activo\": true|false }")
+    public ResponseEntity<ApiResponse<CategoriaResponse>> cambiarEstadoCategoria(
+            @PathVariable Long id,
+            @Valid @RequestBody EstadoActivoRequest request
+    ) {
+        CategoriaResponse response = categoriaService.cambiarEstado(id, request.getActivo());
+        return ResponseEntity.ok(ApiResponse.ok("Estado de la categoría actualizado", response));
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "BearerAuth")
-    @Operation(summary = "Eliminar o Inactivar Categoría (Admin)", description = "Elimina físicamente si no tiene reportes o la desactiva para mantener integridad.")
+    @Operation(summary = "Eliminar o Inactivar Categoría (Admin)", description = "Baja lógica: marca la categoría como inactiva (RNF08, sin DELETE físico).")
     public ResponseEntity<ApiResponse<Void>> eliminarCategoria(@PathVariable Long id) {
         categoriaService.eliminarODesactivarCategoria(id);
         return ResponseEntity.ok(ApiResponse.ok("Categoría eliminada o desactivada con éxito", null));

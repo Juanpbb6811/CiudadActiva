@@ -173,6 +173,29 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
     }
 
+    // ================== RF01 / RNF08: ACTIVAR / DESACTIVAR LÓGICAMENTE ==================
+    @Transactional
+    public UsuarioResponse cambiarEstadoActivo(Long id, boolean activo, String emailAdmin) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
+
+        if (!activo && emailAdmin != null && emailAdmin.equalsIgnoreCase(usuario.getEmail())) {
+            throw new com.ciudadactiva.exception.BusinessRuleException("No puedes desactivar tu propia cuenta de administrador.");
+        }
+        if (!activo && usuario.getRol() != null && usuario.getRol().getNombre() == RolNombre.ROLE_OPERADOR
+                && asignacionRepository.countByOperador_IdAndActivaTrue(usuario.getId()) > 0) {
+            throw new com.ciudadactiva.exception.BusinessRuleException(
+                    "El operador tiene asignaciones activas. Reasígnalas antes de desactivarlo.");
+        }
+
+        usuario.setActivo(activo);
+        UsuarioResponse res = new UsuarioResponse(usuarioRepository.save(usuario));
+        if (usuario.getRol() != null && usuario.getRol().getNombre() == RolNombre.ROLE_OPERADOR) {
+            res.setLaboresActivas(asignacionRepository.countByOperador_IdAndActivaTrue(usuario.getId()));
+        }
+        return res;
+    }
+
     public Usuario buscarPorEmail(String email) {
         return usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con email: " + email));

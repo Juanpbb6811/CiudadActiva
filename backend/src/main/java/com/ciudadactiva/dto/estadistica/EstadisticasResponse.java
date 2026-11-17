@@ -1,6 +1,7 @@
 package com.ciudadactiva.dto.estadistica;
 
 import com.ciudadactiva.dto.common.SemaforoDTO;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,6 +16,16 @@ public class EstadisticasResponse {
     private long reportesPendientes;
     private SemaforoDTO semaforoGlobal;
     private Map<String, SemaforoDTO> semaforoPorCategoria = new HashMap<>();
+
+    // ===== Campos agregados para el tablero web (RF09 / CP10) =====
+    private LocalDate fechaInicio;
+    private LocalDate fechaFin;
+    private long reportesRechazados;
+    /** Porcentaje (0-100) de reportes ATENDIDO + CERRADO sobre el total del rango. */
+    private double porcentajeAtendidas;
+    /** Porcentaje (0-100) de reportes RECHAZADO sobre el total del rango. */
+    private double porcentajeRechazadas;
+    private long reportesCerradosConTiempo;
 
     public EstadisticasResponse() {
     }
@@ -90,4 +101,22 @@ public class EstadisticasResponse {
     public void setSemaforoPorCategoria(Map<String, SemaforoDTO> semaforoPorCategoria) {
         this.semaforoPorCategoria = semaforoPorCategoria;
     }
+
+    public LocalDate getFechaInicio() { return fechaInicio; }
+    public void setFechaInicio(LocalDate fechaInicio) { this.fechaInicio = fechaInicio; }
+
+    public LocalDate getFechaFin() { return fechaFin; }
+    public void setFechaFin(LocalDate fechaFin) { this.fechaFin = fechaFin; }
+
+    public long getReportesRechazados() { return reportesRechazados; }
+    public void setReportesRechazados(long reportesRechazados) { this.reportesRechazados = reportesRechazados; }
+
+    public double getPorcentajeAtendidas() { return porcentajeAtendidas; }
+    public void setPorcentajeAtendidas(double porcentajeAtendidas) { this.porcentajeAtendidas = porcentajeAtendidas; }
+
+    public double getPorcentajeRechazadas() { return porcentajeRechazadas; }
+    public void setPorcentajeRechazadas(double porcentajeRechazadas) { this.porcentajeRechazadas = porcentajeRechazadas; }
+
+    public long getReportesCerradosConTiempo() { return reportesCerradosConTiempo; }
+    public void setReportesCerradosConTiempo(long reportesCerradosConTiempo) { this.reportesCerradosConTiempo = reportesCerradosConTiempo; }
 }

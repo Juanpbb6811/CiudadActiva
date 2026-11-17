@@ -3,7 +3,14 @@ package com.ciudadactiva.dto.common;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+/**
+ * Respuesta de error compatible con RFC 7807 (Problem Details).
+ * Conserva los campos históricos (status, error, message, path, validationErrors) que consume
+ * la app Android y agrega los miembros estándar type, title, detail e instance.
+ */
 public class ErrorResponse {
+    private static final String TYPE_BASE = "https://ciudadactiva.app/problemas/";
+
     private LocalDateTime timestamp;
     private int status;
     private String error;
@@ -78,5 +85,22 @@ public class ErrorResponse {
 
     public void setValidationErrors(Map<String, String> validationErrors) {
         this.validationErrors = validationErrors;
+    }
+
+    // ================== Miembros RFC 7807 ==================
+    public String getType() {
+        return TYPE_BASE + status;
+    }
+
+    public String getTitle() {
+        return error;
+    }
+
+    public String getDetail() {
+        return message;
+    }
+
+    public String getInstance() {
+        return path;
     }
 }

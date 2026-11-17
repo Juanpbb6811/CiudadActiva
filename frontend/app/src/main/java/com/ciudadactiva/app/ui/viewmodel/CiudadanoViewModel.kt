@@ -17,7 +17,7 @@ import java.io.ByteArrayOutputStream
 
 class CiudadanoViewModel : ViewModel() {
 
-    private val api = ApiClient.getService()
+    private val api get() = ApiClient.getService()
 
     // Estados de pantalla
     val isLoading = MutableStateFlow(false)

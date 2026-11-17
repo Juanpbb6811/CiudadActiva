@@ -8,6 +8,11 @@ public class AsignacionResponse {
     private Long id;
     private Long reporteId;
     private String reporteTitulo;
+    private String reporteCodigo;
+    private String reporteEstado;
+    private String reportePrioridad;
+    private String categoriaNombre;
+    private String reporteDireccion;
     private Long operadorId;
     private String operadorNombre;
     private String operadorEmail;
@@ -27,6 +32,13 @@ public class AsignacionResponse {
             if (asignacion.getReporte() != null) {
                 this.reporteId = asignacion.getReporte().getId();
                 this.reporteTitulo = asignacion.getReporte().getTitulo();
+                this.reporteCodigo = asignacion.getReporte().getCodigoSeguimiento();
+                this.reporteEstado = asignacion.getReporte().getEstado() != null ? asignacion.getReporte().getEstado().name() : null;
+                this.reportePrioridad = asignacion.getReporte().getPrioridad() != null ? asignacion.getReporte().getPrioridad().name() : null;
+                this.reporteDireccion = asignacion.getReporte().getDireccion();
+                if (asignacion.getReporte().getCategoria() != null) {
+                    this.categoriaNombre = asignacion.getReporte().getCategoria().getNombre();
+                }
             }
             if (asignacion.getOperador() != null) {
                 this.operadorId = asignacion.getOperador().getId();
@@ -139,4 +151,19 @@ public class AsignacionResponse {
     public void setActualizadoEn(LocalDateTime actualizadoEn) {
         this.actualizadoEn = actualizadoEn;
     }
+
+    public String getReporteCodigo() { return reporteCodigo; }
+    public void setReporteCodigo(String reporteCodigo) { this.reporteCodigo = reporteCodigo; }
+
+    public String getReporteEstado() { return reporteEstado; }
+    public void setReporteEstado(String reporteEstado) { this.reporteEstado = reporteEstado; }
+
+    public String getReportePrioridad() { return reportePrioridad; }
+    public void setReportePrioridad(String reportePrioridad) { this.reportePrioridad = reportePrioridad; }
+
+    public String getCategoriaNombre() { return categoriaNombre; }
+    public void setCategoriaNombre(String categoriaNombre) { this.categoriaNombre = categoriaNombre; }
+
+    public String getReporteDireccion() { return reporteDireccion; }
+    public void setReporteDireccion(String reporteDireccion) { this.reporteDireccion = reporteDireccion; }
 }

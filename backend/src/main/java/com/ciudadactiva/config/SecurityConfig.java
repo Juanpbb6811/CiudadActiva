@@ -74,6 +74,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/categorias/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/categorias/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/categorias/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/categorias/**").hasRole("ADMIN")
 
                         // Gestión Operativa (Gestor y Admin)
                         .requestMatchers(HttpMethod.GET, "/api/operadores").hasAnyRole("GESTOR", "ADMIN")
@@ -82,6 +83,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/reportes/*/asignaciones").hasAnyRole("GESTOR", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/reportes/*/asignaciones").hasAnyRole("GESTOR", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/asignaciones").hasAnyRole("GESTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/asignaciones/historial").hasAnyRole("GESTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/asignaciones/*/reasignar").hasAnyRole("GESTOR", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/estadisticas/reportes").hasAnyRole("GESTOR", "ADMIN")
 
                         // Operaciones de campo y estado (Operador, Gestor, Admin)

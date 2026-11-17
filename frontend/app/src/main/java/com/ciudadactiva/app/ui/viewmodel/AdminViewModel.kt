@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 
 class AdminViewModel : ViewModel() {
 
-    private val api = ApiClient.getService()
+    private val api get() = ApiClient.getService()
 
     val isLoading = MutableStateFlow(false)
     val errorMessage = MutableStateFlow<String?>(null)

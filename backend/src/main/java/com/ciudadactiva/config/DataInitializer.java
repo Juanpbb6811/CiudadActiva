@@ -102,7 +102,7 @@ public class DataInitializer implements CommandLineRunner {
             stmt.execute("UPDATE reportes SET codigo_seguimiento = 'RAD-' || EXTRACT(YEAR FROM creado_en)::TEXT || '-' || LPAD(id::TEXT, 5, '0') WHERE codigo_seguimiento IS NULL");
 
             // Asegurar que todos los usuarios queden activos y verificados sin trabas
-            stmt.execute("UPDATE usuarios SET verificado = TRUE, activo = TRUE WHERE verificado = FALSE OR activo = FALSE");
+            stmt.execute("UPDATE usuarios SET verificado = TRUE WHERE verificado = FALSE");
             log.info("Migraciones DDL aplicadas con éxito en Base de Datos.");
         } catch (Exception e) {
             log.warn("Nota sobre migración DDL: {}", e.getMessage());

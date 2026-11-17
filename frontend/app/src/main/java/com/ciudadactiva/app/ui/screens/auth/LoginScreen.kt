@@ -519,7 +519,7 @@ fun LoginScreen(
                                 Text("Emulador", fontSize = 11.sp)
                             }
                             OutlinedButton(
-                                onClick = { currentServerUrl = "http://192.168.1.22:8080/" },
+                                onClick = { currentServerUrl = "http://192.168.1.3:8080/" },
                                 modifier = Modifier.weight(1f),
                                 contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp)
                             ) {

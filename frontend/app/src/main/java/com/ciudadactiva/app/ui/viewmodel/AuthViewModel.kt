@@ -22,7 +22,7 @@ sealed class AuthUiState {
 
 class AuthViewModel : ViewModel() {
 
-    private val api = ApiClient.getService()
+    private val api get() = ApiClient.getService()
     private val session = CiudadActivaApplication.sessionManager
 
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)

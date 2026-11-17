@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.Map;
 
 @RestController
@@ -32,9 +34,14 @@ public class EstadisticaController {
     // ================== RF09: INDICADORES ESTADÍSTICOS ==================
     @GetMapping("/reportes")
     @PreAuthorize("hasAnyRole('GESTOR', 'ADMIN')")
-    @Operation(summary = "Consultar Indicadores Estadísticos", description = "Genera indicadores agrupados por estado, categoría, prioridad y tiempo promedio de atención en horas, incluyendo semáforos.")
-    public ResponseEntity<ApiResponse<EstadisticasResponse>> obtenerEstadisticas() {
-        EstadisticasResponse response = estadisticaService.obtenerEstadisticas();
+    @Operation(summary = "Consultar Indicadores Estadísticos", description = "Genera indicadores agrupados por estado, categoría, prioridad y tiempo promedio de atención en horas. Acepta rango opcional fechaInicio/fechaFin (400 si fechaInicio > fechaFin).")
+    public ResponseEntity<ApiResponse<EstadisticasResponse>> obtenerEstadisticas(
+            @Parameter(description = "Fecha inicial inclusiva (yyyy-MM-dd)")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+            @Parameter(description = "Fecha final inclusiva (yyyy-MM-dd)")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin
+    ) {
+        EstadisticasResponse response = estadisticaService.obtenerEstadisticas(fechaInicio, fechaFin);
         return ResponseEntity.ok(ApiResponse.ok("Indicadores estadísticos generados", response));
     }
 

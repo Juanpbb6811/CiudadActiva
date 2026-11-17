@@ -1,177 +1,270 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, input, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { ApiConfigService } from '../../core/api-config.service';
-import { ApiService } from '../../core/api.service';
-import { homePorRol, mensajeError } from '../../core/constants';
-import { SessionService } from '../../core/session.service';
-import { IconComponent } from '../../shared/icon.component';
-import { ModalComponent } from '../../shared/modal.component';
-import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { Router } from '@angular/router';
+import { ApiConfigService } from '../../core/api/api-config.service';
+import { AuthService } from '../../core/auth/auth.service';
+import { ProblemDetail, aProblemDetail } from '../../core/http/problem-detail';
+import { ThemeService } from '../../core/ui/theme.service';
 
 @Component({
   selector: 'app-login',
-  standalone: true,
-  imports: [ReactiveFormsModule, FormsModule, RouterLink, IconComponent, ModalComponent],
-  templateUrl: './login.component.html',
+  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatSelectModule, MatTooltipModule],
+  template: `
+    <div class="login">
+      <aside class="plate" aria-hidden="true">
+        <div class="plate__frame">
+          <div class="plate__logo">
+            <img src="logo-ciudadactiva.svg" alt="" width="220" height="220" />
+          </div>
+          <div class="plate__label">
+            <div class="plate__title">CiudadActiva</div>
+            <div class="plate__sub">Portal de gestión de incidencias urbanas</div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="panel">
+        <div class="panel__top">
+          <span class="eyebrow">Portal web</span>
+          <button mat-icon-button (click)="theme.alternar()" [matTooltip]="theme.tema() === 'dark' ? 'Modo claro' : 'Modo oscuro'" aria-label="Cambiar tema">
+            <mat-icon>{{ theme.tema() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
+          </button>
+        </div>
+
+        <form class="form" [formGroup]="form" (ngSubmit)="ingresar()">
+          <h1>Ingreso al portal</h1>
+          <p class="muted">Acceso exclusivo para perfiles <strong>Gestor</strong> y <strong>Administrador</strong>. Ciudadanos y operadores usan la app móvil.</p>
+
+          @if (motivo() === 'expirada') {
+            <div class="alert">Tu sesión expiró. Vuelve a ingresar.</div>
+          }
+          @if (error(); as e) {
+            <div class="alert alert--error" role="alert">
+              <strong>{{ e.title }}</strong>
+              <div>{{ e.detail }}</div>
+            </div>
+          }
+
+          <mat-form-field class="full">
+            <mat-label>Correo institucional</mat-label>
+            <input matInput type="email" formControlName="email" autocomplete="username" />
+            <mat-icon matPrefix>mail</mat-icon>
+            @if (form.controls.email.hasError('email')) {
+              <mat-error>Formato de correo no válido.</mat-error>
+            } @else if (form.controls.email.hasError('required')) {
+              <mat-error>El correo es obligatorio.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field class="full">
+            <mat-label>Contraseña</mat-label>
+            <input matInput [type]="verPass() ? 'text' : 'password'" formControlName="password" autocomplete="current-password" />
+            <mat-icon matPrefix>lock</mat-icon>
+            <button mat-icon-button matSuffix type="button" (click)="verPass.set(!verPass())" [attr.aria-label]="verPass() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+              <mat-icon>{{ verPass() ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            @if (form.controls.password.hasError('required')) {
+              <mat-error>La contraseña es obligatoria.</mat-error>
+            }
+          </mat-form-field>
+
+          <button class="btn-cta full" mat-flat-button type="submit" [disabled]="cargando()">
+            <mat-icon>{{ cargando() ? 'hourglass_top' : 'login' }}</mat-icon> {{ cargando() ? 'Verificando credenciales…' : 'Ingresar' }}
+          </button>
+
+          <details class="srv">
+            <summary class="eyebrow">Servidor · {{ api.baseUrl() }}</summary>
+            <mat-form-field class="full">
+              <mat-label>Backend</mat-label>
+              <mat-select [value]="api.baseUrl()" (selectionChange)="api.setBaseUrl($event.value)">
+                @for (p of api.presets; track p.url) {
+                  <mat-option [value]="p.url">{{ p.label }}</mat-option>
+                }
+                @if (!esPreset()) {
+                  <mat-option [value]="api.baseUrl()">Personalizado · {{ api.baseUrl() }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field class="full">
+              <mat-label>URL personalizada</mat-label>
+              <input matInput #custom placeholder="https://mi-backend.com" />
+              <button mat-icon-button matSuffix type="button" (click)="custom.value && api.setBaseUrl(custom.value)" aria-label="Usar URL"><mat-icon>check</mat-icon></button>
+            </mat-form-field>
+          </details>
+        </form>
+      </main>
+    </div>
+  `,
+  styles: `
+    .login {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(360px, 520px);
+      background: var(--ca-background);
+    }
+    .plate {
+      padding: 32px;
+      background: var(--ca-surface);
+      border-right: 1px solid var(--ca-border);
+      display: flex;
+    }
+    .plate__frame {
+      flex: 1;
+      border: 1px solid var(--ca-border);
+      outline: 1px solid var(--ca-border);
+      outline-offset: 6px;
+      display: flex;
+      flex-direction: column;
+      padding: 28px;
+      color: var(--ca-primary);
+      background-image:
+        linear-gradient(var(--ca-grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--ca-grid-line) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .plate__logo {
+      flex: 1;
+      display: grid;
+      place-items: center;
+      margin: 24px 0;
+    }
+    .plate__logo img {
+      width: min(220px, 40vh);
+      height: auto;
+    }
+    .plate__label {
+      border-top: 2px solid var(--ca-on-surface-strong);
+      padding-top: 14px;
+    }
+    .plate__title {
+      font-family: var(--ca-font-display);
+      font-weight: 800;
+      font-size: 44px;
+      line-height: 1;
+      color: var(--ca-on-surface-strong);
+    }
+    .plate__sub {
+      margin-top: 8px;
+      font-size: 17px;
+      color: var(--ca-on-surface-variant);
+    }
+    .panel {
+      display: flex;
+      flex-direction: column;
+      padding: 24px 40px;
+      background: var(--ca-card);
+    }
+    .panel__top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .form {
+      margin: auto 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 24px 0;
+    }
+    .form h1 {
+      font-size: 34px;
+    }
+    .form p {
+      margin: 0 0 8px;
+    }
+    .alert {
+      border: 1px solid var(--ca-border);
+      background: var(--ca-input);
+      padding: 10px 14px;
+      font-size: 14px;
+    }
+    .alert--error {
+      border-color: var(--ca-danger);
+      background: var(--ca-danger-soft);
+    }
+    .srv {
+      margin-top: 10px;
+      border-top: 1px solid var(--ca-border);
+      padding-top: 12px;
+    }
+    .srv summary {
+      cursor: pointer;
+      margin-bottom: 12px;
+      word-break: break-all;
+    }
+    @media (max-width: 880px) {
+      .login {
+        grid-template-columns: 1fr;
+      }
+      .plate {
+        display: none;
+      }
+      .panel {
+        padding: 20px;
+      }
+    }
+  `,
 })
 export class LoginComponent {
-  private fb = inject(FormBuilder);
-  private api = inject(ApiService);
-  private session = inject(SessionService);
-  private router = inject(Router);
-  private route = inject(ActivatedRoute);
-  cfg = inject(ApiConfigService);
+  private readonly fb = inject(FormBuilder);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+  protected readonly api = inject(ApiConfigService);
+  protected readonly theme = inject(ThemeService);
 
-  form = this.fb.nonNullable.group({
+  /** Query params (withComponentInputBinding) */
+  motivo = input<string | undefined>();
+  redirect = input<string | undefined>();
+
+  protected readonly cargando = signal(false);
+  protected readonly verPass = signal(false);
+  protected readonly error = signal<ProblemDetail | null>(null);
+
+  protected readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
-    remember: [true],
+    password: ['', Validators.required],
   });
-  verPass = signal(false);
-  cargando = signal(false);
-  error = signal('');
-  expirada = !!this.route.snapshot.queryParamMap.get('expirada');
 
-  // Recuperación de Contraseña con OTP
-  recuperarModal = signal(false);
-  recuperarPaso = signal<1 | 2>(1);
-  recuperarEmail = '';
-  recuperarCodigo = '';
-  recuperarNuevaPass = '';
-  recuperarCargando = signal(false);
-  recuperarMensaje = signal('');
-  recuperarError = signal('');
+  protected esPreset(): boolean {
+    return this.api.presets.some((p) => p.url === this.api.baseUrl());
+  }
 
-  // Verificación de Cuenta OTP
-  verificarModal = signal(false);
-  verificarEmail = '';
-  verificarCodigo = '';
-  verificarCargando = signal(false);
-  verificarMensaje = signal('');
-  verificarError = signal('');
-
-  // Diálogo "Conexión del Backend"
-  servidorAbierto = signal(false);
-  urlServidor = '';
-  presets = [
-    { label: 'Render Nube', url: 'https://ciudadactiva-4ah7.onrender.com' },
-    { label: 'Local', url: 'http://localhost:8080' },
-  ];
-
-  ingresar(): void {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
-    const { email, password, remember } = this.form.getRawValue();
+  protected ingresar(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
     this.cargando.set(true);
-    this.error.set('');
-    this.api.login({ email: email.trim().toLowerCase(), password }).subscribe({
-      next: (auth) => {
-        this.session.save(auth.token, auth.usuario, remember);
-        this.router.navigateByUrl(homePorRol(auth.usuario.rol), { replaceUrl: true });
+    this.error.set(null);
+    const { email, password } = this.form.getRawValue();
+    this.auth.login(email, password).subscribe({
+      next: (r) => {
+        this.cargando.set(false);
+        if (r.tipo === 'ok') {
+          const destino = this.redirect() && this.redirect()!.startsWith(r.ruta.split('/').slice(0, 2).join('/')) ? this.redirect()! : r.ruta;
+          this.router.navigateByUrl(destino);
+        } else if (r.tipo === 'rol-movil') {
+          // CP02: CIUDADANO / OPERADOR no pueden operar el portal web
+          this.router.navigate(['/acceso-denegado'], { queryParams: { motivo: 'movil', rol: r.rol } });
+        } else {
+          this.error.set({
+            type: 'about:blank',
+            title: 'Cuenta pendiente de verificación',
+            status: 403,
+            detail: 'Tu cuenta aún no está verificada. Completa la verificación desde la app móvil.',
+          });
+        }
       },
       error: (e) => {
         this.cargando.set(false);
-        const msg = mensajeError(e);
-        if (msg.toLowerCase().includes('verificar') || msg.toLowerCase().includes('inactiva') || msg.toLowerCase().includes('código')) {
-          this.verificarEmail = email.trim().toLowerCase();
-          this.verificarModal.set(true);
-        } else {
-          this.error.set(e.status === 401 || e.status === 403 ? 'Credenciales inválidas. Verifica tu correo y contraseña.' : msg);
-        }
+        this.error.set(aProblemDetail(e));
       },
     });
   }
-
-  cargarDemo(email: string, pass = 'Ciudadano123*'): void {
-    this.form.patchValue({ email, password: pass });
-  }
-
-  abrirRecuperar(): void {
-    this.recuperarEmail = this.form.get('email')?.value || '';
-    this.recuperarPaso.set(1);
-    this.recuperarMensaje.set('');
-    this.recuperarError.set('');
-    this.recuperarModal.set(true);
-  }
-
-  solicitarOtpRecuperacion(): void {
-    if (!this.recuperarEmail.trim()) { this.recuperarError.set('Ingresa tu correo'); return; }
-    this.recuperarCargando.set(true);
-    this.recuperarError.set('');
-    this.api.solicitarRecuperacionPassword({ email: this.recuperarEmail.trim().toLowerCase() }).subscribe({
-      next: (msg) => {
-        this.recuperarCargando.set(false);
-        this.recuperarMensaje.set(msg || 'Código OTP enviado a tu correo.');
-        this.recuperarPaso.set(2);
-      },
-      error: (e) => {
-        this.recuperarCargando.set(false);
-        this.recuperarError.set(mensajeError(e, 'No se pudo enviar el código de recuperación.'));
-      },
-    });
-  }
-
-  confirmarResetPassword(): void {
-    if (!this.recuperarCodigo.trim() || !this.recuperarNuevaPass.trim()) {
-      this.recuperarError.set('Ingresa el código OTP y tu nueva contraseña');
-      return;
-    }
-    this.recuperarCargando.set(true);
-    this.recuperarError.set('');
-    this.api.resetPassword({
-      email: this.recuperarEmail.trim().toLowerCase(),
-      codigo: this.recuperarCodigo.trim(),
-      nuevaPassword: this.recuperarNuevaPass.trim(),
-    }).subscribe({
-      next: () => {
-        this.recuperarCargando.set(false);
-        this.recuperarModal.set(false);
-        this.form.patchValue({ email: this.recuperarEmail.trim().toLowerCase(), password: this.recuperarNuevaPass });
-        this.ingresar();
-      },
-      error: (e) => {
-        this.recuperarCargando.set(false);
-        this.recuperarError.set(mensajeError(e, 'Código OTP inválido o expirado.'));
-      },
-    });
-  }
-
-  confirmarActivacionOtp(): void {
-    if (!this.verificarCodigo.trim()) { this.verificarError.set('Ingresa el código de 6 dígitos'); return; }
-    this.verificarCargando.set(true);
-    this.verificarError.set('');
-    this.api.verificarCodigo({
-      email: this.verificarEmail.trim().toLowerCase(),
-      codigo: this.verificarCodigo.trim(),
-    }).subscribe({
-      next: (auth) => {
-        this.verificarCargando.set(false);
-        this.verificarModal.set(false);
-        this.session.save(auth.token, auth.usuario, true);
-        this.router.navigateByUrl(homePorRol(auth.usuario.rol), { replaceUrl: true });
-      },
-      error: (e) => {
-        this.verificarCargando.set(false);
-        this.verificarError.set(mensajeError(e, 'Código OTP no válido o expirado.'));
-      },
-    });
-  }
-
-  reenviarOtpActivacion(): void {
-    if (!this.verificarEmail.trim()) return;
-    this.verificarCargando.set(true);
-    this.api.reenviarCodigo({ email: this.verificarEmail.trim().toLowerCase(), tipo: 'VERIFICACION' }).subscribe({
-      next: (msg) => {
-        this.verificarCargando.set(false);
-        this.verificarMensaje.set(msg || 'Nuevo código enviado con éxito.');
-      },
-      error: (e) => {
-        this.verificarCargando.set(false);
-        this.verificarError.set(mensajeError(e, 'No se pudo reenviar el código.'));
-      },
-    });
-  }
-
-  abrirServidor(): void { this.urlServidor = this.cfg.baseUrl(); this.servidorAbierto.set(true); }
-  guardarServidor(): void { if (this.urlServidor.trim()) this.cfg.set(this.urlServidor); this.servidorAbierto.set(false); }
 }

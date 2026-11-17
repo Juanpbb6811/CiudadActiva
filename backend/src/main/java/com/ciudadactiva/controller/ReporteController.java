@@ -67,6 +67,17 @@ public class ReporteController {
         return ResponseEntity.ok(ApiResponse.ok("Reportes obtenidos exitosamente", reportes));
     }
 
+    // ================== RF10 / CP11: MAPA DE REPORTES GEOLOCALIZADOS ==================
+    @GetMapping("/geolocalizados")
+    @Operation(summary = "Reportes Geolocalizados para Mapa", description = "Retorna los reportes con latitud/longitud, filtrables por categoría y estado.")
+    public ResponseEntity<ApiResponse<List<ReporteResponse>>> reportesGeolocalizados(
+            @RequestParam(required = false) Long categoriaId,
+            @RequestParam(required = false) EstadoReporte estado
+    ) {
+        List<ReporteResponse> reportes = reporteService.obtenerGeolocalizados(categoriaId, estado);
+        return ResponseEntity.ok(ApiResponse.ok("Reportes geolocalizados obtenidos", reportes));
+    }
+
     // ================== CASO DE USO CIUDADANO: MIS REPORTES ==================
     @GetMapping("/mis-reportes")
     @Operation(summary = "Consultar Reportes Propios", description = "Retorna el historial de reportes creados por el ciudadano autenticado.")

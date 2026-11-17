@@ -86,16 +86,18 @@ public class CategoriaService {
 
     @Transactional
     public void eliminarODesactivarCategoria(Long id) {
+        // RNF08: prohibido el DELETE físico. Siempre baja lógica (activa = false).
         Categoria categoria = buscarPorId(id);
-        long reportesAsociados = reporteRepository.countByCategoria_Id(id);
+        categoria.setActiva(false);
+        categoriaRepository.save(categoria);
+    }
 
-        if (reportesAsociados > 0) {
-            // Regla de Integridad: Si tiene reportes asociados, solo se desactiva lógicamente
-            categoria.setActiva(false);
-            categoriaRepository.save(categoria);
-        } else {
-            categoriaRepository.delete(categoria);
-        }
+    @Transactional
+    public CategoriaResponse cambiarEstado(Long id, boolean activa) {
+        Categoria categoria = buscarPorId(id);
+        categoria.setActiva(activa);
+        Categoria guardada = categoriaRepository.save(categoria);
+        return new CategoriaResponse(guardada, reporteRepository.countByCategoria_Id(id));
     }
 
     public Categoria buscarPorId(Long id) {
