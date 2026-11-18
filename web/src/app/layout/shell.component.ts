@@ -85,7 +85,6 @@ const NAV_ADMIN: NavItem[] = [
               <div class="user__role">{{ rolLabel() }}</div>
             </div>
           </div>
-          <div class="eyebrow">Un único rol por sesión (RN08)</div>
         </div>
       </mat-sidenav>
 

@@ -36,8 +36,7 @@ import { AuthService } from '../../core/auth/auth.service';
         } @else {
           <h1>Esta sección no corresponde a tu rol</h1>
           <p>
-            Tu sesión está asociada al rol <strong>{{ rolSesion() }}</strong> (RN08: un único rol por sesión). No
-            tienes permisos para ver esta sección.
+            Tu sesión está asociada al rol <strong>{{ rolSesion() }}</strong> y no tienes permisos para ver esta sección.
           </p>
           <div class="row row--wrap">
             @if (auth.autenticado()) {

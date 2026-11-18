@@ -54,7 +54,7 @@ import { PageHeaderComponent, ViewStateComponent } from '../../shared/ui.compone
           <input matInput formControlName="telefono" />
         </mat-form-field>
         <mat-form-field>
-          <mat-label>Rol (único por sesión · RN08)</mat-label>
+          <mat-label>Rol</mat-label>
           <mat-select formControlName="rol">
             @for (r of roles; track r) {
               <mat-option [value]="r" [disabled]="esYo && r !== 'ROLE_ADMIN'">{{ rolLabel[r] }}</mat-option>
@@ -150,7 +150,7 @@ export class UsuarioDialogComponent {
   providers: [{ provide: MatPaginatorIntl, useFactory: paginatorEs }],
   template: `
     <div class="page">
-      <ca-page-header codigo="A-02" seccion="Administrador" titulo="Gestión de usuarios y roles" descripcion="Crea cuentas, ajusta datos y rol, y activa o desactiva accesos. La desactivación es lógica (activo = false): nunca se borra a nadie (RNF08).">
+      <ca-page-header codigo="A-02" seccion="Administrador" titulo="Gestión de usuarios y roles" descripcion="Crea cuentas, edita sus datos y su rol, y activa o desactiva el acceso. Una cuenta desactivada no puede iniciar sesión, pero su información se conserva.">
         <button class="btn-cta" mat-flat-button (click)="crear()"><mat-icon>person_add</mat-icon> Nuevo usuario</button>
       </ca-page-header>
 
@@ -205,7 +205,7 @@ export class UsuarioDialogComponent {
                     [checked]="u.activo"
                     [disabled]="u.id === yo() || pendiente() === u.id"
                     (change)="toggle(u, $event.checked)"
-                    [matTooltip]="u.id === yo() ? 'No puedes desactivar tu propia cuenta' : u.activo ? 'Desactivar (baja lógica)' : 'Reactivar'"
+                    [matTooltip]="u.id === yo() ? 'No puedes desactivar tu propia cuenta' : u.activo ? 'Desactivar acceso' : 'Activar acceso'"
                   >{{ u.activo ? 'Activo' : 'Inactivo' }}</mat-slide-toggle>
                 </td>
               </ng-container>
@@ -296,7 +296,7 @@ export class UsuariosComponent {
       next: (res) => {
         this.pendiente.set(null);
         this.usuarios.set((this.usuarios.data() ?? []).map((x) => (x.id === u.id ? { ...x, ...res } : x)));
-        this.notify.ok(activo ? `${u.nombre} reactivado.` : `${u.nombre} desactivado (baja lógica).`);
+        this.notify.ok(activo ? `${u.nombre} reactivado.` : `${u.nombre} desactivado.`);
       },
       error: (e) => {
         this.pendiente.set(null);

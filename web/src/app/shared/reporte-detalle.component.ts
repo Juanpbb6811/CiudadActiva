@@ -79,13 +79,13 @@ import { EstadoBadgeComponent, PrioridadBadgeComponent, ViewStateComponent } fro
 
             @if (r.justificacionRechazo) {
               <div class="det__note det__note--danger">
-                <div class="eyebrow">Justificación de rechazo (RN01)</div>
+                <div class="eyebrow">Motivo del rechazo</div>
                 {{ r.justificacionRechazo }}
               </div>
             }
             @if (r.analisisIaDescripcion) {
               <div class="det__note">
-                <div class="eyebrow">Análisis asistido (sugerencia, no oficial)</div>
+                <div class="eyebrow">Análisis automático (sugerencia)</div>
                 {{ r.analisisIaDescripcion }}
                 @if (r.analisisIaPrioridadSugerida) {
                   <div class="muted">Prioridad sugerida: {{ r.analisisIaPrioridadSugerida }} · Urgencia {{ r.analisisIaNivelUrgencia ?? '—' }}/5</div>
@@ -96,7 +96,7 @@ import { EstadoBadgeComponent, PrioridadBadgeComponent, ViewStateComponent } fro
             <section class="det__sec">
               <div class="det__sec-head">
                 <h3>Historial de seguimiento</h3>
-                <span class="eyebrow">Solo lectura · RN05</span>
+                <span class="eyebrow">Solo lectura</span>
               </div>
               @if (r.lineaDeTiempo.length === 0) {
                 <p class="muted">Aún no hay eventos registrados.</p>

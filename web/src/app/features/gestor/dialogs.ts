@@ -39,22 +39,22 @@ import { EstadoBadgeComponent, PrioridadBadgeComponent, ViewStateComponent } fro
 
       <form [formGroup]="form" class="vform">
         <mat-radio-group formControlName="decision" class="dec" aria-label="Decisión">
-          <mat-radio-button value="admitir"><strong>Admitir</strong> · pasa a ADMITIDO y queda listo para asignar</mat-radio-button>
-          <mat-radio-button value="rechazar"><strong>Rechazar</strong> · pasa a RECHAZADO (visible para el ciudadano)</mat-radio-button>
+          <mat-radio-button value="admitir"><strong>Admitir</strong> · el reporte queda listo para asignarlo a un operador</mat-radio-button>
+          <mat-radio-button value="rechazar"><strong>Rechazar</strong> · el ciudadano verá el reporte como rechazado</mat-radio-button>
         </mat-radio-group>
 
         @if (decision() === 'admitir') {
           <mat-form-field class="full">
-            <mat-label>Prioridad oficial (RN02)</mat-label>
+            <mat-label>Prioridad</mat-label>
             <mat-select formControlName="prioridad" required>
               @for (p of prioridades; track p) {
                 <mat-option [value]="p">{{ etiquetaPrioridad(p) }}</mat-option>
               }
             </mat-select>
             @if (r.analisisIaPrioridadSugerida) {
-              <mat-hint>Sugerencia automática: {{ r.analisisIaPrioridadSugerida }} (no es oficial)</mat-hint>
+              <mat-hint>Sugerencia automática: {{ r.analisisIaPrioridadSugerida }}</mat-hint>
             }
-            <mat-error>Debes asignar una prioridad oficial para admitir.</mat-error>
+            <mat-error>Elige una prioridad para admitir el reporte.</mat-error>
           </mat-form-field>
           <mat-form-field class="full">
             <mat-label>Observación (opcional)</mat-label>
@@ -62,10 +62,10 @@ import { EstadoBadgeComponent, PrioridadBadgeComponent, ViewStateComponent } fro
           </mat-form-field>
         } @else if (decision() === 'rechazar') {
           <mat-form-field class="full">
-            <mat-label>Justificación del rechazo (RN01)</mat-label>
+            <mat-label>Motivo del rechazo</mat-label>
             <textarea matInput formControlName="justificacion" rows="4" maxlength="1000" required></textarea>
             <mat-hint>El ciudadano verá este texto. Mínimo 10 caracteres.</mat-hint>
-            <mat-error>La justificación es obligatoria (mínimo 10 caracteres).</mat-error>
+            <mat-error>Escribe el motivo del rechazo (mínimo 10 caracteres).</mat-error>
           </mat-form-field>
         }
       </form>
@@ -140,7 +140,7 @@ export class ValidarDialogComponent {
       })
       .subscribe({
         next: (rep) => {
-          this.notify.ok(admitido ? 'Reporte admitido con prioridad oficial.' : 'Reporte rechazado con justificación.');
+          this.notify.ok(admitido ? 'Reporte admitido.' : 'Reporte rechazado.');
           this.ref.close(rep);
         },
         error: (e) => {
@@ -178,11 +178,11 @@ export interface AsignarDialogData {
       <h3 class="ref__t">{{ titulo }}</h3>
       @if (esReasignacion) {
         <p class="note">
-          Operador actual: <strong>{{ data.asignacion?.operadorNombre }}</strong>. La asignación actual se
-          <strong>desactivará lógicamente</strong> y se creará una nueva; el historial se conserva (RN05 / RNF08).
+          Operador actual: <strong>{{ data.asignacion?.operadorNombre }}</strong>. El reporte pasará al operador que
+          elijas y la asignación anterior quedará guardada en el historial.
         </p>
       } @else {
-        <p class="note">Al confirmar, el reporte pasa a <strong>EN PROCESO (asignado)</strong> y el operador lo verá en su app.</p>
+        <p class="note">Al confirmar, el reporte pasa a <strong>En proceso</strong> y el operador lo verá en su app.</p>
       }
 
       <div class="eyebrow lbl">Operadores activos · carga actual</div>

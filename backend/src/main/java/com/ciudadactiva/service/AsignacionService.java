@@ -45,10 +45,10 @@ public class AsignacionService {
 
         // RN09: solo reportes admitidos (o ya en proceso, para reasignar) pueden recibir operador
         if (reporte.getEstado() == EstadoReporte.RECHAZADO || reporte.getEstado() == EstadoReporte.CERRADO) {
-            throw new BusinessRuleException("RN09: No se puede asignar un operador a un reporte que está " + reporte.getEstado());
+            throw new BusinessRuleException("No se puede asignar un operador porque el reporte está " + reporte.getEstado().name().toLowerCase() + ".");
         }
         if (reporte.getEstado() != EstadoReporte.ADMITIDO && reporte.getEstado() != EstadoReporte.EN_PROCESO) {
-            throw new BusinessRuleException("RN09: Solo se pueden asignar operadores a reportes ADMITIDOS. Estado actual: " + reporte.getEstado());
+            throw new BusinessRuleException("Primero admite el reporte para poder asignarle un operador. Estado actual: " + reporte.getEstado().name().replace("_", " ").toLowerCase() + ".");
         }
 
         Usuario gestor = usuarioRepository.findByEmail(emailGestor)

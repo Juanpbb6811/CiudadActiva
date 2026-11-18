@@ -43,7 +43,7 @@ import { abrirAsignar, abrirDetalle, abrirValidar } from './dialogs';
   providers: [{ provide: MatPaginatorIntl, useFactory: paginatorEs }],
   template: `
     <div class="page">
-      <ca-page-header codigo="G-02" seccion="Gestor" titulo="Bandeja unificada de reportes" descripcion="Filtra, inspecciona, valida y asigna. Las acciones respetan la máquina de estados (RN04) y los bloqueos de asignación (RN09).">
+      <ca-page-header codigo="G-02" seccion="Gestor" titulo="Bandeja unificada de reportes" descripcion="Filtra los reportes, revisa su detalle, valídalos y asígnalos a un operador.">
         <button mat-stroked-button (click)="reportes.cargar()"><mat-icon>refresh</mat-icon> Actualizar</button>
       </ca-page-header>
 
@@ -125,7 +125,7 @@ import { abrirAsignar, abrirDetalle, abrirValidar } from './dialogs';
                 <th mat-header-cell *matHeaderCellDef class="right">Acciones</th>
                 <td mat-cell *matCellDef="let r" class="right nowrap">
                   <button mat-icon-button (click)="ver(r)" matTooltip="Ver ficha e historial" aria-label="Ver ficha"><mat-icon>visibility</mat-icon></button>
-                  <span [matTooltip]="validable(r) ? 'Validar (admitir / rechazar)' : 'Solo se validan reportes PENDIENTE o EN REVISIÓN (RN04)'">
+                  <span [matTooltip]="validable(r) ? 'Validar (admitir / rechazar)' : 'Solo se pueden validar reportes pendientes o en revisión'">
                     <button mat-icon-button (click)="validar(r)" [disabled]="!validable(r)" aria-label="Validar"><mat-icon>rule</mat-icon></button>
                   </span>
                   <span [matTooltip]="tooltipAsignar(r)">
@@ -242,7 +242,7 @@ export class BandejaComponent implements AfterViewInit {
   protected validable = (r: Reporte) => puedeValidar(r.estado);
   protected asignable = (r: Reporte) => puedeAsignar(r.estado);
   protected tooltipAsignar(r: Reporte): string {
-    if (r.estado === 'RECHAZADO' || r.estado === 'CERRADO') return `Bloqueado: el reporte está ${ESTADO_LABEL[r.estado]} (RN09)`;
+    if (r.estado === 'RECHAZADO' || r.estado === 'CERRADO') return `No se puede asignar: el reporte está ${ESTADO_LABEL[r.estado].toLowerCase()}`;
     if (puedeAsignar(r.estado)) return 'Asignar operador';
     if (r.estado === 'EN_PROCESO') return 'Ya asignado. Reasigna desde Cuadrillas.';
     return 'Primero admite el reporte con prioridad oficial';

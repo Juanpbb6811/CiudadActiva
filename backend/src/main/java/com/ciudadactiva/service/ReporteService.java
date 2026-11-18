@@ -395,12 +395,12 @@ public class ReporteService {
 
         // RN04: Máquina de estados. Solo se validan reportes PENDIENTE o EN_REVISION.
         if (estadoAnterior != EstadoReporte.PENDIENTE && estadoAnterior != EstadoReporte.EN_REVISION) {
-            throw new BusinessRuleException("RN04: Solo se pueden validar reportes en estado PENDIENTE o EN_REVISION. Estado actual: " + estadoAnterior);
+            throw new BusinessRuleException("Este reporte ya no se puede validar porque está " + estadoAnterior.name().replace("_", " ").toLowerCase() + ". Solo se validan reportes pendientes o en revisión.");
         }
 
         // RN02: Todo reporte admitido debe recibir una prioridad oficial
         if (Boolean.TRUE.equals(request.getAdmitido()) && request.getPrioridad() == null) {
-            throw new BusinessRuleException("RN02: Para admitir un reporte es obligatorio asignar la prioridad oficial (BAJA, MEDIA, ALTA o CRITICA).");
+            throw new BusinessRuleException("Para admitir el reporte debes elegir una prioridad.");
         }
 
         // Regla 1: Todo reporte rechazado DEBE incluir una justificación clara y visible

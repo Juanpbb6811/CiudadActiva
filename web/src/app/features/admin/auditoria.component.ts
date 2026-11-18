@@ -120,7 +120,7 @@ import { abrirDetalle } from '../gestor/dialogs';
 
         <mat-tab label="Bitácora de eventos">
           <div class="tabbody">
-            <p class="muted">Cada transición queda registrada con su autor y un hash de verificación. Los eventos no se pueden editar ni borrar.</p>
+            <p class="muted">Cada cambio de estado queda registrado con su autor y un código de verificación. Estos registros no se pueden editar ni borrar.</p>
             <ca-view-state [estado]="eventos.estado()" [error]="eventos.error()" (reintentar)="eventos.cargar()" tituloVacio="Sin eventos registrados">
               <div class="ca-card ca-card--flush">
                 <div class="table-scroll">

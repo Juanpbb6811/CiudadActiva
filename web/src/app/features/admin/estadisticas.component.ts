@@ -87,7 +87,7 @@ const PALETA = {
           <section class="grid-kpi">
             <ca-kpi etiqueta="Reportes en el rango" [valor]="s.totalReportes" icono="description" [acento]="true" [nota]="periodoTxt()" />
             <ca-kpi etiqueta="Atendidas" [valor]="(s.porcentajeAtendidas ?? 0 | number: '1.0-1') ?? '0'" sufijo="%" icono="task_alt" [nota]="s.reportesAtendidosOCerrados + ' atendidas o cerradas'" />
-            <ca-kpi etiqueta="Rechazadas" [valor]="(s.porcentajeRechazadas ?? 0 | number: '1.0-1') ?? '0'" sufijo="%" icono="block" [nota]="(s.reportesRechazados ?? 0) + ' rechazadas con justificación'" />
+            <ca-kpi etiqueta="Rechazadas" [valor]="(s.porcentajeRechazadas ?? 0 | number: '1.0-1') ?? '0'" sufijo="%" icono="block" [nota]="(s.reportesRechazados ?? 0) + ' rechazadas'" />
             <ca-kpi etiqueta="Tiempo medio de resolución" [valor]="(s.tiempoPromedioAtencionHoras | number: '1.0-1') ?? '0'" sufijo="h" icono="timer" [nota]="tiempoNota(s)" />
           </section>
 
@@ -138,7 +138,7 @@ const PALETA = {
                   </li>
                 }
               </ul>
-              <p class="muted small">Atendidas = ATENDIDO + CERRADO. En curso = resto de estados no finales.</p>
+              <p class="muted small">Atendidas incluye los reportes atendidos y cerrados. En curso son los que siguen en trámite.</p>
             </article>
 
             <article class="ca-card chart">

@@ -110,7 +110,7 @@ export class CategoriaDialogComponent {
   imports: [MatButtonModule, MatButtonToggleModule, MatIconModule, MatSlideToggleModule, MatTooltipModule, PageHeaderComponent, ViewStateComponent],
   template: `
     <div class="page">
-      <ca-page-header codigo="A-03" seccion="Administrador" titulo="Configuración de categorías" descripcion="Tipos de incidencia que el ciudadano puede reportar. Desactivar oculta la categoría para nuevos reportes sin afectar los existentes (baja lógica · RNF08).">
+      <ca-page-header codigo="A-03" seccion="Administrador" titulo="Configuración de categorías" descripcion="Tipos de incidencia que el ciudadano puede reportar. Si desactivas una categoría deja de aparecer para nuevos reportes, pero los reportes que ya la usan se conservan.">
         <mat-button-toggle-group [value]="filtro()" (change)="filtro.set($event.value)" hideSingleSelectionIndicator aria-label="Filtrar">
           <mat-button-toggle value="todas">Todas</mat-button-toggle>
           <mat-button-toggle value="activas">Activas</mat-button-toggle>
@@ -125,7 +125,7 @@ export class CategoriaDialogComponent {
             <article class="ca-card cat" [class.cat--off]="!c.activa">
               <div class="cat__top">
                 <span class="eyebrow">Categoría</span>
-                <mat-slide-toggle [checked]="c.activa" [disabled]="pendiente() === c.id" (change)="toggle(c, $event.checked)" [matTooltip]="c.activa ? 'Desactivar (baja lógica)' : 'Reactivar'" [attr.aria-label]="'Activar ' + c.nombre" />
+                <mat-slide-toggle [checked]="c.activa" [disabled]="pendiente() === c.id" (change)="toggle(c, $event.checked)" [matTooltip]="c.activa ? 'Desactivar categoría' : 'Activar categoría'" [attr.aria-label]="'Activar ' + c.nombre" />
               </div>
               <div class="cat__icon"><mat-icon>{{ icono(c.icono) }}</mat-icon></div>
               <h3>{{ c.nombre }}</h3>

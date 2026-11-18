@@ -32,7 +32,7 @@ import { abrirAsignar, abrirDetalle } from './dialogs';
             <li class="h__i" [class.h__i--on]="a.activa">
               <div class="h__top">
                 <strong>{{ a.operadorNombre }}</strong>
-                <span class="badge" [style.color]="a.activa ? 'var(--ca-primary)' : 'var(--ca-on-surface-variant)'">{{ a.activa ? 'Activa' : 'Inactiva · baja lógica' }}</span>
+                <span class="badge" [style.color]="a.activa ? 'var(--ca-primary)' : 'var(--ca-on-surface-variant)'">{{ a.activa ? 'Activa' : 'Anterior' }}</span>
               </div>
               <div class="muted">Asignó {{ a.gestorNombre }} · {{ a.creadoEn | date: 'd MMM y, h:mm a' }}</div>
               @if (a.notas) {
@@ -83,7 +83,7 @@ export class HistorialAsignacionesComponent {
   providers: [{ provide: MatPaginatorIntl, useFactory: paginatorEs }],
   template: `
     <div class="page">
-      <ca-page-header codigo="G-03" seccion="Gestor" titulo="Gestión de cuadrillas y asignaciones" descripcion="Carga de trabajo por operador y asignaciones activas. Reasignar desactiva lógicamente la asignación previa y crea una nueva, sin borrar historial (RN05 · RNF08).">
+      <ca-page-header codigo="G-03" seccion="Gestor" titulo="Gestión de cuadrillas y asignaciones" descripcion="Carga de trabajo de cada operador y reportes asignados. Puedes reasignar un reporte a otro operador; el historial de asignaciones se conserva.">
         <button mat-stroked-button (click)="recargar()"><mat-icon>refresh</mat-icon> Actualizar</button>
       </ca-page-header>
 

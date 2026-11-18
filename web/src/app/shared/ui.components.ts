@@ -72,9 +72,6 @@ export class PageHeaderComponent {
           <mat-icon>report</mat-icon>
           <div class="vs__title">{{ error()?.title || 'No se pudo cargar' }}</div>
           <p class="vs__text">{{ error()?.detail }}</p>
-          @if (error()?.status) {
-            <div class="eyebrow mono">HTTP {{ error()?.status }} {{ error()?.instance || '' }}</div>
-          }
           <button mat-stroked-button (click)="reintentar.emit()"><mat-icon>refresh</mat-icon> Reintentar</button>
         </div>
       }
