@@ -72,13 +72,13 @@ public class ReporteResponse {
             this.latitud = reporte.getLatitud();
             this.longitud = reporte.getLongitud();
             this.imagenUrl = reporte.getImagenUrl();
-            this.tieneFoto = (reporte.getFotoBytes() != null && reporte.getFotoBytes().length > 0);
+            this.tieneFoto = Boolean.TRUE.equals(reporte.getTieneFoto());
             this.fotoTipo = reporte.getFotoTipo();
             this.estado = reporte.getEstado();
             this.prioridad = reporte.getPrioridad();
             this.justificacionRechazo = reporte.getJustificacionRechazo();
             this.evidenciaCierreUrl = reporte.getEvidenciaCierreUrl();
-            this.tieneFotoSolucion = (reporte.getFotoSolucionBytes() != null && reporte.getFotoSolucionBytes().length > 0);
+            this.tieneFotoSolucion = Boolean.TRUE.equals(reporte.getTieneFotoSolucion());
             this.fotoSolucionTipo = reporte.getFotoSolucionTipo();
             this.creadoEn = reporte.getCreadoEn();
             this.actualizadoEn = reporte.getActualizadoEn();

@@ -97,6 +97,9 @@ fun AppNavigation() {
             composable(Screen.Splash.route) {
                 SplashScreen(
                     onNavigateNext = { route ->
+                        if (route == Screen.CiudadanoHome.route) {
+                            ciudadanoViewModel.cargarDatosHome()
+                        }
                         navController.navigate(route) {
                             popUpTo(Screen.Splash.route) { inclusive = true }
                         }
@@ -108,6 +111,7 @@ fun AppNavigation() {
                 LoginScreen(
                     viewModel = authViewModel,
                     onLoginSuccess = { destination ->
+                        ciudadanoViewModel.cargarDatosHome()
                         navController.navigate(destination) {
                             popUpTo(Screen.Login.route) { inclusive = true }
                         }
@@ -133,6 +137,7 @@ fun AppNavigation() {
             composable(Screen.CompletarDatosCiudadano.route) {
                 CompletarDatosCiudadanoScreen(
                     onCompletadoExitoso = {
+                        ciudadanoViewModel.cargarDatosHome()
                         navController.navigate(Screen.CiudadanoHome.route) {
                             popUpTo(Screen.CompletarDatosCiudadano.route) { inclusive = true }
                         }

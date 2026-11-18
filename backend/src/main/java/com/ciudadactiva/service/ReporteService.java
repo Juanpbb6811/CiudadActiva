@@ -113,6 +113,7 @@ public class ReporteService {
                 guardado.getImagenUrl()
         );
         seguimientoRepository.save(primerSeguimiento);
+        invalidarCacheCluster();
 
         return mapearReporteResponse(guardado);
     }
@@ -210,6 +211,7 @@ public class ReporteService {
                 guardado.getImagenUrl()
         );
         seguimientoRepository.save(primerSeguimiento);
+        invalidarCacheCluster();
 
         return mapearReporteResponse(guardado);
     }
@@ -737,16 +739,38 @@ public class ReporteService {
      *     * 6-8 reportes: ALTA
      *     * 9+ reportes: CRITICA
      */
+    private List<ReporteCoordenadaDTO> cachedClusterCoordenadas;
+    private long lastClusterFetchTime = 0;
+
+    /**
+     * Obtiene en memoria las coordenadas y metadatos mínimos de los reportes activos.
+     * Caché de 15 segundos para evitar consultar miles de veces la base de datos Supabase
+     * y eliminar por completo la transferencia de fotos pesadas.
+     */
+    public synchronized List<ReporteCoordenadaDTO> getActivosParaCluster() {
+        long now = System.currentTimeMillis();
+        if (cachedClusterCoordenadas == null || (now - lastClusterFetchTime) > 15000) {
+            cachedClusterCoordenadas = reporteRepository.findReportesActivosParaCluster();
+            lastClusterFetchTime = now;
+        }
+        return cachedClusterCoordenadas;
+    }
+
+    public synchronized void invalidarCacheCluster() {
+        cachedClusterCoordenadas = null;
+        lastClusterFetchTime = 0;
+    }
+
     public PrioridadReporte calcularPrioridadPorProximidad(Double latitud, Double longitud, Long categoriaId, Long excluirReporteId) {
         if (latitud == null || longitud == null) {
             return PrioridadReporte.MEDIA;
         }
 
-        List<Reporte> activos = reporteRepository.findAll().stream()
+        List<ReporteCoordenadaDTO> activos = getActivosParaCluster().stream()
                 .filter(r -> (excluirReporteId == null || !r.getId().equals(excluirReporteId))
                         && r.getLatitud() != null && r.getLongitud() != null
-                        && r.getCategoria() != null
-                        && (categoriaId == null || r.getCategoria().getId().equals(categoriaId))
+                        && r.getCategoriaId() != null
+                        && (categoriaId == null || r.getCategoriaId().equals(categoriaId))
                         && r.getEstado() != EstadoReporte.RECHAZADO
                         && r.getEstado() != EstadoReporte.CERRADO
                         && calcularDistanciaMetros(latitud, longitud, r.getLatitud(), r.getLongitud()) <= 100.0)
@@ -800,18 +824,20 @@ public class ReporteService {
         if (latitud == null || longitud == null) {
             return;
         }
-        reporteRepository.findAll().stream()
+        getActivosParaCluster().stream()
                 .filter(r -> !r.getId().equals(reporteId)
                         && r.getLatitud() != null && r.getLongitud() != null
-                        && r.getCategoria() != null
-                        && (categoriaId == null || r.getCategoria().getId().equals(categoriaId))
+                        && r.getCategoriaId() != null
+                        && (categoriaId == null || r.getCategoriaId().equals(categoriaId))
                         && r.getEstado() != EstadoReporte.RECHAZADO
                         && r.getEstado() != EstadoReporte.CERRADO
                         && calcularDistanciaMetros(latitud, longitud, r.getLatitud(), r.getLongitud()) <= 100.0)
                 .forEach(cercano -> {
                     if (cercano.getPrioridad().ordinal() < nuevaPrioridad.ordinal()) {
-                        cercano.setPrioridad(nuevaPrioridad);
-                        reporteRepository.save(cercano);
+                        reporteRepository.findById(cercano.getId()).ifPresent(rep -> {
+                            rep.setPrioridad(nuevaPrioridad);
+                            reporteRepository.save(rep);
+                        });
                     }
                 });
     }
@@ -856,6 +882,7 @@ public class ReporteService {
 
         // 4. Eliminar el reporte
         reporteRepository.delete(reporte);
+        invalidarCacheCluster();
     }
 
     public ReporteResponse mapearReporteResponse(Reporte reporte) {
@@ -871,14 +898,14 @@ public class ReporteService {
         if (reporte.getLatitud() != null && reporte.getLongitud() != null && reporte.getCategoria() != null) {
             Long catId = reporte.getCategoria().getId();
             String catNombre = reporte.getCategoria().getNombre();
-            List<Reporte> cercanos = reporteRepository.findAll().stream()
+            long cercanosCount = getActivosParaCluster().stream()
                     .filter(r -> r.getLatitud() != null && r.getLongitud() != null
-                            && r.getCategoria() != null && r.getCategoria().getId().equals(catId)
+                            && r.getCategoriaId() != null && r.getCategoriaId().equals(catId)
                             && r.getEstado() != EstadoReporte.RECHAZADO
                             && r.getEstado() != EstadoReporte.CERRADO
                             && calcularDistanciaMetros(reporte.getLatitud(), reporte.getLongitud(), r.getLatitud(), r.getLongitud()) <= 100.0)
-                    .collect(Collectors.toList());
-            int clusterCount = Math.max(1, cercanos.size());
+                    .count();
+            int clusterCount = Math.max(1, (int) cercanosCount);
             SemaforoDTO sem = SemaforoDTO.calcularPorCategoria(clusterCount, catNombre);
             response.setReportesCercanos(clusterCount);
             response.setSemaforoColorHex(sem.getColorHex());

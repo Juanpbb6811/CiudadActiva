@@ -20,8 +20,8 @@ android {
         applicationId = "com.ciudadactiva.app"
         minSdk = 24
         targetSdk = 34
-        versionCode = 18
-        versionName = "0.2.7"
+        versionCode = 19
+        versionName = "0.2.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -38,14 +38,32 @@ android {
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleClientId\"")
     }
 
+    val localProperties = Properties().apply {
+        val f = project.rootProject.file("local.properties")
+        if (f.exists()) load(f.inputStream())
+    }
+    val keystorePass = System.getenv("KEYSTORE_PASSWORD")
+        ?: localProperties.getProperty("KEYSTORE_PASSWORD")
+        ?: "ciudadactiva123"
+
+    val keystoreAlias = System.getenv("KEY_ALIAS")
+        ?: localProperties.getProperty("KEY_ALIAS")
+        ?: "ciudadactiva"
+
+    val keyPass = System.getenv("KEY_PASSWORD")
+        ?: localProperties.getProperty("KEY_PASSWORD")
+        ?: "ciudadactiva123"
+
     signingConfigs {
         create("release") {
             storeFile = file("${project.rootDir}/keystore/release.jks")
-            storePassword = "ciudadactiva123"
-            keyAlias = "ciudadactiva"
-            keyPassword = "ciudadactiva123"
+            storePassword = keystorePass
+            keyAlias = keystoreAlias
+            keyPassword = keyPass
             enableV1Signing = true
             enableV2Signing = true
+            enableV3Signing = true
+            enableV4Signing = true
         }
     }
 

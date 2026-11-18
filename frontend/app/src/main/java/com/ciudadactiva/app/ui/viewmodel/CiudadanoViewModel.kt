@@ -62,43 +62,43 @@ class CiudadanoViewModel : ViewModel() {
             isLoading.value = true
             errorMessage.value = null
             try {
-                // Ejecución concurrente en paralelo: los reportes para el mapa y las listas se pueblan de inmediato sin bloquearse mutuamente
                 coroutineScope {
                     val catDeferred = async { api.listarCategorias() }
                     val misDeferred = async { api.listarMisReportes() }
                     val genDeferred = async { api.listarReportes() }
 
-                    launch {
-                        try {
-                            val catResp = catDeferred.await()
-                            if (catResp.isSuccessful && catResp.body()?.data != null) {
-                                categorias.value = catResp.body()!!.data!!
-                                if (nuevoReporteCategoria.value == null && categorias.value.isNotEmpty()) {
-                                    nuevoReporteCategoria.value = categorias.value.first()
-                                }
+                    try {
+                        val catResp = catDeferred.await()
+                        if (catResp.isSuccessful && catResp.body()?.data != null) {
+                            categorias.value = catResp.body()!!.data!!
+                            if (nuevoReporteCategoria.value == null && categorias.value.isNotEmpty()) {
+                                nuevoReporteCategoria.value = categorias.value.first()
                             }
-                        } catch (_: Exception) {}
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("CiudadanoVM", "Error cargando categorias", e)
                     }
 
-                    launch {
-                        try {
-                            val misResp = misDeferred.await()
-                            if (misResp.isSuccessful && misResp.body()?.data != null) {
-                                val lista = misResp.body()!!.data!!
-                                misReportes.value = lista
-                                reporteActivo.value = lista.firstOrNull { it.estado != "CERRADO" && it.estado != "RECHAZADO" }
-                            }
-                        } catch (_: Exception) {}
+                    try {
+                        val misResp = misDeferred.await()
+                        if (misResp.isSuccessful && misResp.body()?.data != null) {
+                            val lista = misResp.body()!!.data!!
+                            misReportes.value = lista
+                            reporteActivo.value = lista.firstOrNull { it.estado != "CERRADO" && it.estado != "RECHAZADO" }
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("CiudadanoVM", "Error cargando mis reportes", e)
                     }
 
-                    launch {
-                        try {
-                            val genResp = genDeferred.await()
-                            if (genResp.isSuccessful && genResp.body()?.data != null) {
-                                reportesCercanos.value = genResp.body()!!.data!!
-                            }
-                        } catch (_: Exception) {}
+                    try {
+                        val genResp = genDeferred.await()
+                        if (genResp.isSuccessful && genResp.body()?.data != null) {
+                            reportesCercanos.value = genResp.body()!!.data!!
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("CiudadanoVM", "Error cargando reportes comunitarios", e)
                     }
+                    Unit
                 }
             } catch (e: Exception) {
                 errorMessage.value = "Error al sincronizar datos: ${e.localizedMessage}"

@@ -1,5 +1,7 @@
 package com.ciudadactiva.repository;
 
+import com.ciudadactiva.dto.reporte.ReporteCoordenadaDTO;
+import com.ciudadactiva.dto.reporte.ReporteEstadisticaDTO;
 import com.ciudadactiva.entity.EstadoReporte;
 import com.ciudadactiva.entity.PrioridadReporte;
 import com.ciudadactiva.entity.Reporte;
@@ -30,6 +32,19 @@ public interface ReporteRepository extends JpaRepository<Reporte, Long> {
             @Param("prioridad") PrioridadReporte prioridad,
             @Param("ciudadanoId") Long ciudadanoId
     );
+
+    @Query("SELECT r.id AS id, r.latitud AS latitud, r.longitud AS longitud, " +
+           "r.categoria.id AS categoriaId, r.categoria.nombre AS categoriaNombre, " +
+           "r.estado AS estado, r.prioridad AS prioridad " +
+           "FROM Reporte r WHERE r.latitud IS NOT NULL AND r.longitud IS NOT NULL " +
+           "AND r.estado NOT IN (com.ciudadactiva.entity.EstadoReporte.RECHAZADO, com.ciudadactiva.entity.EstadoReporte.CERRADO)")
+    List<ReporteCoordenadaDTO> findReportesActivosParaCluster();
+
+    @Query("SELECT r.id AS id, r.creadoEn AS creadoEn, r.fechaCierre AS fechaCierre, " +
+           "r.estado AS estado, r.prioridad AS prioridad, " +
+           "r.categoria.id AS categoriaId, r.categoria.nombre AS categoriaNombre " +
+           "FROM Reporte r")
+    List<ReporteEstadisticaDTO> findAllParaEstadisticas();
 
     long countByEstado(EstadoReporte estado);
 

@@ -57,7 +57,7 @@ fun MisReportesScreen(
     }
 
     LaunchedEffect(isLoading) {
-        if (!isLoading) {
+        if (!isLoading && pullToRefreshState.isRefreshing) {
             pullToRefreshState.endRefresh()
         }
     }
@@ -278,12 +278,14 @@ fun MisReportesScreen(
                 }
             }
 
-            PullToRefreshContainer(
-                state = pullToRefreshState,
-                modifier = Modifier.align(Alignment.TopCenter),
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.primary
-            )
+            if (pullToRefreshState.isRefreshing || pullToRefreshState.verticalOffset > 0.5f) {
+                PullToRefreshContainer(
+                    state = pullToRefreshState,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
 }

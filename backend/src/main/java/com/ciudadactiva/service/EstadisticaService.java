@@ -2,6 +2,7 @@ package com.ciudadactiva.service;
 
 import com.ciudadactiva.dto.common.SemaforoDTO;
 import com.ciudadactiva.dto.estadistica.EstadisticasResponse;
+import com.ciudadactiva.dto.reporte.ReporteEstadisticaDTO;
 import com.ciudadactiva.entity.Categoria;
 import com.ciudadactiva.entity.EstadoReporte;
 import com.ciudadactiva.entity.PrioridadReporte;
@@ -50,7 +51,7 @@ public class EstadisticaService {
         final LocalDateTime desde = fechaInicio != null ? fechaInicio.atStartOfDay() : null;
         final LocalDateTime hastaExcl = fechaFin != null ? fechaFin.plusDays(1).atStartOfDay() : null;
 
-        List<Reporte> todosLosReportes = reporteRepository.findAll().stream()
+        List<ReporteEstadisticaDTO> todosLosReportes = reporteRepository.findAllParaEstadisticas().stream()
                 .filter(r -> r.getCreadoEn() != null)
                 .filter(r -> desde == null || !r.getCreadoEn().isBefore(desde))
                 .filter(r -> hastaExcl == null || r.getCreadoEn().isBefore(hastaExcl))
@@ -67,7 +68,7 @@ public class EstadisticaService {
         for (EstadoReporte estado : EstadoReporte.values()) {
             porEstado.put(estado.name(), 0L);
         }
-        for (Reporte r : todosLosReportes) {
+        for (ReporteEstadisticaDTO r : todosLosReportes) {
             porEstado.put(r.getEstado().name(), porEstado.getOrDefault(r.getEstado().name(), 0L) + 1);
         }
         response.setReportesPorEstado(porEstado);
@@ -78,9 +79,9 @@ public class EstadisticaService {
         for (Categoria c : todasLasCategorias) {
             porCategoria.put(c.getNombre(), 0L);
         }
-        for (Reporte r : todosLosReportes) {
-            if (r.getCategoria() != null) {
-                String catNombre = r.getCategoria().getNombre();
+        for (ReporteEstadisticaDTO r : todosLosReportes) {
+            if (r.getCategoriaNombre() != null) {
+                String catNombre = r.getCategoriaNombre();
                 porCategoria.put(catNombre, porCategoria.getOrDefault(catNombre, 0L) + 1);
             }
         }
@@ -96,7 +97,7 @@ public class EstadisticaService {
         for (PrioridadReporte p : PrioridadReporte.values()) {
             porPrioridad.put(p.name(), 0L);
         }
-        for (Reporte r : todosLosReportes) {
+        for (ReporteEstadisticaDTO r : todosLosReportes) {
             if (r.getPrioridad() != null) {
                 porPrioridad.put(r.getPrioridad().name(), porPrioridad.getOrDefault(r.getPrioridad().name(), 0L) + 1);
             }
@@ -123,7 +124,7 @@ public class EstadisticaService {
         double totalHoras = 0;
         long totalCerradosConFecha = 0;
 
-        for (Reporte r : todosLosReportes) {
+        for (ReporteEstadisticaDTO r : todosLosReportes) {
             if (r.getFechaCierre() != null && r.getCreadoEn() != null) {
                 Duration duracion = Duration.between(r.getCreadoEn(), r.getFechaCierre());
                 totalHoras += duracion.toMinutes() / 60.0;

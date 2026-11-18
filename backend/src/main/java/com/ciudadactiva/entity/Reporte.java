@@ -53,17 +53,25 @@ public class Reporte {
     @Column(name = "evidencia_cierre_url", columnDefinition = "TEXT")
     private String evidenciaCierreUrl;
 
+    @Basic(fetch = FetchType.LAZY)
     @Column(name = "foto_bytes")
     private byte[] fotoBytes;
 
     @Column(name = "foto_tipo", length = 50)
     private String fotoTipo;
 
+    @Basic(fetch = FetchType.LAZY)
     @Column(name = "foto_solucion_bytes")
     private byte[] fotoSolucionBytes;
 
     @Column(name = "foto_solucion_tipo", length = 50)
     private String fotoSolucionTipo;
+
+    @org.hibernate.annotations.Formula("foto_bytes IS NOT NULL")
+    private Boolean tieneFoto;
+
+    @org.hibernate.annotations.Formula("foto_solucion_bytes IS NOT NULL")
+    private Boolean tieneFotoSolucion;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "categoria_id", nullable = false)
@@ -288,6 +296,15 @@ public class Reporte {
         this.fotoBytes = fotoBytes;
     }
 
+    public Boolean getTieneFoto() {
+        if (tieneFoto != null) return tieneFoto;
+        return fotoBytes != null && fotoBytes.length > 0;
+    }
+
+    public void setTieneFoto(Boolean tieneFoto) {
+        this.tieneFoto = tieneFoto;
+    }
+
     public String getFotoTipo() {
         return fotoTipo;
     }
@@ -302,6 +319,15 @@ public class Reporte {
 
     public void setFotoSolucionBytes(byte[] fotoSolucionBytes) {
         this.fotoSolucionBytes = fotoSolucionBytes;
+    }
+
+    public Boolean getTieneFotoSolucion() {
+        if (tieneFotoSolucion != null) return tieneFotoSolucion;
+        return fotoSolucionBytes != null && fotoSolucionBytes.length > 0;
+    }
+
+    public void setTieneFotoSolucion(Boolean tieneFotoSolucion) {
+        this.tieneFotoSolucion = tieneFotoSolucion;
     }
 
     public String getFotoSolucionTipo() {
