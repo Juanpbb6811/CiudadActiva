@@ -42,17 +42,39 @@ fun OpenStreetMapComposable(
     var webViewRef by remember { mutableStateOf<WebView?>(null) }
     var isMapLoaded by remember { mutableStateOf(false) }
 
-    // Serializar reportes a JSON seguro para Leaflet
-    val reportesJson = remember(reportes) {
+    // Función auxiliar para inyectar reportes vía Base64 de forma inmune a errores de sintaxis
+    val injectReportesJs: (WebView?, String) -> Unit = remember {
+        { webView, b64 ->
+            val js = """
+                (function() {
+                    try {
+                        var jsonStr = decodeURIComponent(escape(window.atob('$b64')));
+                        var data = JSON.parse(jsonStr);
+                        if (window.setReportes) {
+                            window.setReportes(data);
+                        } else {
+                            window._pendingReportes = data;
+                        }
+                    } catch(e) {
+                        console.error('Error in setReportes: ' + e);
+                    }
+                })();
+            """.trimIndent()
+            webView?.evaluateJavascript(js, null)
+        }
+    }
+
+    // Serializar reportes a Base64 seguro para Leaflet (evita problemas con saltos de línea, comillas o tildes)
+    val base64Reportes = remember(reportes) {
         val jsonArray = JSONArray()
         reportes.forEach { rep ->
             if (rep.latitud != null && rep.longitud != null) {
                 val obj = JSONObject().apply {
                     put("id", rep.id)
-                    put("titulo", rep.titulo.replace("\"", "'").replace("\n", " "))
-                    put("descripcion", rep.descripcion.replace("\"", "'").replace("\n", " "))
-                    put("categoria", (rep.categoriaNombre ?: "General").replace("\"", "'"))
-                    put("direccion", rep.ubicacionLegible.replace("\"", "'"))
+                    put("titulo", (rep.titulo ?: "").trim())
+                    put("descripcion", (rep.descripcion ?: "").trim())
+                    put("categoria", (rep.categoriaNombre ?: "General").trim())
+                    put("direccion", rep.ubicacionLegible.trim())
                     put("latitud", rep.latitud)
                     put("longitud", rep.longitud)
                     put("prioridad", rep.prioridad ?: "MEDIA")
@@ -67,7 +89,7 @@ fun OpenStreetMapComposable(
                 jsonArray.put(obj)
             }
         }
-        jsonArray.toString()
+        android.util.Base64.encodeToString(jsonArray.toString().toByteArray(Charsets.UTF_8), android.util.Base64.NO_WRAP)
     }
 
     val userLat = userLocation?.first
@@ -89,12 +111,9 @@ fun OpenStreetMapComposable(
     }
 
     // Efecto reactivo para inyectar y actualizar reportes instantáneamente sin recargar la página del mapa
-    LaunchedEffect(reportesJson, isMapLoaded) {
+    LaunchedEffect(base64Reportes, isMapLoaded) {
         if (isMapLoaded && !isPickerMode) {
-            webViewRef?.evaluateJavascript(
-                "if (window.setReportes) window.setReportes($reportesJson);",
-                null
-            )
+            injectReportesJs(webViewRef, base64Reportes)
         }
     }
 
@@ -170,7 +189,7 @@ fun OpenStreetMapComposable(
                             // InvalidateSize tras cargar para garantizar que Leaflet detecte el tamaño real del viewport
                             view?.evaluateJavascript("if (window.map) { window.map.invalidateSize(); }", null)
                             if (!isPickerMode) {
-                                view?.evaluateJavascript("if (window.setReportes) { window.setReportes($reportesJson); }", null)
+                                injectReportesJs(view, base64Reportes)
                             }
                         }
 
@@ -434,6 +453,11 @@ private fun generateLeafletHtml(
                                 window.markersCluster.addLayer(circle);
                             });
                         };
+
+                        if (window._pendingReportes) {
+                            window.setReportes(window._pendingReportes);
+                            window._pendingReportes = null;
+                        }
                     """}
                 } catch (err) {
                     console.error('Error inicializando Leaflet: ' + err.message);

@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.ciudadactiva.app.data.api.ApiClient
 import com.ciudadactiva.app.data.model.*
 import com.ciudadactiva.app.ui.components.LocationHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -53,13 +55,21 @@ class CiudadanoViewModel : ViewModel() {
     val reporteDetalle = MutableStateFlow<ReporteDetalleResponse?>(null)
     val comentariosList = MutableStateFlow<List<ComentarioModel>>(emptyList())
 
+    private var jobCargarDatos: Job? = null
+
     init {
         cargarDatosHome()
     }
 
-    fun cargarDatosHome() {
-        viewModelScope.launch {
-            isLoading.value = true
+    fun cargarDatosHome(forceRefresh: Boolean = false) {
+        if (!forceRefresh && jobCargarDatos?.isActive == true) {
+            return
+        }
+        jobCargarDatos = viewModelScope.launch(Dispatchers.IO) {
+            // Solo activar indicador de pantalla completa si aún no hay categorías o reportes en memoria
+            if (categorias.value.isEmpty() || reportesCercanos.value.isEmpty()) {
+                isLoading.value = true
+            }
             errorMessage.value = null
             try {
                 coroutineScope {

@@ -4,39 +4,38 @@ Sistema integral para el reporte, validación, asignación operativa y seguimien
 
 ---
 
-## 📲 Descargar App Android (Release v0.2.8)
+## 📲 Descargar App Android (Release v0.2.9)
 
 Ya puedes instalar y probar la versión oficial y firmada de CiudadActiva directamente en tu dispositivo Android o emulador:
 
-[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.2.8_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/releases/download/v0.2.8/CiudadActiva-v0.2.8.apk)
+[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.2.9_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/releases/download/v0.2.9/CiudadActiva-v0.2.9.apk)
 [![Servidor Cloud](https://img.shields.io/badge/Descarga_Directa-Cloud_Render-blueviolet?style=for-the-badge&logo=render&logoColor=white)](https://ciudadactiva-4ah7.onrender.com/descargar)
-[![GitHub Release](https://img.shields.io/badge/GitHub_Release-v0.2.8-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.2.8)
+[![GitHub Release](https://img.shields.io/badge/GitHub_Release-v0.2.9-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.2.9)
 
 ### 📥 Enlaces de descarga directa:
-* 🌐 **[Servidor Oficial en la Nube (Render): Descargar CiudadActiva-v0.2.8.apk (12.3 MB)](https://ciudadactiva-4ah7.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
-* 🐙 **[GitHub Release Oficial: Descargar CiudadActiva-v0.2.8.apk (12.3 MB)](https://github.com/Juanpbb6811/CiudadActiva/releases/download/v0.2.8/CiudadActiva-v0.2.8.apk)**
+* 🌐 **[Servidor Oficial en la Nube (Render): Descargar CiudadActiva-v0.2.9.apk (12.3 MB)](https://ciudadactiva-4ah7.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
+* 🐙 **[GitHub Release Oficial: Descargar CiudadActiva-v0.2.9.apk (12.3 MB)](https://github.com/Juanpbb6811/CiudadActiva/releases/download/v0.2.9/CiudadActiva-v0.2.9.apk)**
 * 📦 **[Apartado Oficial de Releases en GitHub](https://github.com/Juanpbb6811/CiudadActiva/releases)**
 
 ### 🛠️ Instrucciones de Instalación en Android:
-1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.2.8.apk`.
+1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.2.9.apk`.
 2. Al finalizar la descarga, presiona **Abrir** (o ve a tu app de **Archivos / Descargas** y tócalo).
 3. Si el sistema muestra el aviso de seguridad de Android / Xiaomi, activa la opción **Confiar en esta fuente / Instalar aplicaciones desconocidas**.
 4. Pulsa **Instalar** y ¡listo!
 
-### ✨ Novedades de la versión v0.2.8:
-- 🚀 **Optimización Extrema de Base de Datos y Supabase Egress (Reducción 99.99%)**:
-  - Eliminación de consultas N+1 en el cálculo de proximidad geográfica, semáforos de urgencia y estadísticas.
-  - Implementación de proyecciones escalares ultralivianas (`ReporteCoordenadaDTO` y `ReporteEstadisticaDTO`) que transfieren menos de 2 KB en vez de descargar 32 MB de fotos binarias por consulta.
-  - Byte arrays de fotografías (`foto_bytes` y `foto_solucion_bytes`) configurados con carga diferida (`LAZY`) y bytecode enhancement de Hibernate.
-  - Caché en memoria de 15 segundos con invalidación automática ante cualquier cambio de estado, reporte o asignación.
-- 🔄 **Corrección de Pull-to-Refresh en Muro Comunitario**:
-  - Eliminación del indicador circular superpuesto en reposo: ahora solo es visible cuando el usuario efectivamente desliza la pantalla hacia abajo para refrescar.
-- 📡 **Sincronización Inmediata y Resiliente de Reportes**:
-  - Carga automática asegurada inmediatamente al iniciar sesión y al reanudar la app.
-  - Trazabilidad y registro de errores de red sin silenciamiento de excepciones.
-- 🔐 **Paquete Completo de Firmas Criptográficas V1, V2, V3 y V4**:
-  - Firma digital completa con soporte para todos los esquemas de Android (JAR V1, Full APK V2, Key Rotation V3 y V4 fs-verity).
-  - Protección de claves criptográficas y contraseñas mediante variables de entorno y `local.properties`.
+### ✨ Novedades de la versión v0.2.9:
+- 🗺️ **Carga Instantánea y Sincronización Inmediata al Abrir la App**:
+  - Precarga en paralelo iniciada desde el primer milisegundo en la pantalla de Splash, eliminando demoras de sincronización al entrar a Inicio o al Mapa.
+  - Candado `Job` único en `CiudadanoViewModel` para erradicar peticiones duplicadas y congestión de red.
+  - La información en memoria se preserva entre transiciones de pestañas sin pantallas de carga innecesarias.
+- 🔙 **Corrección de Navegación del Mapa a Inicio**:
+  - Al pulsar el botón "Inicio" en la barra inferior desde el Mapa interactivo, el sistema desapila instantáneamente la pantalla superior y retorna a la pantalla principal sin quedar bloqueado.
+  - El botón "Mapa de Incidencias" del Home queda integrado al ciclo de vida de la barra inferior con selección de pestaña única.
+- 🎨 **Pulido Visual del Skeleton Loader (Modo Oscuro / Botanical Specimen)**:
+  - Eliminación de los cuadros blancos deslumbrantes al cargar; ahora se adaptan armónicamente al tema activo con un brillo sutil en tonos verde esmeralda y salvia.
+- 🛡️ **Inyección Blindada de Marcadores en el Mapa Leaflet**:
+  - Serialización Base64 para el traspaso de reportes al motor JavaScript, inmune a saltos de línea, caracteres especiales, comillas o tildes en los reportes comunitarios.
+  - Manejo de cola pendiente (`_pendingReportes`) para asegurar que todos los marcadores se dibujen sin importar el orden de carga de la página.
 
 ---
 

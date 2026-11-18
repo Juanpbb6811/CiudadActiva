@@ -24,9 +24,11 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
+    onStartPreload: () -> Unit = {},
     onNavigateNext: (String) -> Unit
 ) {
     LaunchedEffect(Unit) {
+        onStartPreload()
         delay(1800)
         val session = CiudadActivaApplication.sessionManager
         if (session.isLoggedIn()) {

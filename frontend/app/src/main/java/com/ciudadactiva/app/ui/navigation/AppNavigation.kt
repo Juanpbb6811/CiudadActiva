@@ -75,10 +75,21 @@ fun AppNavigation() {
                     currentRoute = currentRoute,
                     userRole = userRole,
                     onNavigate = { route ->
-                        navController.navigate(route) {
-                            popUpTo(homeDestino) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
+                        if (route == currentRoute) {
+                            // Ya se encuentra en la pantalla activa
+                        } else if (route == homeDestino) {
+                            // Volver a Home desapilando las pantallas hijas inmediatamente
+                            if (!navController.popBackStack(homeDestino, inclusive = false)) {
+                                navController.navigate(homeDestino) {
+                                    launchSingleTop = true
+                                }
+                            }
+                        } else {
+                            navController.navigate(route) {
+                                popUpTo(homeDestino) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
                     },
                     onFabClick = {
@@ -96,10 +107,12 @@ fun AppNavigation() {
             // ================== RUTAS AUTENTICACIÓN ==================
             composable(Screen.Splash.route) {
                 SplashScreen(
-                    onNavigateNext = { route ->
-                        if (route == Screen.CiudadanoHome.route) {
+                    onStartPreload = {
+                        if (session.isLoggedIn()) {
                             ciudadanoViewModel.cargarDatosHome()
                         }
+                    },
+                    onNavigateNext = { route ->
                         navController.navigate(route) {
                             popUpTo(Screen.Splash.route) { inclusive = true }
                         }
@@ -163,7 +176,13 @@ fun AppNavigation() {
                     onVerReporteClick = { id ->
                         navController.navigate(Screen.SeguimientoTimeline.createRoute(id))
                     },
-                    onVerMapaClick = { navController.navigate(Screen.MapaExplorador.route) }
+                    onVerMapaClick = {
+                        navController.navigate(Screen.MapaExplorador.route) {
+                            popUpTo(homeDestino) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
                 )
             }
 
