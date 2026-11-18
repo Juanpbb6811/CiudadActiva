@@ -83,8 +83,11 @@ fun MapaExploradorScreen(
         }
     }
 
-    // Solicitar ubicación al iniciar la pantalla
+    // Solicitar ubicación al iniciar la pantalla y asegurar carga de reportes si aún no han llegado
     LaunchedEffect(Unit) {
+        if (viewModel.reportesCercanos.value.isEmpty()) {
+            viewModel.cargarDatosHome()
+        }
         if (LocationHelper.hasLocationPermission(context)) {
             LocationHelper.getCurrentLocation(
                 context = context,
@@ -105,7 +108,8 @@ fun MapaExploradorScreen(
     }
 
     // Filtrar reportes por búsqueda de texto y por categoría seleccionada
-    val filteredReportes = remember(reportes, searchQuery, selectedCategoriaId) {
+    val filteredReportes = remember(reportes, searchQuery, selectedCategoriaId, categorias) {
+        val selectedCatNombre = categorias.find { it.id == selectedCategoriaId }?.nombre
         reportes.filter { rep ->
             val matchQuery = searchQuery.isBlank() ||
                 rep.titulo.contains(searchQuery, ignoreCase = true) ||
@@ -116,7 +120,9 @@ fun MapaExploradorScreen(
                 (rep.departamento ?: "").contains(searchQuery, ignoreCase = true) ||
                 (rep.categoriaNombre ?: "").contains(searchQuery, ignoreCase = true)
 
-            val matchCat = selectedCategoriaId == null || rep.categoriaId == selectedCategoriaId
+            val matchCat = selectedCategoriaId == null ||
+                rep.categoriaId == selectedCategoriaId ||
+                (selectedCatNombre != null && rep.categoriaNombre.equals(selectedCatNombre, ignoreCase = true))
 
             matchQuery && matchCat
         }
@@ -223,7 +229,9 @@ fun MapaExploradorScreen(
 
                 items(categorias) { cat ->
                     val isSelected = selectedCategoriaId == cat.id
-                    val count = reportes.count { it.categoriaId == cat.id }
+                    val count = reportes.count { rep ->
+                        rep.categoriaId == cat.id || (rep.categoriaNombre?.equals(cat.nombre, ignoreCase = true) == true)
+                    }
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(16.dp))

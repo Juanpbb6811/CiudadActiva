@@ -4,33 +4,34 @@ Sistema integral para el reporte, validación, asignación operativa y seguimien
 
 ---
 
-## 📲 Descargar App Android (Release v0.2.6)
+## 📲 Descargar App Android (Release v0.2.7)
 
 Ya puedes instalar y probar la versión oficial y firmada de CiudadActiva directamente en tu dispositivo Android o emulador:
 
-[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.2.6_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/releases/download/v0.2.6/CiudadActiva-v0.2.6.apk)
+[![Descargar APK](https://img.shields.io/badge/Descargar_APK-v0.2.7_Release-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Juanpbb6811/CiudadActiva/releases/download/v0.2.7/CiudadActiva-v0.2.7.apk)
 [![Servidor Cloud](https://img.shields.io/badge/Descarga_Directa-Cloud_Render-blueviolet?style=for-the-badge&logo=render&logoColor=white)](https://ciudadactiva-4ah7.onrender.com/descargar)
-[![GitHub Release](https://img.shields.io/badge/GitHub_Release-v0.2.6-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.2.6)
+[![GitHub Release](https://img.shields.io/badge/GitHub_Release-v0.2.7-blue?style=for-the-badge&logo=github)](https://github.com/Juanpbb6811/CiudadActiva/releases/tag/v0.2.7)
 
 ### 📥 Enlaces de descarga directa:
-* 🌐 **[Servidor Oficial en la Nube (Render): Descargar CiudadActiva-v0.2.6.apk (12.3 MB)](https://ciudadactiva-4ah7.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
-* 🐙 **[GitHub Release Oficial: Descargar CiudadActiva-v0.2.6.apk (12.3 MB)](https://github.com/Juanpbb6811/CiudadActiva/releases/download/v0.2.6/CiudadActiva-v0.2.6.apk)**
+* 🌐 **[Servidor Oficial en la Nube (Render): Descargar CiudadActiva-v0.2.7.apk (12.3 MB)](https://ciudadactiva-4ah7.onrender.com/descargar)** *(Recomendado para celulares - Descarga directa oficial)*
+* 🐙 **[GitHub Release Oficial: Descargar CiudadActiva-v0.2.7.apk (12.3 MB)](https://github.com/Juanpbb6811/CiudadActiva/releases/download/v0.2.7/CiudadActiva-v0.2.7.apk)**
 * 📦 **[Apartado Oficial de Releases en GitHub](https://github.com/Juanpbb6811/CiudadActiva/releases)**
 
 ### 🛠️ Instrucciones de Instalación en Android:
-1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.2.6.apk`.
+1. Abre cualquiera de los enlaces anteriores en el navegador de tu celular y descarga el archivo `CiudadActiva-v0.2.7.apk`.
 2. Al finalizar la descarga, presiona **Abrir** (o ve a tu app de **Archivos / Descargas** y tócalo).
 3. Si el sistema muestra el aviso de seguridad de Android / Xiaomi, activa la opción **Confiar en esta fuente / Instalar aplicaciones desconocidas**.
 4. Pulsa **Instalar** y ¡listo!
 
-### ✨ Novedades de la versión v0.2.6:
-- 🎨 **Corrección Integral de Contraste y Pulido Visual (Dark/Light Modes)**:
-  - **Tipografía Dinámica Adaptativa**: Eliminación de colores estáticos fijos en `Type.kt`. Los textos y marcadores de posición (*placeholders*) ahora responden dinámicamente al tema activo con contraste WCAG AAA.
-  - **Ficha Ciudadana Rediseñada**: Campos de datos personales en modo lectura limpios con fondo sutil, íconos salvia e información en tono menta brillante (`#E0F6EB`) al 100% de opacidad, sin transparencias opacas de campos desactivados.
-  - **Nuevo Reporte Asistido**: Corrección de tarjetas de categorías y del banner de urgencia en modo oscuro, eliminando cajas blancas no deseadas.
-  - **Muro Comunitario y Búsqueda en Mapa**: Texto de estado vacío legible sobre fondo oscuro y barra de búsqueda con marcador de posición nítido.
-  - **Semáforos e Insignias**: Fondos de tarjetas y chips adaptados a superficies del tema en lugar de fondos claros fijos.
-  - **Barra de Navegación**: Aumento de visibilidad en íconos y textos inactivos (`onSurfaceVariant` a alta opacidad).
+### ✨ Novedades de la versión v0.2.7:
+- ⚡ **Optimización Inmediata del Mapa de Incidencias**:
+  - Puente reactivo bidireccional entre Jetpack Compose y Leaflet OpenStreetMap (`window.setReportes`).
+  - Eliminación de tiempos de espera en la aparición de marcadores: renderizado instantáneo sin recarga del mapa ni pérdida de zoom.
+  - Carga concurrente en paralelo de reportes en `CiudadanoViewModel` para disponibilidad inmediata de reportes georreferenciados.
+- 🔍 **Filtros Dinámicos de Categorías en Tiempo Real**:
+  - Chips de categoría interactivos con recálculo dinámico en el mapa al tocar cualquier filtro (*Todos*, *Huecos*, *Alumbrado*, *Basuras*, etc.) o buscar por texto.
+- 🔄 **Pull-to-Refresh en Muro Comunitario y Mis Reportes**:
+  - Gesto nativo de deslizar hacia abajo para actualizar con indicador visual Material 3 adaptado a la paleta botánica.
 
 ---
 

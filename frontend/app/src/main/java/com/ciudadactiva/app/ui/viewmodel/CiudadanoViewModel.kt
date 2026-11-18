@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.ciudadactiva.app.data.api.ApiClient
 import com.ciudadactiva.app.data.model.*
 import com.ciudadactiva.app.ui.components.LocationHelper
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -60,27 +62,43 @@ class CiudadanoViewModel : ViewModel() {
             isLoading.value = true
             errorMessage.value = null
             try {
-                // Categorías con semáforos
-                val catResp = api.listarCategorias()
-                if (catResp.isSuccessful && catResp.body()?.data != null) {
-                    categorias.value = catResp.body()!!.data!!
-                    if (nuevoReporteCategoria.value == null && categorias.value.isNotEmpty()) {
-                        nuevoReporteCategoria.value = categorias.value.first()
+                // Ejecución concurrente en paralelo: los reportes para el mapa y las listas se pueblan de inmediato sin bloquearse mutuamente
+                coroutineScope {
+                    val catDeferred = async { api.listarCategorias() }
+                    val misDeferred = async { api.listarMisReportes() }
+                    val genDeferred = async { api.listarReportes() }
+
+                    launch {
+                        try {
+                            val catResp = catDeferred.await()
+                            if (catResp.isSuccessful && catResp.body()?.data != null) {
+                                categorias.value = catResp.body()!!.data!!
+                                if (nuevoReporteCategoria.value == null && categorias.value.isNotEmpty()) {
+                                    nuevoReporteCategoria.value = categorias.value.first()
+                                }
+                            }
+                        } catch (_: Exception) {}
                     }
-                }
 
-                // Mis reportes
-                val misResp = api.listarMisReportes()
-                if (misResp.isSuccessful && misResp.body()?.data != null) {
-                    val lista = misResp.body()!!.data!!
-                    misReportes.value = lista
-                    reporteActivo.value = lista.firstOrNull { it.estado != "CERRADO" && it.estado != "RECHAZADO" }
-                }
+                    launch {
+                        try {
+                            val misResp = misDeferred.await()
+                            if (misResp.isSuccessful && misResp.body()?.data != null) {
+                                val lista = misResp.body()!!.data!!
+                                misReportes.value = lista
+                                reporteActivo.value = lista.firstOrNull { it.estado != "CERRADO" && it.estado != "RECHAZADO" }
+                            }
+                        } catch (_: Exception) {}
+                    }
 
-                // Reportes generales para mapa y cerca de ti
-                val genResp = api.listarReportes()
-                if (genResp.isSuccessful && genResp.body()?.data != null) {
-                    reportesCercanos.value = genResp.body()!!.data!!
+                    launch {
+                        try {
+                            val genResp = genDeferred.await()
+                            if (genResp.isSuccessful && genResp.body()?.data != null) {
+                                reportesCercanos.value = genResp.body()!!.data!!
+                            }
+                        } catch (_: Exception) {}
+                    }
                 }
             } catch (e: Exception) {
                 errorMessage.value = "Error al sincronizar datos: ${e.localizedMessage}"

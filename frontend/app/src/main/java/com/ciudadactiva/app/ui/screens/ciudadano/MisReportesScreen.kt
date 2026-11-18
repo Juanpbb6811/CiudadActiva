@@ -7,17 +7,22 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -32,6 +37,7 @@ import com.ciudadactiva.app.ui.theme.BrandTealDark
 import com.ciudadactiva.app.ui.theme.TextDark
 import com.ciudadactiva.app.ui.viewmodel.CiudadanoViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MisReportesScreen(
     viewModel: CiudadanoViewModel,
@@ -40,6 +46,21 @@ fun MisReportesScreen(
 ) {
     val misReportes by viewModel.misReportes.collectAsState()
     val reportesComunidad by viewModel.reportesCercanos.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
+    val pullToRefreshState = rememberPullToRefreshState()
+
+    LaunchedEffect(pullToRefreshState.isRefreshing) {
+        if (pullToRefreshState.isRefreshing) {
+            viewModel.cargarDatosHome()
+        }
+    }
+
+    LaunchedEffect(isLoading) {
+        if (!isLoading) {
+            pullToRefreshState.endRefresh()
+        }
+    }
 
     var reporteParaEliminar by remember { mutableStateOf<ReporteResponse?>(null) }
     val currentUserId = remember { com.ciudadactiva.app.CiudadActivaApplication.sessionManager.getUserId() }
@@ -200,55 +221,69 @@ fun MisReportesScreen(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        if (reportesFiltrados.isEmpty()) {
-            // Estado vacío amigable
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(32.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = if (pestanaSeleccionada == 0) Icons.Default.ChatBubbleOutline else Icons.Default.Description,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        modifier = Modifier.size(54.dp)
-                    )
-                    Spacer(modifier = Modifier.height(14.dp))
-                    Text(
-                        text = if (pestanaSeleccionada == 0) "No hay reportes comunitarios con este filtro" else "Aún no has creado reportes propios",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = if (pestanaSeleccionada == 0) "Prueba seleccionando otro filtro de estado." else "¡Explora lo que reportan otros vecinos en la pestaña 'Comunidad' o crea una incidencia con el botón (+)!",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        lineHeight = 16.sp,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(pullToRefreshState.nestedScrollConnection)
+        ) {
+            if (reportesFiltrados.isEmpty()) {
+                // Estado vacío amigable y scrolleable para permitir Pull-To-Refresh
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = if (pestanaSeleccionada == 0) Icons.Default.ChatBubbleOutline else Icons.Default.Description,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            modifier = Modifier.size(54.dp)
+                        )
+                        Spacer(modifier = Modifier.height(14.dp))
+                        Text(
+                            text = if (pestanaSeleccionada == 0) "No hay reportes comunitarios con este filtro" else "Aún no has creado reportes propios",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = if (pestanaSeleccionada == 0) "Prueba seleccionando otro filtro de estado o desliza hacia abajo para refrescar." else "¡Explora lo que reportan otros vecinos en la pestaña 'Comunidad' o crea una incidencia con el botón (+)!",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            lineHeight = 16.sp,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(reportesFiltrados) { reporte ->
+                        val esAutor = (reporte.ciudadanoId == currentUserId || currentUserRole == "ROLE_ADMIN")
+                        val puedeEliminar = esAutor && reporte.estado == "PENDIENTE"
+                        ReporteFeedItemCard(
+                            reporte = reporte,
+                            onClick = { onVerReporteClick(reporte.id) },
+                            onEliminarClick = if (puedeEliminar) { { reporteParaEliminar = reporte } } else null
+                        )
+                    }
                 }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(reportesFiltrados) { reporte ->
-                    val esAutor = (reporte.ciudadanoId == currentUserId || currentUserRole == "ROLE_ADMIN")
-                    val puedeEliminar = esAutor && reporte.estado == "PENDIENTE"
-                    ReporteFeedItemCard(
-                        reporte = reporte,
-                        onClick = { onVerReporteClick(reporte.id) },
-                        onEliminarClick = if (puedeEliminar) { { reporteParaEliminar = reporte } } else null
-                    )
-                }
-            }
+
+            PullToRefreshContainer(
+                state = pullToRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter),
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }

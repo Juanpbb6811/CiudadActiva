@@ -7,9 +7,16 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.ciudadactiva.app.data.model.ReporteResponse
 import org.json.JSONArray
@@ -68,7 +75,7 @@ fun OpenStreetMapComposable(
     val pickLat = selectedLat ?: centerLat
     val pickLng = selectedLng ?: centerLng
 
-    val htmlContent = remember(isPickerMode, reportesJson) {
+    val htmlContent = remember(isPickerMode) {
         generateLeafletHtml(
             centerLat = centerLat,
             centerLng = centerLng,
@@ -77,9 +84,18 @@ fun OpenStreetMapComposable(
             userLng = userLng,
             isPickerMode = isPickerMode,
             pickLat = pickLat,
-            pickLng = pickLng,
-            reportesJson = reportesJson
+            pickLng = pickLng
         )
+    }
+
+    // Efecto reactivo para inyectar y actualizar reportes instantáneamente sin recargar la página del mapa
+    LaunchedEffect(reportesJson, isMapLoaded) {
+        if (isMapLoaded && !isPickerMode) {
+            webViewRef?.evaluateJavascript(
+                "if (window.setReportes) window.setReportes($reportesJson);",
+                null
+            )
+        }
     }
 
     // Efectos para comunicar cambios reactivos al mapa sin recargar la página entera
@@ -110,80 +126,99 @@ fun OpenStreetMapComposable(
         }
     }
 
-    AndroidView(
-        modifier = modifier.fillMaxSize(),
-        factory = { context ->
-            WebView(context).apply {
-                webViewRef = this
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
-                )
+    Box(modifier = modifier.fillMaxSize()) {
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = { context ->
+                WebView(context).apply {
+                    webViewRef = this
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
 
-                // Habilitar aceleración por hardware para renderizado fluido de tiles
-                setLayerType(View.LAYER_TYPE_HARDWARE, null)
+                    // Habilitar aceleración por hardware para renderizado fluido de tiles
+                    setLayerType(View.LAYER_TYPE_HARDWARE, null)
 
-                settings.apply {
-                    javaScriptEnabled = true
-                    domStorageEnabled = true
-                    databaseEnabled = true
-                    cacheMode = WebSettings.LOAD_DEFAULT
-                    useWideViewPort = true
-                    loadWithOverviewMode = true
-                    mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-                    allowFileAccess = true
-                    allowContentAccess = true
-                    // User-Agent completo para evitar bloqueo 403 Forbidden de servidores de tiles
-                    userAgentString = "Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36 CiudadActivaApp/1.0"
-                }
-
-                // Diagnóstico y logging de consola de JavaScript
-                webChromeClient = object : WebChromeClient() {
-                    override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
-                        Log.d(TAG, "[Leaflet JS] ${consoleMessage?.message()} (línea ${consoleMessage?.lineNumber()})")
-                        return true
-                    }
-                }
-
-                webViewClient = object : WebViewClient() {
-                    override fun onPageFinished(view: WebView?, url: String?) {
-                        super.onPageFinished(view, url)
-                        isMapLoaded = true
-                        Log.d(TAG, "Página Leaflet cargada con éxito. Forzando invalidateSize().")
-                        // InvalidateSize tras cargar para garantizar que Leaflet detecte el tamaño real del viewport
-                        view?.evaluateJavascript("if (window.map) { window.map.invalidateSize(); }", null)
+                    settings.apply {
+                        javaScriptEnabled = true
+                        domStorageEnabled = true
+                        databaseEnabled = true
+                        cacheMode = WebSettings.LOAD_DEFAULT
+                        useWideViewPort = true
+                        loadWithOverviewMode = true
+                        mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+                        allowFileAccess = true
+                        allowContentAccess = true
+                        // User-Agent completo para evitar bloqueo 403 Forbidden de servidores de tiles
+                        userAgentString = "Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36 CiudadActivaApp/1.0"
                     }
 
-                    override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
-                        super.onReceivedError(view, request, error)
-                        Log.e(TAG, "Error cargando recurso: ${request?.url} -> ${error?.description}")
-                    }
-                }
-
-                addJavascriptInterface(object {
-                    @JavascriptInterface
-                    fun onReportSelected(idStr: String) {
-                        val id = idStr.toLongOrNull() ?: return
-                        Handler(Looper.getMainLooper()).post {
-                            onReportClick?.invoke(id)
+                    // Diagnóstico y logging de consola de JavaScript
+                    webChromeClient = object : WebChromeClient() {
+                        override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
+                            Log.d(TAG, "[Leaflet JS] ${consoleMessage?.message()} (línea ${consoleMessage?.lineNumber()})")
+                            return true
                         }
                     }
 
-                    @JavascriptInterface
-                    fun onLocationPicked(lat: Double, lng: Double) {
-                        Handler(Looper.getMainLooper()).post {
-                            onLocationSelected?.invoke(lat, lng)
+                    webViewClient = object : WebViewClient() {
+                        override fun onPageFinished(view: WebView?, url: String?) {
+                            super.onPageFinished(view, url)
+                            isMapLoaded = true
+                            Log.d(TAG, "Página Leaflet cargada con éxito. Forzando invalidateSize().")
+                            // InvalidateSize tras cargar para garantizar que Leaflet detecte el tamaño real del viewport
+                            view?.evaluateJavascript("if (window.map) { window.map.invalidateSize(); }", null)
+                            if (!isPickerMode) {
+                                view?.evaluateJavascript("if (window.setReportes) { window.setReportes($reportesJson); }", null)
+                            }
+                        }
+
+                        override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+                            super.onReceivedError(view, request, error)
+                            Log.e(TAG, "Error cargando recurso: ${request?.url} -> ${error?.description}")
                         }
                     }
-                }, "AndroidBridge")
 
-                loadDataWithBaseURL("https://cdnjs.cloudflare.com", htmlContent, "text/html", "UTF-8", null)
+                    addJavascriptInterface(object {
+                        @JavascriptInterface
+                        fun onReportSelected(idStr: String) {
+                            val id = idStr.toLongOrNull() ?: return
+                            Handler(Looper.getMainLooper()).post {
+                                onReportClick?.invoke(id)
+                            }
+                        }
+
+                        @JavascriptInterface
+                        fun onLocationPicked(lat: Double, lng: Double) {
+                            Handler(Looper.getMainLooper()).post {
+                                onLocationSelected?.invoke(lat, lng)
+                            }
+                        }
+                    }, "AndroidBridge")
+
+                    loadDataWithBaseURL("https://cdnjs.cloudflare.com", htmlContent, "text/html", "UTF-8", null)
+                }
+            },
+            update = { webView ->
+                webViewRef = webView
             }
-        },
-        update = { webView ->
-            webViewRef = webView
+        )
+
+        if (!isMapLoaded) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background.copy(alpha = 0.6f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(36.dp)
+                )
+            }
         }
-    )
+    }
 }
 
 private fun generateLeafletHtml(
@@ -194,8 +229,7 @@ private fun generateLeafletHtml(
     userLng: Double?,
     isPickerMode: Boolean,
     pickLat: Double,
-    pickLng: Double,
-    reportesJson: String
+    pickLng: Double
 ): String {
     return """
         <!DOCTYPE html>
@@ -350,8 +384,7 @@ private fun generateLeafletHtml(
                         });
                     """ else """
                         // Modo explorador: Agrupación inteligente (Clustering) de reportes en radio cercano
-                        var reportesData = $reportesJson;
-                        var markersCluster = L.markerClusterGroup({
+                        window.markersCluster = L.markerClusterGroup({
                             maxClusterRadius: 55,
                             spiderfyOnMaxZoom: true,
                             showCoverageOnHover: false,
@@ -371,29 +404,36 @@ private fun generateLeafletHtml(
                                 });
                             }
                         });
+                        map.addLayer(window.markersCluster);
 
-                        reportesData.forEach(function(rep) {
-                            var circle = L.circleMarker([rep.latitud, rep.longitud], {
-                                radius: 12,
-                                fillColor: rep.colorHex,
-                                color: '#FFFFFF',
-                                weight: 2.5,
-                                opacity: 1,
-                                fillOpacity: 0.90
+                        window.setReportes = function(reportesData) {
+                            if (!window.markersCluster) return;
+                            window.markersCluster.clearLayers();
+                            if (!reportesData || !Array.isArray(reportesData)) return;
+
+                            reportesData.forEach(function(rep) {
+                                if (rep.latitud === undefined || rep.longitud === undefined || rep.latitud === null || rep.longitud === null) return;
+                                var circle = L.circleMarker([rep.latitud, rep.longitud], {
+                                    radius: 12,
+                                    fillColor: rep.colorHex || '#4CAF50',
+                                    color: '#FFFFFF',
+                                    weight: 2.5,
+                                    opacity: 1,
+                                    fillOpacity: 0.90
+                                });
+
+                                var htmlPopup = '<div class="popup-card">' +
+                                    '<span class="popup-cat">' + (rep.categoria || 'General') + '</span>' +
+                                    '<div class="popup-title">' + (rep.titulo || '') + '</div>' +
+                                    '<div style="font-size: 11px; color: #555;">📍 ' + (rep.direccion || '') + '</div>' +
+                                    '<div style="font-size: 11px; font-weight: bold; margin-top: 5px; color: ' + (rep.colorHex || '#4CAF50') + ';">Urgencia: ' + (rep.prioridad || 'MEDIA') + ' (' + (rep.cercanos || 1) + ' en sector)</div>' +
+                                    '<button class="popup-btn" onclick="window.AndroidBridge.onReportSelected(\'' + rep.id + '\')">Ver Seguimiento →</button>' +
+                                    '</div>';
+
+                                circle.bindPopup(htmlPopup);
+                                window.markersCluster.addLayer(circle);
                             });
-
-                            var htmlPopup = '<div class="popup-card">' +
-                                '<span class="popup-cat">' + rep.categoria + '</span>' +
-                                '<div class="popup-title">' + rep.titulo + '</div>' +
-                                '<div style="font-size: 11px; color: #555;">📍 ' + rep.direccion + '</div>' +
-                                '<div style="font-size: 11px; font-weight: bold; margin-top: 5px; color: ' + rep.colorHex + ';">Urgencia: ' + rep.prioridad + ' (' + rep.cercanos + ' en sector)</div>' +
-                                '<button class="popup-btn" onclick="window.AndroidBridge.onReportSelected(\'' + rep.id + '\')">Ver Seguimiento →</button>' +
-                                '</div>';
-
-                            circle.bindPopup(htmlPopup);
-                            markersCluster.addLayer(circle);
-                        });
-                        map.addLayer(markersCluster);
+                        };
                     """}
                 } catch (err) {
                     console.error('Error inicializando Leaflet: ' + err.message);
