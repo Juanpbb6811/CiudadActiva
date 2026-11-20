@@ -25,12 +25,14 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ciudadactiva.app.R
 import com.ciudadactiva.app.data.model.CategoriaModel
 import com.ciudadactiva.app.data.model.ReporteResponse
+import com.ciudadactiva.app.data.model.SemaforoModel
 import com.ciudadactiva.app.ui.components.LoadingSkeleton
 import com.ciudadactiva.app.ui.components.PrioridadChip
 import com.ciudadactiva.app.ui.components.SemaforoBadge
@@ -184,19 +186,24 @@ fun CiudadanoHomeScreen(
             items(categorias) { cat ->
                 Card(
                     modifier = Modifier
-                        .width(130.dp)
+                        .width(136.dp)
+                        .height(168.dp)
                         .clickable { onCategoriaClick(cat) }
                         .shadow(2.dp, RoundedCornerShape(18.dp)),
                     shape = RoundedCornerShape(18.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Column(
-                        modifier = Modifier.padding(12.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 10.dp, vertical = 12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.SpaceBetween
                     ) {
+                        // Icono circular
                         Box(
                             modifier = Modifier
-                                .size(44.dp)
+                                .size(42.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.surfaceVariant),
                             contentAlignment = Alignment.Center
@@ -216,25 +223,34 @@ fun CiudadanoHomeScreen(
                             )
                         }
 
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = cat.nombre,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 1
-                        )
-
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                        cat.semaforo?.let { sem ->
-                            SemaforoBadge(
-                                semaforo = sem,
-                                mostrarDetalle = false,
-                                modifier = Modifier.fillMaxWidth()
+                        // Título de la categoría con ranura de altura fija para 1 o 2 líneas
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(36.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = cat.nombre,
+                                fontSize = 12.sp,
+                                lineHeight = 15.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                textAlign = TextAlign.Center,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
+
+                        // Caja de semáforo de riesgo con tamaño uniforme y fijo siempre
+                        val sem = cat.semaforo ?: SemaforoModel.calcularLocal(0)
+                        SemaforoBadge(
+                            semaforo = sem,
+                            mostrarDetalle = false,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(36.dp)
+                        )
                     }
                 }
             }
